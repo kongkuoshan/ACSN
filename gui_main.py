@@ -30,17 +30,17 @@ def setup_basic_logging():
 
 
 def check_dependencies():
-    """检查关键依赖是否已安装"""
-    missing = []
-    checks = [
+    """检查关键依赖。返回 (required_missing, optional_missing)"""
+    required_missing = []
+    optional_missing = []
+
+    required = [
         ("PySide6", "PySide6"),
         ("PySide6.QtWebEngineWidgets", "PySide6 (QtWebEngine)"),
         ("yaml", "pyyaml"),
         ("neo4j", "neo4j"),
         ("pandas", "pandas"),
         ("openpyxl", "openpyxl"),
-        ("sentence_transformers", "sentence-transformers"),
-        ("sklearn", "scikit-learn"),
         ("pypinyin", "pypinyin"),
         ("uvicorn", "uvicorn"),
         ("fastapi", "fastapi"),
@@ -48,13 +48,24 @@ def check_dependencies():
         ("requests", "requests"),
     ]
 
-    for module, package in checks:
+    optional = [
+        ("sentence_transformers", "sentence-transformers (NLP聚类需要)"),
+        ("sklearn", "scikit-learn (NLP聚类需要)"),
+    ]
+
+    for module, package in required:
         try:
             __import__(module)
         except ImportError:
-            missing.append(package)
+            required_missing.append(package)
 
-    return missing
+    for module, package in optional:
+        try:
+            __import__(module)
+        except ImportError:
+            optional_missing.append(package)
+
+    return required_missing, optional_missing
 
 
 def ensure_config():
@@ -76,19 +87,23 @@ def main():
     ensure_config()
 
     # 依赖检查
-    missing = check_dependencies()
-    if missing:
+    required_missing, optional_missing = check_dependencies()
+    if required_missing:
         print("=" * 60)
-        print("❌ 缺少以下 Python 包:")
-        print("   " + ", ".join(missing))
+        print("❌ 缺少以下必需 Python 包:")
+        print("   " + ", ".join(required_missing))
         print()
-        print("请运行以下命令安装:")
-        print(f"   pip install {' '.join(missing)}")
-        print()
-        print("或一键安装全部依赖:")
-        print("   pip install -r requirements.txt")
+        print("请运行: pip install -r requirements.txt")
         print("=" * 60)
         sys.exit(1)
+
+    if optional_missing:
+        print("=" * 60)
+        print("⚠️  缺少以下可选 Python 包 (NLP聚类/LLM分析需要):")
+        print("   " + ", ".join(optional_missing))
+        print()
+        print("如需NLP功能请运行: pip install sentence-transformers scikit-learn")
+        print("=" * 60)
 
     from PySide6.QtWidgets import QApplication
     from gui.dark_theme import apply_dark_theme

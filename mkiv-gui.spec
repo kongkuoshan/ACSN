@@ -15,7 +15,7 @@ a = Analysis(
     pathex=[str(PROJECT_ROOT)],
     binaries=[],
     datas=[
-        ('config/config.yaml', 'config'),
+        ('config/config.example.yaml', 'config'),
     ],
     hiddenimports=[
         # Qt WebEngine (CRITICAL: must be explicit)
@@ -47,10 +47,10 @@ a = Analysis(
         'gui.dark_theme',
         'gui.startup_wizard',
         'gui.widgets',
-        # ML
-        'sentence_transformers',
-        'sklearn.cluster',
-        'sklearn.cluster._agglomerative',
+        # ML (excluded from bundle to keep size manageable — see requirements-ml.txt)
+        # 'sentence_transformers',
+        # 'sklearn.cluster',
+        # 'sklearn.cluster._agglomerative',
         # Other
         'neo4j',
         'pypinyin',
@@ -72,6 +72,10 @@ a = Analysis(
         'scipy',
         'numpy.tests',
         'pandas.tests',
+        'torch',
+        'transformers',
+        'sentence_transformers',
+        'sklearn',
     ],
     win_no_prefer_redirects=False,
     win_private_assemblies=False,
