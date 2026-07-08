@@ -225,3 +225,82 @@ def create_textarea_row(label_text: str, default: str = "", param_key: str = "",
         layout.addWidget(btn)
 
     return layout, text_edit
+
+
+def create_kv_table_row(label_text: str, data: dict = None, param_key: str = "",
+                        key_header: str = "关键字", val_header: str = "值", parent=None):
+    """
+    创建键值对表格编辑行: [Label] [Table + Add/Del buttons] [?]
+
+    返回: (row_layout, table_widget)
+    """
+    from PySide6.QtWidgets import QTableWidget, QTableWidgetItem, QHeaderView
+    from PySide6.QtCore import Qt as QtCore
+
+    layout = QHBoxLayout()
+    layout.setContentsMargins(0, 2, 0, 2)
+
+    label = QLabel(label_text)
+    label.setMinimumWidth(130)
+    label.setAlignment(QtCore.AlignTop)
+    layout.addWidget(label)
+
+    # 表格 + 按钮容器
+    table_container = QVBoxLayout()
+    table_container.setSpacing(4)
+
+    table = QTableWidget(0, 2)
+    table.setHorizontalHeaderLabels([key_header, val_header])
+    table.horizontalHeader().setSectionResizeMode(0, QHeaderView.Stretch)
+    table.horizontalHeader().setSectionResizeMode(1, QHeaderView.Stretch)
+    table.setMaximumHeight(150)
+    table.setMinimumHeight(80)
+    table.setStyleSheet("""
+        QTableWidget { background-color: #1E1E1E; color: #E0E0E0; border: 1px solid #444; }
+        QTableWidget::item { padding: 2px; }
+        QHeaderView::section { background-color: #252525; color: #CCC; border: 1px solid #444; padding: 2px; }
+    """)
+
+    # 初始数据
+    if data:
+        for k, v in data.items():
+            if k:
+                table.insertRow(table.rowCount())
+                table.setItem(table.rowCount() - 1, 0, QTableWidgetItem(str(k)))
+                table.setItem(table.rowCount() - 1, 1, QTableWidgetItem(str(v)))
+
+    table_container.addWidget(table)
+
+    # 增删按钮
+    btn_row = QHBoxLayout()
+    btn_add = QPushButton("+ 添加行")
+    btn_add.setFixedHeight(24)
+    btn_add.setStyleSheet("font-size: 11px; padding: 2px 8px;")
+    btn_del = QPushButton("- 删除选中行")
+    btn_del.setFixedHeight(24)
+    btn_del.setStyleSheet("font-size: 11px; padding: 2px 8px; background-color: #c0392b;")
+
+    def add_row():
+        table.insertRow(table.rowCount())
+        table.setItem(table.rowCount() - 1, 0, QTableWidgetItem(""))
+        table.setItem(table.rowCount() - 1, 1, QTableWidgetItem(""))
+
+    def del_row():
+        row = table.currentRow()
+        if row >= 0:
+            table.removeRow(row)
+
+    btn_add.clicked.connect(add_row)
+    btn_del.clicked.connect(del_row)
+    btn_row.addWidget(btn_add)
+    btn_row.addWidget(btn_del)
+    btn_row.addStretch()
+    table_container.addLayout(btn_row)
+
+    layout.addLayout(table_container, 1)
+
+    if param_key and param_key in HELP:
+        btn = make_help_btn(param_key, parent)
+        layout.addWidget(btn)
+
+    return layout, table
