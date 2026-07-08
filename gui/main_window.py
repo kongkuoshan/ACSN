@@ -327,8 +327,9 @@ class MainWindow(QMainWindow):
             uri=config['database']['uri'],
             user=config['database']['user'],
             password=config['database']['password'],
-            import_dir=config['paths'].get('neo4j_import_dir',
-                                           config.get('author_matcher', {}).get('paths', {}).get('neo4j_import_dir', './data/import'))
+            import_dir=(config.get('author_matcher', {}).get('neo4j_import_dir') or
+                        config.get('paths', {}).get('neo4j_import_dir') or
+                        './data/import')
         )
 
     # ================================================================

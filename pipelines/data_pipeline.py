@@ -270,7 +270,7 @@ class AcademicPipeline:
             logging.error("❌ 找不到 U3.json，无法执行入库。")
             return
 
-        import_dir = paths['neo4j_import_dir']
+        import_dir = self.config.get('author_matcher', {}).get('neo4j_import_dir', './data/import')
         extract_graph_to_csv(u3_data, df_pi, import_dir)
 
         try:

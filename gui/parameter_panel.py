@@ -359,9 +359,12 @@ class ParameterPanel(QScrollArea):
 
             # Neo4j import dir
             am = self.config.get('author_matcher', {})
-            am_paths = am.get('paths', {})
-            self._set_text("author_matcher.paths.neo4j_import_dir",
-                           am_paths.get('neo4j_import_dir', ''))
+            import_dir = am.get('neo4j_import_dir', '')
+            if not import_dir:
+                am_paths = am.get('paths', {})
+                if isinstance(am_paths, dict):
+                    import_dir = am_paths.get('neo4j_import_dir', '')
+            self._set_text("author_matcher.paths.neo4j_import_dir", import_dir or '')
 
             # 作者匹配
             self._set_text("author_matcher.name_column",
@@ -425,9 +428,7 @@ class ParameterPanel(QScrollArea):
         # Neo4j import dir
         if 'author_matcher' not in self.config:
             self.config['author_matcher'] = {}
-        if 'paths' not in self.config['author_matcher']:
-            self.config['author_matcher']['paths'] = {}
-        self.config['author_matcher']['paths']['neo4j_import_dir'] = \
+        self.config['author_matcher']['neo4j_import_dir'] = \
             self._get_text("author_matcher.paths.neo4j_import_dir")
 
         # 作者匹配

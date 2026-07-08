@@ -69,8 +69,7 @@ llm_assistant:
 # === 作者画像匹配 ===
 author_matcher:
   name_column: "导师姓名"                    # 输入 Excel 中姓名所在列
-  paths:
-    neo4j_import_dir: "./data/import"        # Neo4j LOAD CSV 导入目录
+  neo4j_import_dir: "./data/import"          # Neo4j LOAD CSV 导入目录
 
 
 # === 图数据库 (Neo4j) ===
