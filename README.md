@@ -140,14 +140,44 @@ database:
   password: "修改此密码"                    # ⚠️ 务必修改
 ```
 
-### 3. 启动 — 三种方式
+### 3. 启动 — 分平台
 
-| 方式 | 命令 | 适用场景 |
-|------|------|---------|
-| **GUI 桌面** | `python gui_main.py` | 日常使用，参数面板 + 内嵌大屏 |
-| **CLI + GUI** | `python main.py --gui` | 开发者，通过命令行切换 |
-| **CLI 批处理** | `python main.py` | 服务器 / 无头环境 |
-| **打包 EXE** | 双击 `MKIV_Academic_Graph.exe` | 最终用户，无需安装 Python |
+MKIV 支持 **4 种启动方式** × **2 个平台**，根据你的场景选择。
+
+#### Windows
+
+| 方式 | 操作 | 适用 |
+|------|------|------|
+| **🖥️ GUI 桌面** | `python gui_main.py` | 日常使用 |
+| **🔀 CLI→GUI** | `python main.py --gui` | 开发者 |
+| **⌨️ CLI 批处理** | `python main.py` | 服务器 / 无头 |
+| **📦 EXE 一键** | 双击 `MKIV_Academic_Graph.exe` | 零依赖最终用户 |
+
+> Windows 上 GPU 加速保持开启，QWebEngineView 使用 DirectX 渲染，性能最佳。
+
+#### Linux
+
+| 方式 | 操作 | 注意 |
+|------|------|------|
+| **🖥️ GUI 桌面** | `python gui_main.py` | 自动禁用 GPU 加速避免闪烁 |
+| **🔀 CLI→GUI** | `python main.py --gui` | 同上 |
+| **⌨️ CLI 批处理** | `python main.py` | 服务器推荐 |
+| **📦 二进制** | `./MKIV_Academic_Graph` | PyInstaller 构建产物 |
+
+> Linux 上自动设置 `QTWEBENGINE_CHROMIUM_FLAGS='--disable-gpu'` 修复 OpenGL 闪烁。不影响功能，仅 WebEngine 用软件渲染。
+
+#### 命令行完整参数
+
+```bash
+# 从头跑全流程 (取消 main.py 中的注释):
+python main.py
+
+# 仅启动大屏看已有数据 (默认):
+python main.py
+
+# 指定自定义配置文件:
+python main.py --config /path/to/my_config.yaml
+```
 
 ### 4. 启动 Neo4j 图数据库
 
