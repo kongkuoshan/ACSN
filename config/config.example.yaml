@@ -1,58 +1,86 @@
-# config/config.yaml
+# ================================================================
+# MKIV 学术情报图谱引擎 — 配置文件模板
+# ================================================================
+# 首次运行时会自动复制此文件为 config/config.yaml。
+# 请编辑 config/config.yaml 填入你的实际参数。
+# config/config.yaml 不会被上传到 Git (已在 .gitignore 中)。
+
+
+# === 机构设置 ===
 institution:
-  email: "youremail@example.com"
-  start_year: 2021  # 新增：抓取起始年份
-  target_id: "https://openalex.org/I4210112150"
-  fallback_keywords:    #硬规则部分
+  email: "youremail@example.com"           # 你的邮箱 (OpenAlex Polite Pool 需要)
+  start_year: 2021                          # 文献抓取起始年份
+  target_id: "https://openalex.org/I4210112150"  # 目标机构 OpenAlex ID
+  fallback_keywords:                        # 机构名兜底关键词 (正则匹配)
     - "automation"
     - "NLPR"
     - "CASIA"
-  casia_keys:
-    '': '' # 这里填你原本的 AAA: BBB
+  casia_keys:                               # 金钥匙映射 (机构关键字 → 标准中文名)
+    '': ''
 
+# === 数据路径 ===
 paths:
-  # 中间件数据路径
+  # 中间件输出
   data_u1_raw: "./data/01_raw/U1.json"
   data_u1_5_tagged: "./data/02_analyzed/U1.5.json"
   data_u2_cleaned: "./data/03_cleaned/U2.json"
   data_u2_unique: "./data/03_cleaned/unique.json"
   data_u2_5_nlp: "./data/03_cleaned/U2_5.json"
   data_u3_final: "./data/output/U3.json"
+
+  # 输入文件
   input_author_excel: "./data/input/0_原始导师名单.xlsx"
+
+  # 输出文件
   output_author_excel: "./data/output/0_作者匹配画像表.xlsx"
-  
-  # 人类/AI 交互的 Excel 映射表路径 (✨ 修正了后缀 .xlsx)
+
+  # 人工校验映射表
   excel_aff_mapping: "./data/input/1_机构映射表.xlsx"
   excel_con_mapping: "./data/input/2_研究领域映射表.xlsx"
-  
-  # 可选模块的 AI 预填表输出路径
+
+  # AI 预填版映射表
   excel_aff_mapping_ai: "./data/input/1_机构映射表_AI预填版.xlsx"
   excel_con_mapping_ai: "./data/input/2_研究领域映射表_AI预填版.xlsx"
 
-  # 姓名转换流水线
+  # 姓名转换
   input_names_excel: "./data/input/0_原始导师名单.xlsx"
   output_names_excel: "./data/output/0_作者匹配画像表.xlsx"
 
+  # 情报分析输出
+  data_concept_map: "./data/output/concept_dim_map.json"
+  data_trends: "./data/output/trends.json"
+  data_lab_radar: "./data/output/lab_radar.json"
+  data_topic_sunburst: "./data/output/topic_sunburst.json"
+
+
+# === NLP 参数 ===
 nlp:
-  target_aff_clusters: 350
+  target_aff_clusters: 350                  # 机构名聚类目标簇数 (推荐 300-500)
 
-# ✨ 可选的 LLM 大模型预填配置
+
+# === LLM 大模型辅助 (可选) ===
 llm_assistant:
-  enabled: true # 如果没有运行大模型，改为 false 即可跳过 3.5 步
-  api_url: "http://localhost:8080/v1/chat/completions"
+  enabled: false                             # 是否启用
+  api_url: "http://localhost:8080/v1/chat/completions"   # OpenAI 兼容 API
   concept_target_fields: "人工智能, 计算机视觉, 机器人学, 自动控制, 脑科学与神经科学, 医学影像, 计算机体系结构, 物理与工程, 生物与医学, 社会与人文, 数学与基础科学"
-  affiliation_system_prompt: "你是一个机构识别专家。判断输入是否属于。如果是,输出其中文实验室简称(如:模式识别重点实验室,脑网络组中心);如果不是，请直接输出'外部合作机构'。只输出名称，不要解释。"
+  affiliation_system_prompt: "你是一个机构识别专家。判断输入是否属于目标机构。如果是,输出其中文实验室简称;如果不是,输出'外部合作机构'。只输出名称,不要解释。"
 
 
-# 新增：画像匹配引擎配置
+# === 作者画像匹配 ===
 author_matcher:
-  name_column: "导师姓名" # 你的输入 Excel 中，人名所在的列名
+  name_column: "导师姓名"                    # 输入 Excel 中姓名所在列
   paths:
-  # ... 保留之前的路径 ...
-  # 新增：Neo4j 的专属 Import 文件夹路径 (用于 LOAD CSV)
-  neo4j_import_dir: "/home/sl/neo4j_dataMKII/import" 
+    neo4j_import_dir: "./data/import"        # Neo4j LOAD CSV 导入目录
 
+
+# === 图数据库 (Neo4j) ===
 database:
-  uri: "bolt://localhost:7688"
-  user: "neo4j"
-  password: "12345678" #填写你的密码
+  uri: "bolt://localhost:7688"              # Bolt 连接地址
+  user: "neo4j"                              # 用户名
+  password: "请修改此密码"                    # ⚠️ 务必修改!
+
+
+# === 情报分析 ===
+analytics:
+  concept_clusters: 25                       # 概念降维目标簇数
+  use_llm_labels: false                      # 是否用 LLM 命名概念簇

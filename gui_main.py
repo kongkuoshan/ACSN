@@ -34,7 +34,7 @@ def check_dependencies():
     missing = []
     checks = [
         ("PySide6", "PySide6"),
-        ("PySide6.QtWebEngineWidgets", "PySide6-QtWebEngine"),
+        ("PySide6.QtWebEngineWidgets", "PySide6 (QtWebEngine)"),
         ("yaml", "pyyaml"),
         ("neo4j", "neo4j"),
         ("pandas", "pandas"),
@@ -57,9 +57,23 @@ def check_dependencies():
     return missing
 
 
+def ensure_config():
+    """首次运行时自动从模板生成 config.yaml"""
+    config_path = os.path.join(_project_root, "config", "config.yaml")
+    example_path = os.path.join(_project_root, "config", "config.example.yaml")
+
+    if not os.path.exists(config_path):
+        import shutil
+        shutil.copy(example_path, config_path)
+        print("📋 首次运行: 已从 config.example.yaml 生成 config/config.yaml")
+        print("   请编辑 config/config.yaml 填入你的机构 ID、邮箱和数据库密码。")
+        print()
+
+
 def main():
     """GUI 入口主函数"""
     setup_basic_logging()
+    ensure_config()
 
     # 依赖检查
     missing = check_dependencies()

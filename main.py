@@ -1,5 +1,6 @@
 # main.py
 import sys
+import os
 import yaml
 import logging
 from pipelines.data_pipeline import AcademicPipeline
@@ -13,12 +14,31 @@ def setup_logging():
     )
 
 
+def ensure_config():
+    """首次运行时自动从模板生成 config.yaml"""
+    import shutil
+    config_path = "config/config.yaml"
+    example_path = "config/config.example.yaml"
+    if not os.path.exists(config_path):
+        shutil.copy(example_path, config_path)
+        logging.info("📋 首次运行: 已从 config.example.yaml 生成 config/config.yaml")
+        logging.info("   请编辑 config/config.yaml 填入你的机构 ID、邮箱和数据库密码。")
+
+
 if __name__ == "__main__":
     # GUI 模式入口
     if "--gui" in sys.argv:
         from gui_main import main as gui_main
         gui_main()
         sys.exit(0)
+
+    # 首次运行自动生成配置
+    if not os.path.exists("config/config.yaml"):
+        import shutil
+        shutil.copy("config/config.example.yaml", "config/config.yaml")
+        print("📋 首次运行: 已从 config.example.yaml 生成 config/config.yaml")
+        print("   请编辑 config/config.yaml 填入你的机构 ID、邮箱和数据库密码。")
+        print()
 
     setup_logging()
 

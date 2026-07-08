@@ -2,13 +2,13 @@
 # MKIV Academic Intelligence Graph Engine — PyInstaller Spec
 # Build: pyinstaller mkiv-gui.spec
 
-import sys
+import sys, os
 from pathlib import Path
 
 block_cipher = None
 
-# 项目根目录
-PROJECT_ROOT = Path(__file__).parent
+# 项目根目录 (SPECPATH 由 PyInstaller 提供)
+PROJECT_ROOT = Path(SPECPATH).parent if 'SPECPATH' in dir() else Path(os.path.abspath('.'))
 
 a = Analysis(
     ['gui_main.py'],
@@ -101,7 +101,7 @@ exe = EXE(
     target_arch=None,
     codesign_identity=None,
     entitlements_file=None,
-    icon=str(PROJECT_ROOT / 'gui' / 'resources' / 'mkiv_icon.ico') if (PROJECT_ROOT / 'gui' / 'resources' / 'mkiv_icon.ico').exists() else None,
+    icon=None,  # Add custom .ico file to gui/resources/
 )
 
 if sys.platform == 'win32':
