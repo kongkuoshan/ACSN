@@ -39,20 +39,35 @@ def build_cluster_mappings(unique_data: dict, target_clusters: int) -> tuple:
 
     if raw_affs:
         logging.info(f"🏢 启动 AI 聚类引擎，处理 {len(raw_affs)} 条机构变体...")
-        
-        # 加载语言模型 (首次运行会自动下载)
-        model = SentenceTransformer('paraphrase-multilingual-MiniLM-L12-v2')
-        embeddings = model.encode(raw_affs, show_progress_bar=True)
 
-        logging.info(f"🎯 执行层次聚类 (强制输出 {target_clusters} 个簇)...")
-        clustering_model = AgglomerativeClustering(
-            n_clusters=target_clusters,
-            metric='euclidean',
-            linkage='ward',
-            compute_distances=True
-        )
-        labels = clustering_model.fit_predict(embeddings)
-        logging.info(f"📊 动态等效误差阈值: {clustering_model.distances_[-target_clusters]:.4f}")
+        # 加载语言模型 (首次运行会自动下载 ~500MB)
+        try:
+            model = SentenceTransformer('paraphrase-multilingual-MiniLM-L12-v2')
+            embeddings = model.encode(raw_affs, show_progress_bar=True)
+        except MemoryError:
+            logging.error("❌ 内存不足！请关闭其他程序后重试，或减少数据量。")
+            return pd.DataFrame(), pd.DataFrame(), {}
+        except Exception as e:
+            logging.error(f"❌ 模型加载/编码失败: {e}")
+            return pd.DataFrame(), pd.DataFrame(), {}
+
+        logging.info(f"🎯 执行层次聚类 (目标 {target_clusters} 簇)...")
+
+        # 对于大批量数据使用 KMeans 避免 O(n²) 内存
+        try:
+            if len(raw_affs) > 3000:
+                from sklearn.cluster import KMeans
+                logging.info("   -> 数据量较大，切换为 KMeans 聚类 (内存更安全)")
+                clustering_model = KMeans(n_clusters=target_clusters, random_state=42, n_init='auto')
+                labels = clustering_model.fit_predict(embeddings)
+            else:
+                clustering_model = AgglomerativeClustering(
+                    n_clusters=target_clusters, metric='euclidean', linkage='ward'
+                )
+                labels = clustering_model.fit_predict(embeddings)
+        except Exception as e:
+            logging.error(f"❌ 聚类失败: {e}")
+            return pd.DataFrame(), pd.DataFrame(), {}
 
         # 将结果按簇分组
         cluster_dict = defaultdict(list)

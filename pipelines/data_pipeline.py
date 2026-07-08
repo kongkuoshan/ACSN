@@ -45,10 +45,25 @@ class AcademicPipeline:
         # 2. 如果提供了原始名单，则执行画像匹配
         input_excel = cfg['paths']['input_author_excel']
         if os.path.exists(input_excel):
+            # 检测中文名并自动转换为拼音
+            df_input = load_excel(input_excel)
+            if not df_input.empty:
+                name_col = cfg['author_matcher']['name_column']
+                has_chinese = any('\u4e00' <= str(c) <= '\u9fff' for c in df_input[name_col].dropna().head(5).sum())
+                if has_chinese:
+                    logging.info("   🔤 检测到中文导师名，自动转换为拼音...")
+                    from core.name_processor import build_name_mapping_dataframe
+                    raw_names = df_input[name_col].dropna().astype(str).tolist()
+                    df_pinyin = build_name_mapping_dataframe(raw_names)
+                    # 在原始 df 中添加拼音列
+                    pinyin_map = dict(zip(df_pinyin.iloc[:, 0], df_pinyin['English Name']))
+                    df_input['English_Name'] = df_input[name_col].map(pinyin_map)
+                    # 保存转换对照表
+                    save_excel(df_pinyin, cfg['paths']['output_names_excel'])
+
             target_id_short = cfg['institution']['target_id'].split("/")[-1]
             local_db = build_local_database(all_works, parent_id=target_id_short)
 
-            df_input = load_excel(input_excel)
             df_out = match_names_locally(
                 df_input=df_input,
                 name_column=cfg['author_matcher']['name_column'],
@@ -59,7 +74,12 @@ class AcademicPipeline:
                 save_excel(df_out, cfg['paths']['output_author_excel'])
                 logging.info(f"🎉 强大的 0 号表已保存至: {cfg['paths']['output_author_excel']}")
         else:
-            logging.warning(f"⚠️ 未找到输入名单 {input_excel}，已跳过画像匹配环节。")
+            logging.warning("⚠️" + "=" * 58)
+            logging.warning(f"⚠️  未找到导师名单: {input_excel}")
+            logging.warning("⚠️  请将导师姓名 Excel 放入 data/input/ 目录")
+            logging.warning("⚠️  或在 GUI「路径配置」中修改 input_author_excel 路径")
+            logging.warning("⚠️  未放置名单将跳过【作者画像匹配】环节")
+            logging.warning("⚠️" + "=" * 58)
 
     # ================================================================
     # Step 1: 靶向过滤与内部节点打标
