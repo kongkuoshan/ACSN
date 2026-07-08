@@ -1,23 +1,20 @@
 ---
-title: 'MKIV: An Open-Source Analytics Engine for Institutional Knowledge Graph Construction and Multi-Dimensional Research Evolution Mapping'
+title: 'MKIV: A Pipeline Toolkit for Institutional Bibliometric Data Cleaning, Entity Resolution, and Research Trend Visualization'
 tags:
   - Python
   - OpenAlex
   - entity-resolution
   - knowledge-graph
   - scientometrics
-  - data-governance
-  - embedding
   - clustering
-  - nlp
   - neo4j
   - desktop-gui
 authors:
-  - name: MKIV Team
+  - name: Your Name
     orcid: 0000-0000-0000-0000
     affiliation: 1
 affiliations:
-  - name: Institution Name
+  - name: Your Institution
     index: 1
 date: 08 July 2026
 bibliography: paper.bib
@@ -25,41 +22,41 @@ bibliography: paper.bib
 
 # Summary
 
-The MKIV Academic Intelligence Graph Engine is an open-source, end-to-end analytics workstation designed to transform fragmented bibliographic metadata from [OpenAlex](https://openalex.org/) into structured, actionable institutional intelligence. Unlike traditional rule-based cleaning tools, MKIV introduces a dual-layer **Semantic Vanguard Propagation (SVP)** architecture that applies unsupervised semantic clustering via `SentenceTransformer` embeddings and agglomerative clustering to both institutional affiliations and multi-level research concepts (Levels 0–5). This approach collapses thousands of high-entropy lexical variants into a manageable set of "Vanguard" representatives, enabling efficient truth injection through Large Language Models (LLMs) or domain expert verification. The system automates the full data lifecycle—from fault-tolerant REST API crawling to Neo4j graph database deployment—and provides a desktop-grade graphical interface with embedded ECharts visualizations. Critically, MKIV extends beyond data engineering by integrating an **Intelligence Analytics Module** that performs concept dimensionality reduction and generates temporal evolution maps (ThemeRiver), institutional research-propensity radar charts, and hierarchical topic Sunburst diagrams, making it a comprehensive competitive intelligence platform for scientometricians and institutional analysts.
+MKIV is an open-source Python toolkit that automates the process of building an institutional knowledge graph from OpenAlex bibliographic data. It crawls publication records for a target institution, cleans noisy affiliation strings and research concepts, resolves entity variants through embedding-based clustering with optional LLM-assisted labeling, imports the resulting graph into Neo4j, and serves interactive ECharts dashboards for exploring collaboration networks and research trends.
+
+The system is delivered as both a command-line pipeline and a PySide6 desktop application with a graphical parameter panel, embedded web dashboard, one-click Docker-based Neo4j deployment, and a setup wizard for first-time users. A key design choice is the "vanguard" strategy: rather than sending every raw affiliation string to an LLM or requiring manual review of thousands of variants, the pipeline first clusters similar strings using SentenceTransformer embeddings and agglomerative clustering, then surfaces only the cluster representatives for human or LLM labeling. Verified labels are propagated back to all variants in each cluster. This pattern is applied independently to both institutional affiliations and research concepts, reducing the manual labeling workload from thousands of items to a few dozen.
 
 # Statement of Need
 
-High-precision institutional profiling and research trend analysis are fundamentally hindered by the extreme lexical ambiguity of self-reported metadata in global scholarly databases such as OpenAlex. A single research laboratory or scientific concept may manifest as hundreds of noisy textual variants—varying abbreviations, nested organizational addresses, translated names, and evolving research nomenclature. While LLM-based entity resolution is semantically powerful, processing millions of records directly through large models is computationally prohibitive and cost-ineffective. Furthermore, existing scientometric tools typically address either data cleaning or data visualization in isolation, lacking an integrated pipeline that bridges governance with intelligence. MKIV addresses these challenges by providing: (1) a scalable infrastructure that abstracts data complexity through unsupervised clustering before applying high-level intelligence (AI or human expertise) solely to cluster representatives; and (2) a unified desktop environment that democratizes access to advanced bibliometric analysis for non-programming users through a PySide6 graphical interface with one-click Docker-based database deployment.
+Self-reported affiliation strings in bibliographic databases are notoriously inconsistent. A single research group may appear under dozens of textual variants—different abbreviations, nested organizational hierarchies, translated names, and typographical errors. Cleaning this data typically requires either brittle regular expressions that fail on unseen variants, or exhaustive manual review that does not scale with institutional publication volume. Existing open-source tools for scholarly analytics (e.g., VOSviewer, CiteSpace) focus on citation network visualization and assume pre-cleaned input data, leaving a gap between raw API data and analysis-ready datasets. MKIV fills this gap with an integrated, configurable pipeline that handles the full data lifecycle from acquisition to visualization, and provides a graphical interface accessible to users without programming experience.
 
-# State of the Field
+# Software Description
 
-Institutional data governance in scientometrics currently oscillates between static rule-based systems (e.g., regular expression pipelines) and high-cost manual curation. Static systems lack the semantic flexibility to resolve laboratory-level granularity and cross-lingual name variations, while manual curation fails to scale with the exponential growth of global scholarly output. Recent tools have begun incorporating embedding models for entity matching, but they often lack an integrated "propagation" mechanism to broadcast verified ground truths back to all noisy variants. Furthermore, existing open-source platforms for scholarly analytics (e.g., VOSviewer, CiteSpace) focus predominantly on citation network visualization rather than institutional data governance and multi-dimensional research evolution tracking. MKIV advances the state of the field by formalizing the "Vanguard" logic as a reusable ETL paradigm—applied independently to affiliations and to research concepts—and by integrating governance, analytics, and visualization within a single cross-platform desktop application.
+MKIV is organized into nine pipeline stages orchestrated by a central `AcademicPipeline` class:
 
-# Software Architecture
+- **Stage 0**: A fault-tolerant REST crawler retrieves works for a given OpenAlex institution ID with configurable year range, using cursor-based pagination and local caching.
+- **Stages 1–2**: Authors are tagged as internal or external via institution lineage matching, with configurable keyword fallback. Raw affiliation strings are cleaned by removing emails, postal codes, and country names.
+- **Stage 3**: Unique affiliation variants are embedded with `paraphrase-multilingual-MiniLM-L12-v2` and clustered (AgglomerativeClustering or KMeans for large datasets). The shortest string in each cluster becomes its "vanguard" representative. An Excel template is generated for human review.
+- **Stage 3.5 (optional)**: An OpenAI-compatible LLM endpoint can batch-label the vanguards with standardized names. Post-processing detects and merges duplicate labels.
+- **Stage 4**: Human-verified Excel mappings are parsed. Concepts not present in the mapping are dropped; affiliations are standardized using dictionary lookup with configurable keyword-based fallback (`golden_keys`).
+- **Stage 4.5**: Multi-level concepts from the gold dataset undergo a second clustering pass for dimensionality reduction. Three analytics outputs are generated: a year-by-topic evolution matrix, a laboratory-by-topic propensity matrix, and a hierarchical topic tree.
+- **Stage 5**: The gold dataset is serialized into CSV node and edge tables (Scholar, Paper, Lab, Topic, and four relationship types) and loaded into Neo4j via `LOAD CSV`.
+- **Stage 6**: A FastAPI server serves two ECharts dashboard pages: a force-directed collaboration graph with search and filtering, and an analytics page with ThemeRiver, radar, and Sunburst charts.
 
-MKIV adopts a configuration-driven, fully decoupled architecture with multiple entry points supporting diverse user profiles (CLI developer mode, GUI desktop mode, and packaged executable distribution). The system comprises ten core modules orchestrated by a nine-stage pipeline:
+The desktop GUI is built with PySide6 (LGPL) and features a dark-themed scrollable parameter panel with per-field help tooltips, a QWebEngineView for embedded dashboard rendering, a real-time log console, a startup wizard with environment detection, and one-click Docker container management for Neo4j. Pipeline execution runs in a QThread to keep the interface responsive.
 
-1. **Stage 0 — Data Acquisition**: A fault-tolerant REST crawler with exponential backoff and local caching retrieves complete publication records for a target institution from OpenAlex.
-2. **Stages 1–2 — Rule-Based Cleaning**: Institutional lineage matching combined with configurable regular expression fallback tags each author as internal or external; hard-rule filters remove email addresses, postal codes, and country names from raw affiliation strings.
-3. **Stage 3 — Semantic Vanguard Propagation (SVP)**: Unique affiliation variants and research concepts are embedded using `paraphrase-multilingual-MiniLM-L12-v2`. Agglomerative clustering with a configurable target cluster count identifies "Vanguard" representatives. An Excel mapping template is generated for human verification.
-4. **Stage 3.5 — LLM Auto-Labeling (Optional)**: An OpenAI-compatible API endpoint can be invoked to pre-fill the mapping templates, reducing manual workload by over 95%.
-5. **Stage 4 — Final Assembly**: Human-verified mapping rules are parsed and applied with strict filtering—concepts not present in the verified mapping are dropped, and affiliations are standardized using both dictionary lookups and hard-coded golden-key fallbacks.
-6. **Stage 4.5 — Intelligence Analytics (Novel Contribution)** : Multi-level concepts (Levels 0–5) are re-extracted from the gold dataset. A second SVP pass performs concept dimensionality reduction, clustering hundreds of fine-grained keywords into ~25 macro-categories. Three analytics artifacts are generated: (a) a year-by-topic evolution matrix for ThemeRiver visualization; (b) a laboratory-by-topic propensity matrix for radar chart comparison; and (c) a hierarchical topic tree for Sunburst drill-down.
-7. **Stage 5 — Graph Database Import**: The gold dataset is serialized into CSV node and edge tables (Scholar, Paper, Lab, Topic, and four relationship types) and loaded into a Neo4j graph database using Cypher LOAD CSV.
-8. **Stage 6 — Visualization Server**: A FastAPI backend serves the ECharts force-graph dashboard and the analytics dashboard over HTTP, consumed by the embedded Chromium WebEngine in the desktop GUI.
+# Research Use Cases
 
-The desktop GUI (`gui_main.py`) is implemented with PySide6 (Qt for Python, LGPL-licensed) and features a dark-themed parameter panel with integrated help tooltips for all configuration keys, an embedded QWebEngineView for dashboard rendering, a real-time log console, a three-page first-run setup wizard, and one-click Docker-based Neo4j deployment with cross-platform path normalization for volume mounting. The pipeline executes in a dedicated QThread, ensuring the GUI remains responsive during long-running NLP computations.
+The primary use case is institutional research profiling: given an OpenAlex institution ID and a list of researcher names, MKIV produces a clean knowledge graph showing who collaborates with whom, which labs they belong to, and what topics they publish on. The analytics module extends this with longitudinal views—showing how an institution's research focus has shifted over time, and comparing research tendencies across laboratories.
 
-# Research Impact
-
-MKIV empowers research institutions and funding agencies to perform deep-dive competitive analysis and talent trajectory tracking with unprecedented efficiency and transparency. By providing a fully auditable, reproducible pipeline from raw API data to interactive dashboards, it facilitates rigorous scientometric studies that can be independently verified. The Intelligence Analytics Module's ability to visualize temporal transitions in research focus—for instance, mapping an institution's evolution from traditional mechanical engineering toward generative AI over a decade—makes MKIV an essential asset for strategic planning, recruitment, and technology forecasting. The packaged executable distribution model (via PyInstaller and GitHub Releases) eliminates technical barriers for non-programming stakeholders, enabling research administrators, librarians, and policy analysts to independently generate institutional intelligence. As an open-source framework with a modular architecture, MKIV invites community contributions for additional data sources (e.g., Scopus, Dimensions), visualization types, and analytical models.
+MKIV has been tested with data from a Chinese Academy of Sciences institute (approximately 4,000 works, 177 unique concepts, and 3,865 raw affiliation variants reduced to 30 vanguard clusters). The pipeline completed the full crawl-to-dashboard cycle on commodity hardware, with the NLP clustering step running on CPU.
 
 # Acknowledgements
 
-Data is sourced from the OpenAlex API under CC0 license. This project's architectural refactoring, Semantic Vanguard Propagation logic implementation, and graphical user interface were developed with AI-assisted programming. The desktop GUI is built with PySide6/Qt, and all interactive visualizations are rendered using Apache ECharts.
+Data is sourced from the OpenAlex API (CC0). The Sentence-BERT model is from Reimers & Gurevych (2019). The graphical interface uses PySide6/Qt. Interactive visualizations use Apache ECharts. AI-assisted programming was used during development of the GUI and pipeline orchestration modules.
 
 # References
 
-- Priem, J., Piwowar, H., & Orr, R. (2022). OpenAlex: A fully-open index of scholarly works, authors, venues, institutions, and concepts. arXiv preprint arXiv:2205.01833.
-- Reimers, N., & Gurevych, I. (2019). Sentence-BERT: Sentence Embeddings using Siamese BERT-Networks. In Proceedings of the 2019 Conference on Empirical Methods in Natural Language Processing (EMNLP).
-- Pedregosa, F., et al. (2011). Scikit-learn: Machine Learning in Python. Journal of Machine Learning Research, 12, 2825–2830.
+- Priem, J., Piwowar, H., & Orr, R. (2022). OpenAlex: A fully-open index of scholarly works, authors, venues, institutions, and concepts. arXiv:2205.01833.
+- Reimers, N., & Gurevych, I. (2019). Sentence-BERT: Sentence Embeddings using Siamese BERT-Networks. EMNLP 2019.
+- Pedregosa, F., et al. (2011). Scikit-learn: Machine Learning in Python. JMLR, 12, 2825–2830.
