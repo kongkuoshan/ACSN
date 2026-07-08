@@ -85,7 +85,7 @@ def _get_standard_name(raw_text: str, aff_map: dict, casia_keys: dict) -> str:
         return "主机构映射"
         
     # 4. 终极垃圾桶兜底
-    return "中国科学院自动化研究所 (其他部门)"
+    return " (其他部门)"
 
 
 def generate_final_u3(u2_5_data: list, aff_map: dict, con_map: dict, casia_keys: dict) -> tuple:

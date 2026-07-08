@@ -153,8 +153,8 @@ class ParameterPanel(QScrollArea):
         layout = QFormLayout()
         layout.setSpacing(8)
 
-        _, w = create_int_row("目标聚类数:", default=350, param_key="nlp.target_aff_clusters",
-                              min_val=50, max_val=2000, parent=self)
+        _, w = create_int_row("目标聚类数:", default=30, param_key="nlp.target_aff_clusters",
+                              min_val=5, max_val=500, parent=self)
         self._widgets["nlp.target_aff_clusters"] = w
         layout.addRow(w)
 
@@ -412,7 +412,7 @@ class ParameterPanel(QScrollArea):
 
             # NLP
             nlp = self.config.get('nlp', {})
-            self._set_int("nlp.target_aff_clusters", nlp.get('target_aff_clusters', 350))
+            self._set_int("nlp.target_aff_clusters", nlp.get('target_aff_clusters', 30))
 
             # LLM
             llm = self.config.get('llm_assistant', {})
