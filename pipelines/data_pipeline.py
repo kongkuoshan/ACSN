@@ -8,7 +8,7 @@ from core.author_matcher import build_local_database, match_names_locally
 from core.cleaner import tag_internal_nodes, extract_and_clean_entities
 from core.analyzer import build_cluster_mappings, apply_vanguard_mapping
 from core.assembler import parse_mapping_rules, generate_final_u3
-from core.llm_labeler import auto_label_concepts, auto_label_affiliations
+from core.llm_labeler import auto_label_concepts, auto_label_affiliations, auto_label_affiliations_batch, deduplicate_standard_names
 from core.trend_analyzer import reduce_concept_dimensions, generate_evolution_data, generate_lab_radar_data, generate_topic_distribution
 from utils.file_handler import load_json, save_json, load_excel, save_excel
 
@@ -190,14 +190,16 @@ class AcademicPipeline:
             )
             save_excel(df_con_ai, paths['excel_con_mapping_ai'])
 
-        # 2. 预填机构表
+        # 2. 预填机构表 — 批量模式 (避免一名多类)
         df_aff = load_excel(paths['excel_aff_mapping'])
         if not df_aff.empty:
-            df_aff_ai = auto_label_affiliations(
+            df_aff_ai = auto_label_affiliations_batch(
                 df_aff=df_aff,
                 api_url=api_url,
-                sys_prompt=llm_cfg['affiliation_system_prompt']
+                sys_prompt=llm_cfg.get('affiliation_system_prompt')
             )
+            # 后处理: 合并 LLM 产生的重名
+            df_aff_ai = deduplicate_standard_names(df_aff_ai)
             save_excel(df_aff_ai, paths['excel_aff_mapping_ai'])
 
         logging.info(">> 🎉 LLM 预填完毕！请人类专家打开 `_AI预填版.xlsx` 进行最终抽检和修改。")

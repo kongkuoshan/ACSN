@@ -31,7 +31,13 @@ def parse_mapping_rules(df_aff: pd.DataFrame, df_con: pd.DataFrame) -> tuple:
             std_name = str(row.get(AFF_STANDARD_KEY, '')).strip()
 
             if vanguard and std_name and std_name.lower() != 'nan':
-                aff_map[vanguard] = std_name
+                # 检查重复: 同一标准名对应多个排头兵
+                existing_vanguard = {v: k for k, v in aff_map.items()}
+                if std_name in existing_vanguard:
+                    logging.warning(f"⚠️ 重名冲突: 「{vanguard}」与「{existing_vanguard[std_name]}」都映射为「{std_name}」")
+                    logging.warning(f"   → 将合并到「{existing_vanguard[std_name]}」")
+                else:
+                    aff_map[vanguard] = std_name
         logging.info(f"   ✅ 成功加载 {len(aff_map)} 条【机构】映射规则。")
 
     # 2. 解析领域映射表
