@@ -105,6 +105,13 @@ def main():
         print("如需NLP功能请运行: pip install sentence-transformers scikit-learn")
         print("=" * 60)
 
+    # ⚠️ 必须在导入 Qt 之前设置，否则不会生效
+    # 禁用 GPU 加速 — 修复 Linux 上 QWebEngineView 闪烁/穿透问题
+    if sys.platform == 'linux':
+        os.environ['QTWEBENGINE_CHROMIUM_FLAGS'] = '--disable-gpu --disable-software-rasterizer'
+        os.environ['QT_QUICK_BACKEND'] = 'software'
+        print("💡 Linux 环境: 已禁用 WebEngine GPU 加速以避免闪烁")
+
     from PySide6.QtWidgets import QApplication
     from gui.dark_theme import apply_dark_theme
     from gui.main_window import MainWindow

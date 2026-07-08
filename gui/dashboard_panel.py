@@ -130,6 +130,14 @@ class DashboardPanel(QWidget):
         self.default_url = default_url
         self._current_url = default_url
 
+        # 防止闪烁穿透: 自身填充纯黑背景
+        self.setAttribute(Qt.WA_OpaquePaintEvent, True)
+        self.setAutoFillBackground(True)
+        from PySide6.QtGui import QPalette, QColor
+        pal = self.palette()
+        pal.setColor(QPalette.Window, QColor(10, 10, 12))
+        self.setPalette(pal)
+
         layout = QVBoxLayout(self)
         layout.setContentsMargins(0, 0, 0, 0)
         layout.setSpacing(0)
@@ -137,10 +145,11 @@ class DashboardPanel(QWidget):
         if HAS_WEBENGINE:
             self._browser = QWebEngineView()
 
-            # 防止白屏闪烁：设置页面背景色 + 禁用透明
-            from PySide6.QtGui import QColor
+            # 多层防御: 页面背景 + widget 属性 + 不透明标志
             self._browser.page().setBackgroundColor(QColor(10, 10, 12))
-            self._browser.setStyleSheet("background-color: #0a0a0c;")
+            self._browser.setAttribute(Qt.WA_OpaquePaintEvent, True)
+            self._browser.setAutoFillBackground(True)
+            self._browser.setStyleSheet("background-color: #0a0a0c; border: none;")
 
             self._browser.setHtml(PLACEHOLDER_HTML)
             layout.addWidget(self._browser)
