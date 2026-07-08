@@ -42,6 +42,7 @@ class ParameterPanel(QScrollArea):
         self.config_path = config_path
         self.config = {}
         self._widgets = {}  # param_key -> widget reference
+        self._step_checkboxes = {}  # stage_key -> QCheckBox
 
         self.setWidgetResizable(True)
         self.setStyleSheet("QScrollArea { border: none; background: transparent; }")
@@ -261,7 +262,27 @@ class ParameterPanel(QScrollArea):
         self._mode_combo.addItem("完整流水线 (从爬虫到展示)", "full_pipeline")
         self._mode_combo.addItem("分步执行 (自选阶段)", "step_by_step")
         self._mode_combo.setMinimumHeight(32)
+        self._mode_combo.currentIndexChanged.connect(self._on_mode_changed)
         layout.addWidget(self._mode_combo)
+
+        # 分步执行复选框 (默认隐藏)
+        from PySide6.QtWidgets import QCheckBox
+        from gui.pipeline_runner import PipelineRunner
+
+        self._step_widget = QWidget()
+        step_layout = QVBoxLayout(self._step_widget)
+        step_layout.setContentsMargins(8, 4, 0, 4)
+        step_layout.setSpacing(3)
+
+        for key, label in PipelineRunner.ALL_STAGES:
+            cb = QCheckBox(label)
+            cb.setChecked(True)
+            cb.setStyleSheet("font-size: 12px; color: #aaa; font-weight: normal; padding: 2px;")
+            self._step_checkboxes[key] = cb
+            step_layout.addWidget(cb)
+
+        self._step_widget.setVisible(False)
+        layout.addWidget(self._step_widget)
 
         # 按钮行
         from PySide6.QtWidgets import QHBoxLayout
@@ -484,11 +505,24 @@ class ParameterPanel(QScrollArea):
         elif mode == "full_pipeline":
             return PipelineRunner.get_full_pipeline_stages(), "完整流水线"
         else:
-            return PipelineRunner.get_full_pipeline_stages(), "分步执行"
+            # 分步执行: 收集用户勾选的阶段
+            selected = []
+            for key, label in PipelineRunner.ALL_STAGES:
+                cb = self._step_checkboxes.get(key)
+                if cb and cb.isChecked():
+                    selected.append(key)
+            if not selected:
+                selected = PipelineRunner.get_full_pipeline_stages()
+            return selected, "分步执行"
 
     # ================================================================
     # 内部辅助
     # ================================================================
+
+    def _on_mode_changed(self):
+        """模式切换时显示/隐藏分步复选框"""
+        mode = self._mode_combo.currentData()
+        self._step_widget.setVisible(mode == "step_by_step")
 
     def _on_start_clicked(self):
         stages, mode = self.get_selected_mode()
