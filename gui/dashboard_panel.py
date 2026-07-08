@@ -136,6 +136,12 @@ class DashboardPanel(QWidget):
 
         if HAS_WEBENGINE:
             self._browser = QWebEngineView()
+
+            # 防止白屏闪烁：设置页面背景色 + 禁用透明
+            from PySide6.QtGui import QColor
+            self._browser.page().setBackgroundColor(QColor(10, 10, 12))
+            self._browser.setStyleSheet("background-color: #0a0a0c;")
+
             self._browser.setHtml(PLACEHOLDER_HTML)
             layout.addWidget(self._browser)
         else:

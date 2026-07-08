@@ -120,9 +120,15 @@ class Neo4jManager(QObject):
                     capture_output=True, check=True, timeout=10
                 )
             except Exception as e:
+                err_msg = str(e).lower()
                 self.log_message.emit(f"❌ Docker 不可用: {e}")
-                self.log_message.emit("   请先安装 Docker Desktop: https://www.docker.com/products/docker-desktop/")
-                self.deploy_finished.emit(False, "Docker 未安装")
+                if 'permission denied' in err_msg:
+                    self.log_message.emit("   👉 权限不足！请将当前用户加入 docker 组:")
+                    self.log_message.emit("      sudo usermod -aG docker $USER")
+                    self.log_message.emit("      然后注销重新登录即可生效。")
+                else:
+                    self.log_message.emit("   请先安装 Docker Desktop: https://www.docker.com/products/docker-desktop/")
+                self.deploy_finished.emit(False, "Docker 权限不足" if 'permission' in err_msg else "Docker 未安装")
                 return
 
             self.operation_progress.emit(20, "正在清理旧容器...")

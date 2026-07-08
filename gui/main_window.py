@@ -142,6 +142,7 @@ class MainWindow(QMainWindow):
 
         # 右侧: 大屏面板 + 视图切换栏
         right_container = QWidget()
+        right_container.setStyleSheet("background-color: #0a0a0c;")
         right_layout = QVBoxLayout(right_container)
         right_layout.setContentsMargins(0, 0, 0, 0)
         right_layout.setSpacing(0)
