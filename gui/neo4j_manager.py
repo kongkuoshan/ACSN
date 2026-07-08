@@ -237,27 +237,92 @@ class Neo4jManager(QObject):
         threading.Thread(target=_deploy, daemon=True).start()
 
     # ================================================================
-    # 容器管理
+    # 容器管理 — 完整生命周期
     # ================================================================
+
+    def start_neo4j(self):
+        """启动已有的 Neo4j 容器"""
+        def _start():
+            # 检查容器是否存在
+            check = subprocess.run(
+                ["docker", "ps", "-a", "--filter", f"name={self.CONTAINER_NAME}",
+                 "--format", "{{.Status}}"],
+                capture_output=True, text=True, timeout=10
+            )
+            status = check.stdout.strip()
+            if not status:
+                self.log_message.emit(f"⚠️ 容器 {self.CONTAINER_NAME} 不存在，请先点击「一键部署」。")
+                return
+            if status.startswith("Up"):
+                self.log_message.emit(f"ℹ️ Neo4j 容器已在运行中 ({status})")
+                self.neo4j_status.emit(True, "已运行")
+            else:
+                subprocess.run(["docker", "start", self.CONTAINER_NAME],
+                               capture_output=True, timeout=30)
+                self.log_message.emit("▶ Neo4j 容器已启动，等待就绪...")
+                self._owned_by_app = True
+                # 等待连接
+                deadline = time.time() + 30
+                while time.time() < deadline:
+                    try:
+                        from neo4j import GraphDatabase
+                        d = GraphDatabase.driver("bolt://localhost:7688", auth=("neo4j", "12345678"))
+                        with d.session() as s: s.run("RETURN 1")
+                        d.close()
+                        self.log_message.emit("✅ Neo4j 已就绪")
+                        self.neo4j_status.emit(True, "已连接")
+                        return
+                    except Exception:
+                        time.sleep(2)
+                self.log_message.emit("⚠️ 容器已启动，Neo4j 初始化中...")
+                self.neo4j_status.emit(True, "启动中")
+
+        threading.Thread(target=_start, daemon=True).start()
 
     def stop_neo4j(self):
         """停止 Neo4j 容器"""
-        if not self._owned_by_app:
-            self.log_message.emit("ℹ️ 容器非本程序创建，不自动停止。")
-            return
-
         def _stop():
-            subprocess.run(
-                ["docker", "stop", self.CONTAINER_NAME],
-                capture_output=True, timeout=30
+            check = subprocess.run(
+                ["docker", "ps", "--filter", f"name={self.CONTAINER_NAME}",
+                 "--format", "{{.ID}}"],
+                capture_output=True, text=True, timeout=10
             )
+            if not check.stdout.strip():
+                self.log_message.emit("ℹ️ Neo4j 容器未在运行。")
+                self.neo4j_status.emit(False, "未运行")
+                return
+            subprocess.run(["docker", "stop", self.CONTAINER_NAME],
+                           capture_output=True, timeout=30)
             self.log_message.emit("🛑 Neo4j 容器已停止。")
             self.neo4j_status.emit(False, "已停止")
 
         threading.Thread(target=_stop, daemon=True).start()
 
+    def restart_neo4j(self):
+        """重启 Neo4j 容器"""
+        def _restart():
+            self.log_message.emit("🔄 正在重启 Neo4j 容器...")
+            subprocess.run(["docker", "restart", self.CONTAINER_NAME],
+                           capture_output=True, timeout=30)
+            self.log_message.emit("✅ 容器已重启，等待就绪...")
+            time.sleep(5)
+            self._owned_by_app = True
+            # 快速连接检查
+            try:
+                from neo4j import GraphDatabase
+                d = GraphDatabase.driver("bolt://localhost:7688", auth=("neo4j", "12345678"))
+                with d.session() as s: s.run("RETURN 1")
+                d.close()
+                self.log_message.emit("✅ Neo4j 已就绪")
+                self.neo4j_status.emit(True, "已连接")
+            except Exception:
+                self.log_message.emit("⚠️ Neo4j 正在启动，请稍后点击「测试连接」")
+                self.neo4j_status.emit(False, "启动中")
+
+        threading.Thread(target=_restart, daemon=True).start()
+
     def remove_neo4j(self):
-        """删除 Neo4j 容器"""
+        """删除 Neo4j 容器 (不可逆)"""
         def _remove():
             result = subprocess.run(
                 ["docker", "rm", "-f", self.CONTAINER_NAME],
@@ -265,6 +330,7 @@ class Neo4jManager(QObject):
             )
             self.log_message.emit(f"🗑 Neo4j 容器已删除: {result.stdout.strip()}")
             self.neo4j_status.emit(False, "已删除")
+            self._owned_by_app = False
 
         threading.Thread(target=_remove, daemon=True).start()
 

@@ -241,10 +241,15 @@ class MainWindow(QMainWindow):
         self._param_panel.start_requested.connect(self._on_start_pipeline)
         self._param_panel.stop_requested.connect(self._on_stop_pipeline)
         self._param_panel.deploy_neo4j_requested.connect(self._on_deploy_neo4j)
+        self._param_panel.start_neo4j_requested.connect(self._neo4j_manager.start_neo4j)
+        self._param_panel.stop_neo4j_requested.connect(self._neo4j_manager.stop_neo4j)
+        self._param_panel.restart_neo4j_requested.connect(self._neo4j_manager.restart_neo4j)
+        self._param_panel.check_neo4j_requested.connect(self._check_neo4j)
 
-        # Neo4j 管理器 -> 状态栏
+        # Neo4j 管理器 -> 状态栏 + 参数面板状态标签
         self._neo4j_manager.docker_available.connect(self._on_docker_status)
         self._neo4j_manager.neo4j_status.connect(self._on_neo4j_status)
+        self._neo4j_manager.neo4j_status.connect(self._param_panel.update_neo4j_status)
         self._neo4j_manager.deploy_finished.connect(self._on_deploy_finished)
         self._neo4j_manager.log_message.connect(lambda m: logging.info(m))
         self._neo4j_manager.operation_progress.connect(self._param_panel.update_progress)

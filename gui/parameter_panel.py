@@ -36,6 +36,10 @@ class ParameterPanel(QScrollArea):
     start_requested = Signal(list, str)  # (stages_list, mode_name)
     stop_requested = Signal()
     deploy_neo4j_requested = Signal()
+    start_neo4j_requested = Signal()
+    stop_neo4j_requested = Signal()
+    restart_neo4j_requested = Signal()
+    check_neo4j_requested = Signal()
 
     def __init__(self, config_path: str = "config/config.yaml", parent=None):
         super().__init__(parent)
@@ -218,11 +222,48 @@ class ParameterPanel(QScrollArea):
         self._widgets["author_matcher.paths.neo4j_import_dir"] = w
         layout.addRow(w)
 
-        # Docker 部署按钮
-        btn_deploy = QPushButton("🐳 一键使用 Docker 部署本地 Neo4j")
-        btn_deploy.setStyleSheet("background-color: #27ae60; padding: 10px; font-size: 14px;")
+        # Neo4j 状态标签
+        self._neo4j_status_label = QLabel("状态: 未检测")
+        self._neo4j_status_label.setStyleSheet("color: #888; font-size: 12px; padding: 4px 0;")
+        layout.addRow(self._neo4j_status_label)
+
+        # Neo4j 控制按钮行
+        from PySide6.QtWidgets import QHBoxLayout
+
+        ctrl_row1 = QHBoxLayout()
+        btn_deploy = QPushButton("🐳 一键部署")
+        btn_deploy.setToolTip("首次使用: 拉取 Neo4j 镜像并创建容器")
+        btn_deploy.setStyleSheet(
+            "background-color: #27ae60; color: white; font-weight: bold;"
+            "padding: 6px 10px; font-size: 11px; border-radius: 4px;"
+        )
         btn_deploy.clicked.connect(self.deploy_neo4j_requested.emit)
-        layout.addRow(btn_deploy)
+        ctrl_row1.addWidget(btn_deploy)
+
+        btn_check = QPushButton("🔗 测试连接")
+        btn_check.setToolTip("测试当前配置的 Neo4j 是否可以连接")
+        btn_check.setStyleSheet(
+            "background-color: #2980b9; color: white; padding: 6px 10px;"
+            "font-size: 11px; border-radius: 4px;"
+        )
+        btn_check.clicked.connect(self.check_neo4j_requested.emit)
+        ctrl_row1.addWidget(btn_check)
+        layout.addRow(ctrl_row1)
+
+        ctrl_row2 = QHBoxLayout()
+        for label, signal, color in [
+            ("▶ 启动", self.start_neo4j_requested, "#27ae60"),
+            ("⏹ 停止", self.stop_neo4j_requested, "#c0392b"),
+            ("🔄 重启", self.restart_neo4j_requested, "#e67e22"),
+        ]:
+            btn = QPushButton(label)
+            btn.setStyleSheet(
+                f"background-color: {color}; color: white; padding: 6px 10px;"
+                "font-size: 11px; border-radius: 4px;"
+            )
+            btn.clicked.connect(signal.emit)
+            ctrl_row2.addWidget(btn)
+        layout.addRow(ctrl_row2)
 
         group.setLayout(layout)
         self._main_layout.addWidget(group)
@@ -495,6 +536,15 @@ class ParameterPanel(QScrollArea):
         self._progress.setValue(pct)
         if status:
             self._progress.setFormat(status)
+
+    def update_neo4j_status(self, connected: bool, status: str):
+        """更新 Neo4j 状态标签"""
+        color = "#27ae60" if connected else "#e74c3c"
+        icon = "✅" if connected else "❌"
+        self._neo4j_status_label.setText(f"状态: {icon} {status}")
+        self._neo4j_status_label.setStyleSheet(
+            f"color: {color}; font-size: 12px; font-weight: bold; padding: 4px 0;"
+        )
 
     def get_selected_mode(self) -> tuple:
         """获取用户选择的运行模式 -> (stages_list, mode_name)"""
