@@ -8,20 +8,23 @@ def _normalize_name(name: str) -> str:
     """特征指纹归一化"""
     return str(name).lower().replace('-', '').replace('.', '').replace(' ', '').strip()
 
-def build_local_database(all_works: list, parent_id: str) -> dict:
+def build_local_database(all_works: list, parent_id: str, fallback_keywords: list = None) -> dict:
     """构建本地学者特征画像数据库"""
     logging.info(">> 🧠 [Step 0.2] 正在提取特征，构建【本地学者画像引擎】...")
     local_author_db = {}
-    
+
+    if fallback_keywords is None:
+        fallback_keywords = []
+
     for work in tqdm(all_works, desc="解析学术特征"):
         if not work: continue
-        
+
         concepts = [c.get('display_name') for c in work.get('concepts', []) if c and c.get('score', 0) > 0.4]
         co_authors = [a.get("author", {}).get("id") for a in work.get("authorships", []) if a and a.get("author", {}).get("id")]
 
         for auth in work.get("authorships", []):
             if not auth: continue
-            
+
             cand_name = auth.get("author", {}).get("display_name", "")
             cand_id_raw = auth.get("author", {}).get("id", "")
             if not cand_id_raw or not cand_name: continue
@@ -32,23 +35,23 @@ def build_local_database(all_works: list, parent_id: str) -> dict:
             if auth.get("raw_affiliation_string"): raw_strs.append(auth.get("raw_affiliation_string"))
             for aff in (auth.get("affiliations") or []):
                 if aff.get("raw_affiliation_string"): raw_strs.append(aff.get("raw_affiliation_string"))
-            
+
             clean_raw_strs = list(set([s.strip() for s in raw_strs if s and len(s.strip()) > 5]))
-            
+
             # 判断是否为内部人员
             is_internal = False
             for inst in auth.get("institutions", []):
-                if not inst: continue 
+                if not inst: continue
                 lineage = [l.split("/")[-1] for l in inst.get("lineage", []) if l]
                 inst_id = inst.get("id", "").split("/")[-1]
                 if parent_id in lineage or inst_id == parent_id:
                     is_internal = True
                     break
-                    
-            if not is_internal and clean_raw_strs:
+
+            if not is_internal and clean_raw_strs and fallback_keywords:
                 for raw_s in clean_raw_strs:
                     raw_lower = raw_s.lower()
-                    if "automation" in raw_lower or "casia" in raw_lower or "自动化" in raw_lower:
+                    if any(kw.lower() in raw_lower for kw in fallback_keywords):
                          is_internal = True
                          break
             

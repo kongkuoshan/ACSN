@@ -16,8 +16,8 @@ institution:
     - "automation"
     - "NLPR"
     - "CASIA"
-  casia_keys:                               # 金钥匙映射 (机构关键字 → 标准中文名)
-    '': ''
+  casia_keys:                               # 金钥匙兜底映射 (关键字 → 标准名, 不区分大小写)
+    '': ''                                    # 示例: NLPR → 模式识别国家重点实验室
 
 # === 数据路径 ===
 paths:
@@ -67,7 +67,7 @@ llm_assistant:
   enabled: false                             # 是否启用
   api_url: "http://localhost:8080/v1/chat/completions"   # OpenAI 兼容 API
   concept_target_fields: "人工智能, 计算机视觉, 机器人学, 自动控制, 脑科学与神经科学, 医学影像, 计算机体系结构, 物理与工程, 生物与医学, 社会与人文, 数学与基础科学"
-  affiliation_system_prompt: "你是一个机构识别专家。判断输入是否属于目标机构。如果是,输出其中文实验室简称;如果不是,输出'外部合作机构'。只输出名称,不要解释。"
+  affiliation_system_prompt: "你是一个机构识别专家。判断输入是否属于目标机构。如果是,输出其中文实验室/院系简称;如果不是,输出'外部合作机构'。只输出名称,不要解释。"
 
 
 # === 作者画像匹配 ===

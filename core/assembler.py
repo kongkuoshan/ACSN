@@ -64,31 +64,24 @@ def parse_mapping_rules(df_aff: pd.DataFrame, df_con: pd.DataFrame) -> tuple:
     return aff_map, con_map
 
 
-def _get_standard_name(raw_text: str, aff_map: dict, casia_keys: dict) -> str:
-    """[内部辅助] 单个机构字符串的标准化判定逻辑"""
+def _get_standard_name(raw_text: str, aff_map: dict, golden_keys: dict) -> str:
+    """机构名标准化: Excel映射 → 金钥匙兜底 → 垃圾桶"""
     if not raw_text or str(raw_text) == 'nan':
         return "(未知部门)"
-        
-    # 1. 优先使用 Excel 字典映射
+
     if raw_text in aff_map:
         return aff_map[raw_text]
-        
+
+    # 金钥匙兜底: 关键字不区分大小写匹配
     v_upper = str(raw_text).upper()
-    
-    # 2. 启用 config.yaml 中的金钥匙兜底映射
-    for key, std_name in casia_keys.items():
-        if key in v_upper:
+    for key, std_name in golden_keys.items():
+        if key.upper() in v_upper:
             return std_name
-            
-    # 3. 极其特殊的硬编码防线 (可根据实际情况删减)
-    if '主机构名称' in v_upper and '另一个名称' in v_upper:
-        return "主机构映射"
-        
-    # 4. 终极垃圾桶兜底
-    return " (其他部门)"
+
+    return "(其他部门)"
 
 
-def generate_final_u3(u2_5_data: list, aff_map: dict, con_map: dict, casia_keys: dict) -> tuple:
+def generate_final_u3(u2_5_data: list, aff_map: dict, con_map: dict, golden_keys: dict) -> tuple:
     """
     [暴露的主函数] 终极组装：执行领域严格过滤与机构最终映射。
     """
@@ -125,7 +118,7 @@ def generate_final_u3(u2_5_data: list, aff_map: dict, con_map: dict, casia_keys:
                     continue
                 
                 raw_strs = auth.get('raw_affiliation_strings', [])
-                new_affs = [_get_standard_name(s, aff_map, casia_keys) for s in raw_strs]
+                new_affs = [_get_standard_name(s, aff_map, golden_keys) for s in raw_strs]
                 
                 auth['raw_affiliation_strings'] = new_affs
                 if new_affs:

@@ -64,7 +64,9 @@ class AcademicPipeline:
                         save_excel(df_pinyin, cfg['paths']['output_names_excel'])
 
                     target_id_short = cfg['institution']['target_id'].split("/")[-1]
-                    local_db = build_local_database(all_works, parent_id=target_id_short)
+                    fallback_kw = cfg['institution'].get('fallback_keywords', [])
+                    local_db = build_local_database(all_works, parent_id=target_id_short,
+                                                    fallback_keywords=fallback_kw)
 
                     df_out = match_names_locally(
                         df_input=df_input,
@@ -209,7 +211,7 @@ class AcademicPipeline:
     # ================================================================
     def run_final_assembly_stage(self):
         paths = self.config['paths']
-        casia_keys = self.config['institution'].get('casia_keys', {})
+        golden_keys = self.config['institution'].get('casia_keys', {})
 
         logging.info(">> 🚀 [Step 4] 启动 U3 终极数据组装与注入引擎...")
 
@@ -227,7 +229,7 @@ class AcademicPipeline:
             u2_5_data=u2_5_data,
             aff_map=aff_map,
             con_map=con_map,
-            casia_keys=casia_keys
+            golden_keys=golden_keys
         )
 
         save_json(u3_data, paths['data_u3_final'])
