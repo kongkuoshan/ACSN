@@ -69,8 +69,14 @@ def reduce_concept_dimensions(u3_data: list, target_clusters: int = 25,
         from sklearn.cluster import AgglomerativeClustering
         import numpy as np
 
-        model = SentenceTransformer('paraphrase-multilingual-MiniLM-L12-v2')
-        embeddings = model.encode(unique_concepts, show_progress_bar=True)
+        MODEL_NAME = 'paraphrase-multilingual-MiniLM-L12-v2'
+        try:
+            model = SentenceTransformer(MODEL_NAME)
+            embeddings = model.encode(unique_concepts, show_progress_bar=True)
+        except (OSError, ConnectionError, TimeoutError) as e:
+            logging.warning(f"⚠️ 概念降维模型下载失败 (网络不通): {e}")
+            logging.warning("   💡 设置 export HF_ENDPOINT=https://hf-mirror.com 后重试")
+            return {c.lower(): c for c in unique_concepts}
 
         n_clusters = min(target_clusters, len(unique_concepts))
         clustering = AgglomerativeClustering(

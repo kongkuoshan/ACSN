@@ -40,10 +40,25 @@ def build_cluster_mappings(unique_data: dict, target_clusters: int) -> tuple:
     if raw_affs:
         logging.info(f"🏢 启动 AI 聚类引擎，处理 {len(raw_affs)} 条机构变体...")
 
-        # 加载语言模型 (首次运行会自动下载 ~500MB)
+        # 加载语言模型 (首次运行会自动下载 ~500MB 到 ~/.cache/huggingface/)
+        MODEL_NAME = 'paraphrase-multilingual-MiniLM-L12-v2'
         try:
-            model = SentenceTransformer('paraphrase-multilingual-MiniLM-L12-v2')
+            logging.info(f"   📦 加载 NLP 模型 {MODEL_NAME}...")
+            logging.info(f"   💡 首次运行需从 HuggingFace 下载约 500MB 模型文件")
+            logging.info(f"   💡 如网络受限，设置环境变量: export HF_ENDPOINT=https://hf-mirror.com")
+            model = SentenceTransformer(MODEL_NAME)
             embeddings = model.encode(raw_affs, show_progress_bar=True)
+        except (OSError, ConnectionError, TimeoutError) as e:
+            logging.error("=" * 60)
+            logging.error("❌ 模型下载失败 — 无法连接 HuggingFace")
+            logging.error(f"   错误详情: {e}")
+            logging.error("   解决方案:")
+            logging.error("   1. 设置镜像: export HF_ENDPOINT=https://hf-mirror.com")
+            logging.error("   2. 或手动下载模型:")
+            logging.error(f"      git clone https://huggingface.co/sentence-transformers/{MODEL_NAME}")
+            logging.error(f"      放到 ~/.cache/huggingface/hub/models--sentence-transformers--{MODEL_NAME}/")
+            logging.error("=" * 60)
+            return pd.DataFrame(), pd.DataFrame(), {}
         except MemoryError:
             logging.error("❌ 内存不足！请关闭其他程序后重试，或减少数据量。")
             return pd.DataFrame(), pd.DataFrame(), {}
