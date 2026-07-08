@@ -76,8 +76,14 @@ def build_local_database(all_works: list, parent_id: str) -> dict:
 def match_names_locally(df_input: pd.DataFrame, name_column: str, local_author_db: dict) -> pd.DataFrame:
     """根据输入的名单匹配数据库，生成0号画像表"""
     logging.info(">> ⚡ [Step 0.3] 启动本地画像交叉匹配...")
-    if df_input.empty or name_column not in df_input.columns:
-        logging.error(f"❌ 输入名单为空或缺少列名: {name_column}")
+    if df_input.empty:
+        logging.error("❌ 输入名单为空，无法进行画像匹配。")
+        return pd.DataFrame()
+
+    if name_column not in df_input.columns:
+        logging.error(f"❌ 输入名单中找不到列名「{name_column}」")
+        logging.error(f"   可用列名: {list(df_input.columns)}")
+        logging.error(f"   请在 config.yaml 中修改 author_matcher.name_column")
         return pd.DataFrame()
 
     unique_names = df_input[name_column].dropna().unique()
@@ -109,17 +115,17 @@ def match_names_locally(df_input: pd.DataFrame, name_column: str, local_author_d
                 all_results.append({
                     "原始名单姓名": raw_name, "OpenAlex_ID": aid, "数据库真实姓名": data['name'],
                     "匹配状态": " 内部匹配成功", "ID归属状态": " 主号" if index == 0 else f" 历史分身 {index}",
-                    "发文量": data['count'], "高频挂靠实验室(RawStr)": top_lab, 
+                    "发文量": data['count'], "高频挂靠实验室(RawStr)": top_lab,
                     "近5年主攻领域": top_keywords, "合作者规模(人)": len(data['collaborators'])
                 })
         else:
             all_results.append({
                 "原始名单姓名": raw_name, "OpenAlex_ID": None, "数据库真实姓名": "N/A",
-                "匹配状态": " 查无此人", "ID归属状态": "N/A", "所内发文量": 0,
+                "匹配状态": " 查无此人", "ID归属状态": "N/A", "发文量": 0,
                 "高频挂靠实验室(RawStr)": "N/A", "近5年主攻领域": "N/A", "合作者规模(人)": 0
             })
 
     df_out = pd.DataFrame(all_results)
     if not df_out.empty:
-        df_out.sort_values(by=["原始名单姓名", "所内发文量"], ascending=[True, False], inplace=True)
+        df_out.sort_values(by=["原始名单姓名", "发文量"], ascending=[True, False], inplace=True)
     return df_out

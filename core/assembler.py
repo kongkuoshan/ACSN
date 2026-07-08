@@ -13,23 +13,42 @@ def parse_mapping_rules(df_aff: pd.DataFrame, df_con: pd.DataFrame) -> tuple:
 
     logging.info(">> 📂 正在解析人工校验后的 Excel 映射规则...")
 
+    # 机构映射表预期表头
+    AFF_VANGUARD_KEY = '🤖 AI 提取的【排头兵】'
+    AFF_STANDARD_KEY = '🧑‍🔧 填写标准名称 (抄左边/填中文/不认识留空)'
+
     # 1. 解析机构映射表
     if not df_aff.empty:
+        # 验证表头
+        if AFF_VANGUARD_KEY not in df_aff.columns:
+            logging.warning(f"⚠️ 机构映射表缺少列「{AFF_VANGUARD_KEY}」，可用列: {list(df_aff.columns)}")
+        if AFF_STANDARD_KEY not in df_aff.columns:
+            logging.warning(f"⚠️ 机构映射表缺少列「{AFF_STANDARD_KEY}」，可用列: {list(df_aff.columns)}")
+
         for _, row in df_aff.iterrows():
             # 兼容各种表头写法，优先读取 Step 3 生成的表头
-            vanguard = str(row.get('🤖 AI 提取的【排头兵】', row.get('提取的【排头兵】', ''))).strip()
-            std_name = str(row.get('🧑‍🔧 填写标准名称 (抄左边/填中文/不认识留空)', '')).strip()
-            
+            vanguard = str(row.get(AFF_VANGUARD_KEY, row.get('提取的【排头兵】', ''))).strip()
+            std_name = str(row.get(AFF_STANDARD_KEY, '')).strip()
+
             if vanguard and std_name and std_name.lower() != 'nan':
                 aff_map[vanguard] = std_name
         logging.info(f"   ✅ 成功加载 {len(aff_map)} 条【机构】映射规则。")
 
     # 2. 解析领域映射表
+    CON_ORIG_KEY = '原始领域名称'
+    CON_TARGET_KEY = '填写标准大类 (如：人工智能)'
+
     if not df_con.empty:
+        # 验证表头
+        if CON_ORIG_KEY not in df_con.columns:
+            logging.warning(f"⚠️ 领域映射表缺少列「{CON_ORIG_KEY}」，可用列: {list(df_con.columns)}")
+        if CON_TARGET_KEY not in df_con.columns:
+            logging.warning(f"⚠️ 领域映射表缺少列「{CON_TARGET_KEY}」，可用列: {list(df_con.columns)}")
+
         for _, row in df_con.iterrows():
-            raw_orig = str(row.get('原始领域名称', '')).strip()
-            raw_target = str(row.get('填写标准大类 (如：人工智能)', '')).strip()
-            
+            raw_orig = str(row.get(CON_ORIG_KEY, '')).strip()
+            raw_target = str(row.get(CON_TARGET_KEY, '')).strip()
+
             if raw_orig and raw_orig.lower() != 'nan':
                 # 如果没填目标，默认保留原名；填了，就映射为新大类
                 final_target = raw_target if (raw_target and raw_target.lower() != 'nan') else raw_orig
