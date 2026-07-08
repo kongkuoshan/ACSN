@@ -76,6 +76,11 @@ class PipelineRunner(QThread):
 
     def run(self):
         """QThread 入口: 按顺序执行选定的流水线阶段"""
+        if not self._stages:
+            self.log_line.emit("⚠️ 未选择任何执行阶段。")
+            self.pipeline_finished.emit(False, "未选择阶段")
+            return
+
         pipeline = AcademicPipeline(self._config)
         stage_names = {s[0]: s[1] for s in self.ALL_STAGES}
         total = len(self._stages)

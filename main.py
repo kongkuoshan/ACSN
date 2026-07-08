@@ -34,6 +34,9 @@ if __name__ == "__main__":
 
     # 首次运行自动生成配置
     if not os.path.exists("config/config.yaml"):
+        if not os.path.exists("config/config.example.yaml"):
+            print("❌ 致命错误: config.example.yaml 也丢失了！请重新克隆项目。")
+            sys.exit(1)
         import shutil
         shutil.copy("config/config.example.yaml", "config/config.yaml")
         print("📋 首次运行: 已从 config.example.yaml 生成 config/config.yaml")

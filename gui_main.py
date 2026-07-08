@@ -74,6 +74,9 @@ def ensure_config():
     example_path = os.path.join(_project_root, "config", "config.example.yaml")
 
     if not os.path.exists(config_path):
+        if not os.path.exists(example_path):
+            print("❌ 致命错误: config.example.yaml 也丢失了！请重新克隆项目。")
+            sys.exit(1)
         import shutil
         shutil.copy(example_path, config_path)
         print("📋 首次运行: 已从 config.example.yaml 生成 config/config.yaml")

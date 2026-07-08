@@ -328,11 +328,15 @@ class MainWindow(QMainWindow):
             return
 
         self._save_config()
-        config = self._param_panel.config
+        config = self._param_panel.config or {}
+        db_cfg = config.get('database') or {}
+        if not db_cfg.get('uri'):
+            QMessageBox.warning(self, "配置不完整", "请先在「数据库」区域填写 Neo4j 连接信息。")
+            return
         self._neo4j_manager.deploy_neo4j(
-            uri=config['database']['uri'],
-            user=config['database']['user'],
-            password=config['database']['password'],
+            uri=db_cfg.get('uri', 'bolt://localhost:7688'),
+            user=db_cfg.get('user', 'neo4j'),
+            password=db_cfg.get('password', '12345678'),
             import_dir=(config.get('author_matcher', {}).get('neo4j_import_dir') or
                         config.get('paths', {}).get('neo4j_import_dir') or
                         './data/import')

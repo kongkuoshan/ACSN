@@ -450,6 +450,8 @@ class ParameterPanel(QScrollArea):
 
     def save_config(self):
         """将 GUI 控件中的值写回 config.yaml"""
+        if not isinstance(self.config, dict):
+            self.config = {}
         # 机构
         if 'institution' not in self.config:
             self.config['institution'] = {}
