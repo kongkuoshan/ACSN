@@ -241,9 +241,9 @@ class MainWindow(QMainWindow):
         self._param_panel.start_requested.connect(self._on_start_pipeline)
         self._param_panel.stop_requested.connect(self._on_stop_pipeline)
         self._param_panel.deploy_neo4j_requested.connect(self._on_deploy_neo4j)
-        self._param_panel.start_neo4j_requested.connect(self._neo4j_manager.start_neo4j)
+        self._param_panel.start_neo4j_requested.connect(self._on_start_neo4j)
         self._param_panel.stop_neo4j_requested.connect(self._neo4j_manager.stop_neo4j)
-        self._param_panel.restart_neo4j_requested.connect(self._neo4j_manager.restart_neo4j)
+        self._param_panel.restart_neo4j_requested.connect(self._on_restart_neo4j)
         self._param_panel.check_neo4j_requested.connect(self._check_neo4j)
 
         # Neo4j 管理器 -> 状态栏 + 参数面板状态标签
@@ -313,6 +313,20 @@ class MainWindow(QMainWindow):
     # ================================================================
     # Neo4j 部署
     # ================================================================
+
+    def _get_db_creds(self):
+        """读取当前配置的数据库凭据"""
+        config = self._param_panel.config or {}
+        db = config.get('database') or {}
+        return db.get('user', 'neo4j'), db.get('password', '12345678')
+
+    def _on_start_neo4j(self):
+        user, pw = self._get_db_creds()
+        self._neo4j_manager.start_neo4j(user=user, password=pw)
+
+    def _on_restart_neo4j(self):
+        user, pw = self._get_db_creds()
+        self._neo4j_manager.restart_neo4j(user=user, password=pw)
 
     def _on_deploy_neo4j(self):
         """用户点击一键部署 Neo4j"""

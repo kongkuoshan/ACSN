@@ -240,7 +240,7 @@ class Neo4jManager(QObject):
     # 容器管理 — 完整生命周期
     # ================================================================
 
-    def start_neo4j(self):
+    def start_neo4j(self, user: str = "neo4j", password: str = "12345678"):
         """启动已有的 Neo4j 容器"""
         def _start():
             # 检查容器是否存在
@@ -266,7 +266,7 @@ class Neo4jManager(QObject):
                 while time.time() < deadline:
                     try:
                         from neo4j import GraphDatabase
-                        d = GraphDatabase.driver("bolt://localhost:7688", auth=("neo4j", "12345678"))
+                        d = GraphDatabase.driver("bolt://localhost:7688", auth=(user, password))
                         with d.session() as s: s.run("RETURN 1")
                         d.close()
                         self.log_message.emit("✅ Neo4j 已就绪")
@@ -298,7 +298,7 @@ class Neo4jManager(QObject):
 
         threading.Thread(target=_stop, daemon=True).start()
 
-    def restart_neo4j(self):
+    def restart_neo4j(self, user: str = "neo4j", password: str = "12345678"):
         """重启 Neo4j 容器"""
         def _restart():
             self.log_message.emit("🔄 正在重启 Neo4j 容器...")
@@ -310,7 +310,7 @@ class Neo4jManager(QObject):
             # 快速连接检查
             try:
                 from neo4j import GraphDatabase
-                d = GraphDatabase.driver("bolt://localhost:7688", auth=("neo4j", "12345678"))
+                d = GraphDatabase.driver("bolt://localhost:7688", auth=(user, password))
                 with d.session() as s: s.run("RETURN 1")
                 d.close()
                 self.log_message.emit("✅ Neo4j 已就绪")
