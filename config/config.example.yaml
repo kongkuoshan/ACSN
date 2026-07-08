@@ -10,6 +10,7 @@
 institution:
   email: "youremail@example.com"           # 你的邮箱 (OpenAlex Polite Pool 需要)
   start_year: 2021                          # 文献抓取起始年份
+  end_year: null                             # 抓取结束年份 (null=当前年份)
   target_id: "https://openalex.org/I4210112150"  # 目标机构 OpenAlex ID
   fallback_keywords:                        # 机构名兜底关键词 (正则匹配)
     - "automation"

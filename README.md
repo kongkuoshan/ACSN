@@ -149,10 +149,56 @@ database:
 | **CLI 批处理** | `python main.py` | 服务器 / 无头环境 |
 | **打包 EXE** | 双击 `MKIV_Academic_Graph.exe` | 最终用户，无需安装 Python |
 
-### 4. Neo4j 部署
+### 4. 启动 Neo4j 图数据库
 
-- **方式 A (推荐)**: GUI 内点击 `🐳 一键使用 Docker 部署本地 Neo4j` — 自动拉取镜像、创建容器、挂载导入目录
-- **方式 B**: 自行安装 Neo4j，在 GUI 中填写连接 URI
+Neo4j 是大屏可视化的数据后端，**必须先启动**。
+
+#### 方式 A: GUI 一键 Docker 部署 (推荐，无需手动配置)
+
+1. 安装 [Docker Desktop](https://www.docker.com/products/docker-desktop/)
+2. 启动 MKIV GUI: `python gui_main.py`
+3. 在左侧面板的 **「5. 数据库」** 区域，点击 **`🐳 一键使用 Docker 部署本地 Neo4j`**
+4. 系统自动完成: 拉取 Neo4j 镜像 → 创建容器 → 挂载导入目录 → 等待就绪
+5. 状态栏显示 `Neo4j: ✅ 已连接` 即完成
+
+> 容器默认映射: Bolt `7688` → `7687`, HTTP `7475` → `7474`
+
+#### 方式 B: 命令行 Docker 部署
+
+```bash
+# 创建导入目录
+mkdir -p ./data/import
+
+# 启动 Neo4j 容器
+docker run -d --name mkiv_neo4j \
+  -p 7688:7687 -p 7475:7474 \
+  -e NEO4J_AUTH=neo4j/your_password \
+  -v $(pwd)/data/import:/var/lib/neo4j/import \
+  neo4j:5-community
+
+# 等待初始化 (约 10-30 秒)
+docker logs -f mkiv_neo4j
+```
+
+#### 方式 C: 手动安装 Neo4j
+
+1. 从 [neo4j.com/download](https://neo4j.com/download/) 下载安装
+2. 设置密码，确保 Bolt 端口 (默认 7687) 可访问
+3. 在 `config/config.yaml` 中填写连接信息:
+   ```yaml
+   database:
+     uri: "bolt://localhost:7687"
+     user: "neo4j"
+     password: "你的密码"
+   ```
+
+#### 停止 / 重启容器
+
+```bash
+docker stop mkiv_neo4j     # 停止
+docker start mkiv_neo4j    # 重新启动
+docker rm -f mkiv_neo4j    # 删除容器
+```
 
 ### 5. 流水线运行模式
 

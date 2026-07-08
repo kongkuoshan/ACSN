@@ -1,16 +1,19 @@
-# core/crawler.py (完全替换原有内容)
+# core/crawler.py
 import os
 import time
 import requests
 import logging
+from datetime import datetime
 from requests.adapters import HTTPAdapter
 from urllib3.util.retry import Retry
 from utils.file_handler import load_json, save_json
 
-def run_openalex_crawler(target_id: str, email: str, start_year: int, output_path: str):
+def run_openalex_crawler(target_id: str, email: str, start_year: int,
+                         output_path: str, end_year: int = None):
     """工业级全量拉取引擎 (带断点续传与缓存)"""
-    current_year = 2026
-    logging.info(f">> 🌐 [Step 0.1] 准备加载 {target_id} ({start_year}-{current_year}年) 全量文献...")
+    if end_year is None:
+        end_year = datetime.now().year
+    logging.info(f">> 🌐 [Step 0.1] 准备加载 {target_id} ({start_year}-{end_year}年) 全量文献...")
     
     # 检查本地缓存 (即 U1.json)
     if os.path.exists(output_path) and os.path.getsize(output_path) > 1024:
@@ -30,7 +33,7 @@ def run_openalex_crawler(target_id: str, email: str, start_year: int, output_pat
     
     try:
         while cursor:
-            modern_filter = f'authorships.institutions.lineage:{target_id},publication_year:{start_year}-{current_year}'
+            modern_filter = f'authorships.institutions.lineage:{target_id},publication_year:{start_year}-{end_year}'
             params = {'filter': modern_filter, 'per-page': 200, 'cursor': cursor, 'mailto': email}
             
             resp = session.get(api_url, params=params, timeout=30)

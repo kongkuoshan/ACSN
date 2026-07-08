@@ -34,6 +34,7 @@ class AcademicPipeline:
             target_id=cfg['institution']['target_id'],
             email=cfg['institution']['email'],
             start_year=cfg['institution']['start_year'],
+            end_year=cfg['institution'].get('end_year'),
             output_path=cfg['paths']['data_u1_raw']
         )
 

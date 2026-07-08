@@ -93,6 +93,12 @@ class ParameterPanel(QScrollArea):
         self._widgets["institution.start_year"] = w
         layout.addRow(w)
 
+        # 结束年份 (0 = 当前年份)
+        _, w = create_int_row("结束年份 (0=至今):", default=0, param_key="institution.end_year",
+                              min_val=0, max_val=2030, parent=self)
+        self._widgets["institution.end_year"] = w
+        layout.addRow(w)
+
         # 兜底关键词
         _, w = create_textarea_row("兜底关键词:\n(每行一个)", param_key="institution.fallback_keywords",
                                    rows=3, parent=self)
@@ -328,6 +334,8 @@ class ParameterPanel(QScrollArea):
             self._set_text("institution.target_id", inst.get('target_id', ''))
             self._set_text("institution.email", inst.get('email', ''))
             self._set_int("institution.start_year", inst.get('start_year', 2021))
+            end_year = inst.get('end_year')
+            self._set_int("institution.end_year", end_year if end_year else 0)
             self._set_text("institution.fallback_keywords",
                            '\n'.join(inst.get('fallback_keywords', [])))
 
@@ -387,6 +395,8 @@ class ParameterPanel(QScrollArea):
         inst['target_id'] = self._get_text("institution.target_id")
         inst['email'] = self._get_text("institution.email")
         inst['start_year'] = self._get_int("institution.start_year")
+        end_val = self._get_int("institution.end_year")
+        inst['end_year'] = end_val if end_val > 0 else None
         inst['fallback_keywords'] = [
             line.strip() for line in self._get_text("institution.fallback_keywords").split('\n')
             if line.strip()
