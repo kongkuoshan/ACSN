@@ -1,0 +1,53 @@
+# MKIV 学术情报图谱引擎 — .gitignore
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+*.egg-info/
+dist/
+build/
+*.egg
+*.spec.bak
+
+# Virtual environments
+venv/
+.env/
+.venv/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Project data (runtime generated)
+data/01_raw/
+data/02_analyzed/
+data/03_cleaned/
+data/output/
+data/input/
+
+# Config with secrets
+config/config.yaml
+!config/config.example.yaml
+
+# Logs
+*.log
+
+# PyInstaller
+dist/
+build/
+*.spec.bak
+
+# Docker
+docker-compose.override.yml
+
+# Sentinels
+.mkiv_gui_initialized

@@ -1,0 +1,31 @@
+# MKIV Academic Intelligence Graph Engine — Dependencies
+# ================================================================
+
+# === Core Pipeline ===
+pyyaml>=6.0
+requests>=2.31.0
+pandas>=2.0.0
+openpyxl>=3.1.0
+tqdm>=4.65.0
+urllib3>=2.0.0
+
+# === NLP & Machine Learning ===
+sentence-transformers>=2.2.0
+scikit-learn>=1.3.0
+
+# === Chinese Name Processing ===
+pypinyin>=0.49.0
+
+# === Graph Database ===
+neo4j>=5.14.0
+
+# === Web Server ===
+fastapi>=0.104.0
+uvicorn[standard]>=0.24.0
+
+# === GUI (Desktop Application) ===
+PySide6>=6.6.0
+PySide6-QtWebEngine>=6.6.0
+
+# === Packaging (dev only) ===
+# pyinstaller>=6.0
