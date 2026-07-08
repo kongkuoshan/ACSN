@@ -16,7 +16,7 @@ institution:
     - "automation"
     - "NLPR"
     - "CASIA"
-  casia_keys:                               # 金钥匙兜底映射 (关键字 → 标准名, 不区分大小写)
+  golden_keys:                              # 金钥匙兜底映射 (关键字 → 标准名, 不区分大小写)
     '': ''                                    # 示例: NLPR → 模式识别国家重点实验室
 
 # === 数据路径 ===

@@ -211,7 +211,9 @@ class AcademicPipeline:
     # ================================================================
     def run_final_assembly_stage(self):
         paths = self.config['paths']
-        golden_keys = self.config['institution'].get('casia_keys', {})
+        # 向后兼容: golden_keys 优先, casia_keys 作为回退
+        golden_keys = self.config['institution'].get('golden_keys',
+                        self.config['institution'].get('casia_keys', {}))
 
         logging.info(">> 🚀 [Step 4] 启动 U3 终极数据组装与注入引擎...")
 

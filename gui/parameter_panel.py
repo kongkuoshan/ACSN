@@ -112,9 +112,9 @@ class ParameterPanel(QScrollArea):
 
         # 金钥匙映射表
         from gui.widgets import create_kv_table_row
-        _, w = create_kv_table_row("金钥匙映射:", param_key="institution.casia_keys",
+        _, w = create_kv_table_row("金钥匙映射:", param_key="institution.golden_keys",
                                    key_header="关键字", val_header="标准名称", parent=self)
-        self._widgets["institution.casia_keys"] = w
+        self._widgets["institution.golden_keys"] = w
         layout.addRow(w)
 
         group.setLayout(layout)
@@ -405,7 +405,8 @@ class ParameterPanel(QScrollArea):
             self._set_int("institution.start_year", inst.get('start_year', 2021))
             end_year = inst.get('end_year')
             self._set_int("institution.end_year", end_year if end_year else 0)
-            self._set_table("institution.casia_keys", inst.get('casia_keys', {}))
+            golden = inst.get('golden_keys', inst.get('casia_keys', {}))  # 向后兼容旧名
+            self._set_table("institution.golden_keys", golden)
             self._set_text("institution.fallback_keywords",
                            '\n'.join(inst.get('fallback_keywords', [])))
 
@@ -469,7 +470,7 @@ class ParameterPanel(QScrollArea):
         inst['start_year'] = self._get_int("institution.start_year")
         end_val = self._get_int("institution.end_year")
         inst['end_year'] = end_val if end_val > 0 else None
-        inst['casia_keys'] = self._get_table("institution.casia_keys")
+        inst['casia_keys'] = self._get_table("institution.golden_keys")
         inst['fallback_keywords'] = [
             line.strip() for line in self._get_text("institution.fallback_keywords").split('\n')
             if line.strip()

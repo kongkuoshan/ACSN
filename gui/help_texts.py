@@ -43,7 +43,7 @@ HELP = {
         "  清华大学 → Tsinghua, THU, 清华\n"
         "  自动化所 → automation, CASIA, NLPR"
     ),
-    "institution.casia_keys": (
+    "institution.golden_keys": (
         "金钥匙映射表\n\n"
         "机构名称的最后一道兜底映射。\n"
         "当 Excel 映射表和 LLM 都无法识别某个机构变体时，\n"
