@@ -10,7 +10,8 @@ import os
 import logging
 from PySide6.QtWidgets import (
     QMainWindow, QSplitter, QDockWidget, QPlainTextEdit,
-    QMenuBar, QMenu, QMessageBox, QStatusBar, QLabel
+    QMenuBar, QMenu, QMessageBox, QStatusBar, QLabel,
+    QWidget, QVBoxLayout, QHBoxLayout, QPushButton
 )
 from PySide6.QtCore import Qt, Signal, QTimer, QUrl
 from PySide6.QtGui import QAction
@@ -132,8 +133,6 @@ class MainWindow(QMainWindow):
         help_menu.addAction(about_action)
 
     def _setup_central_splitter(self):
-        from PySide6.QtWidgets import QHBoxLayout, QPushButton
-
         splitter = QSplitter(Qt.Horizontal, self)
         self.setCentralWidget(splitter)
 
