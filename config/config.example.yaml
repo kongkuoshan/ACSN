@@ -107,11 +107,11 @@ analytics:
 crawler:
   api_url: "https://api.openalex.org/works"  # OpenAlex API 地址
   per_page: 200                              # 每页条数
-  request_timeout: 30                        # 请求超时 (秒)
-  rate_limit_sleep: 0.15                     # 每页间隔 (秒, 限速)
+  request_timeout: 60                        # 请求超时 (秒)
+  rate_limit_sleep: 0.5                     # 每页间隔 (秒, 限速)
   cache_min_bytes: 1024                      # 本地缓存有效性最小字节数
   retry_total: 5                             # 重试次数
-  retry_backoff: 1                           # 重试退避因子
+  retry_backoff: 2                           # 重试退避因子
   retry_status_codes: [429, 500, 502, 503, 504]  # 需要重试的状态码
 
 
