@@ -334,22 +334,34 @@ def generate_topic_distribution(u3_data: list, concept_dim_map: dict = None, nlp
     """
     logging.info(">> 🌳 [Analytics] 生成主题层级分布数据...")
 
-    # 按已标准化的大类 (display_name) 统计文献数 (每篇文献每个大类计 1 次)
-    topic_counts = defaultdict(int)
+    # 两层结构：中文大类 → 原始概念
+    hierarchy = defaultdict(lambda: defaultdict(int))
     for work in u3_data:
         seen = set()
         for c in work.get('concepts', []):
             if not isinstance(c, dict):
                 continue
-            name = str(c.get('display_name', '')).strip()
-            if name and name not in seen:
-                topic_counts[name] += 1
-                seen.add(name)
+            category = str(c.get('display_name', '')).strip()
+            if not category:
+                continue
+            original = str(c.get('original_name', '')).strip() or category
+            key = (category, original)
+            if key not in seen:
+                hierarchy[category][original] += 1
+                seen.add(key)
 
-    children = [
-        {"name": name, "value": cnt}
-        for name, cnt in sorted(topic_counts.items(), key=lambda x: -x[1])
-    ]
+    children = []
+    for category, subs in hierarchy.items():
+        sub_children = [
+            {"name": orig, "value": cnt}
+            for orig, cnt in sorted(subs.items(), key=lambda x: -x[1])
+        ]
+        children.append({
+            "name": category,
+            "value": sum(s['value'] for s in sub_children),
+            "children": sub_children,
+        })
+    children.sort(key=lambda x: -x['value'])
 
     result = {"name": "全部研究领域", "children": children}
 

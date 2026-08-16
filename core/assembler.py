@@ -110,6 +110,7 @@ def generate_final_u3(u2_5_data: list, aff_map: dict, con_map: dict, golden_keys
 
                 # 生死判决：只有在 Excel 里出现的，才能活下来
                 if match_key in con_map:
+                    c['original_name'] = orig_name_raw
                     c['display_name'] = con_map[match_key]
                     cleaned_concepts.append(c)
                     concept_replace_count += 1
