@@ -8,7 +8,7 @@
 ## 1. 项目文件树 · Project File Tree
 
 ```
-MKIV_Academic_Graph/
+MKIV-Academic-Graph/
 ├── main.py                          # CLI 入口 · CLI entry point
 ├── gui_main.py                      # GUI 入口 (PyInstaller 打包目标) · GUI entry (PyInstaller target)
 ├── requirements.txt                 # 核心依赖 · Core dependencies
@@ -219,7 +219,7 @@ data/03_cleaned/U2_5.json ──► Step 4  assembler.py ──► data/output/U
     │  Step 4.5 trend_analyzer.py ──► trends.json / lab_radar.json / topic_sunburst.json
     │  Step 5  db_importer.py ──► CSV ──► Neo4j
     ▼
-Neo4j ──► Step 6  visualizer.py ──► http://127.0.0.1:8000 (ECharts 大屏 / dashboard)
+Neo4j ──► Step 6  visualizer.py ──► http://127.0.0.1:8001 (ECharts 大屏 / dashboard)
 ```
 
 ---
@@ -230,27 +230,3 @@ Neo4j ──► Step 6  visualizer.py ──► http://127.0.0.1:8000 (ECharts �
 - **编排 Orchestration**：`pipelines/data_pipeline.py` 是唯一枢纽，串联全部 `core/*` 引擎模块完成 9 阶段流水线。The single hub chaining all `core/*` modules across 9 stages.
 - **引擎 Engine**：`core/*` 每个模块对应流水线一个阶段，互相独立、只被 pipeline 调用，且统一通过 `utils/file_handler.py` 读写中间件。Each module maps to one stage, called only by the pipeline, reading/writing intermediates via `utils/file_handler.py`.
 - **GUI**：`gui/main_window.py` 是中枢，横向组合参数面板、大屏面板、流水线执行器、Neo4j 管理器等子组件。The hub that laterally composes parameter panel, dashboard panel, pipeline runner, Neo4j manager, etc.
-
-
-
-源代码逐步执行的具体做法                                                  
-   
-  main.py:66-77 已预留每个阶段的独立方法（AcademicPipeline 的 9                 
-  个阶段方法），单独执行某步有 3 种方式：                   
-                                                                                
-  1. CLI 注释法：在 main.py 只保留想要的那一行，注释其余，例如只跑 Step 3 聚类：
-  pipeline.run_nlp_clustering_stage()   # Step 3
-  2. Python 交互式 / 脚本法：自己写脚本手动实例化并逐个调用：                   
-  from pipelines.data_pipeline import AcademicPipeline                          
-  p = AcademicPipeline(config)                                                  
-  p.run_author_mining_stage()   # Step 0                                        
-  p.run_tagging_stage()         # Step 1                                        
-  # ... 按需逐个调用                                                            
-  3. GUI 分步法：在 GUI 左侧面板勾选要执行的阶段后点「开始执行」。              
-                                                                                
-  总结                                                                          
-                                                                                
-  分发形态 3 种（源码 / 本地打包 / CI 发布）× 入口 5                            
-  种（F5、CLI、CLI→GUI、GUI、EXE）× 运行模式 3 种（仅大屏 / 全流程 /
-  分步），实际使用途径就是这几者的组合。核心入口只有两个文件：main.py（CLI）和  
-  gui_main.py（GUI），EXE 本质是 gui_main.py 经 PyInstaller 打包后的形态。

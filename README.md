@@ -64,7 +64,7 @@
 ## 文件结构 · Project Structure
 
 ```
-MKIV_Academic_Graph/
+MKIV-Academic-Graph/
 ├── main.py                          # CLI entry point
 ├── gui_main.py                      # GUI entry point (PyInstaller target)
 ├── requirements.txt                 # Core dependencies
@@ -118,7 +118,7 @@ MKIV_Academic_Graph/
 ### 1. 安装 · Install
 
 ```bash
-git clone https://github.com/<your-username>/MKIV_Academic_Graph.git
+git clone https://github.com/<your-username>/MKIV-Academic-Graph.git
 cd MKIV_Academic_Graph
 pip install -r requirements.txt
 
@@ -176,7 +176,7 @@ Neo4j must be running before the dashboard can display data.
 ```bash
 mkdir -p ./data/import
 docker run -d --name mkiv_neo4j \
-  -p 7688:7687 -p 7475:7474 \
+  -p 7688:7687 -p 7689:7474 \
   -e NEO4J_AUTH=neo4j/your_password \
   -v $(pwd)/data/import:/var/lib/neo4j/import \
   neo4j:5-community
@@ -211,7 +211,7 @@ docker rm -f mkiv_neo4j     # Remove
 | 4 | Final Assembly | U2.5 + reviewed Excel → U3.json | Strict filtering + golden-key fallback |
 | 4.5 | Analytics | U3.json → trends/radar/sunburst | Concept reduction + evolution analysis |
 | 5 | DB Import | U3.json + profile table → Neo4j | CSV export + Cypher LOAD |
-| 6 | Dashboard | Neo4j → Web :8000 | FastAPI + ECharts (2 pages) |
+| 6 | Dashboard | Neo4j → Web :8001 | FastAPI + ECharts (2 pages) |
 
 ## Neo4j 图数据模型 · Graph Schema
 
