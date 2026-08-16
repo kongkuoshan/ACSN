@@ -15,6 +15,17 @@ from utils.file_handler import load_json, save_json, load_excel, save_excel
 from utils.project_paths import resolve_all_paths
 
 
+def _save_template_if_unfilled(df, path, fill_keyword):
+    """保存映射表模板；若目标文件已有填写内容（人工/LLM），跳过覆盖以免丢数据。"""
+    if os.path.exists(path):
+        existing = load_excel(path)
+        fill_cols = [c for c in existing.columns if fill_keyword in c]
+        if fill_cols and existing[fill_cols[0]].notna().sum() > 0:
+            logging.info(f"   💡 {os.path.basename(path)} 已有填写内容，跳过覆盖。")
+            return
+    save_excel(df, path)
+
+
 class AcademicPipeline:
     """
     MKIV 主学术数据处理流水线 (9阶段: Step 0 → Step 6)
@@ -168,9 +179,9 @@ class AcademicPipeline:
         )
 
         if not df_con.empty:
-            save_excel(df_con, paths['excel_con_mapping'])
+            _save_template_if_unfilled(df_con, paths['excel_con_mapping'], '填写标准大类')
         if not df_aff.empty:
-            save_excel(df_aff, paths['excel_aff_mapping'])
+            _save_template_if_unfilled(df_aff, paths['excel_aff_mapping'], '填写标准名称')
 
         if variant_mapping:
             u2_data = load_json(paths['data_u2_cleaned'])
@@ -229,8 +240,13 @@ class AcademicPipeline:
         logging.info(">> 🚀 [Step 4] 启动 U3 终极数据组装与注入引擎...")
 
         u2_5_data = load_json(paths['data_u2_5_nlp'])
-        df_aff = load_excel(paths['excel_aff_mapping'])
-        df_con = load_excel(paths['excel_con_mapping'])
+        # 优先使用 LLM 预填版 (Step 3.5 的输出)；不存在则回退到人工填写版
+        aff_path = paths['excel_aff_mapping_ai'] if os.path.exists(paths['excel_aff_mapping_ai']) else paths['excel_aff_mapping']
+        con_path = paths['excel_con_mapping_ai'] if os.path.exists(paths['excel_con_mapping_ai']) else paths['excel_con_mapping']
+        df_aff = load_excel(aff_path)
+        df_con = load_excel(con_path)
+        logging.info(f"   📂 机构映射来源: {os.path.basename(aff_path)}")
+        logging.info(f"   📂 领域映射来源: {os.path.basename(con_path)}")
 
         if not u2_5_data:
             logging.error("❌ U2.5 数据读取失败，终止流水线。")
