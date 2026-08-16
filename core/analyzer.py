@@ -1,6 +1,6 @@
 # core/analyzer.py
 import pandas as pd
-from sentence_transformers import SentenceTransformer
+from utils.model_loader import load_sentence_transformer
 from sklearn.cluster import AgglomerativeClustering
 from collections import defaultdict
 from tqdm import tqdm
@@ -61,7 +61,7 @@ def build_cluster_mappings(unique_data: dict, target_clusters: int, nlp_cfg: dic
             logging.info(f"   📦 加载 NLP 模型 {model_name}...")
             logging.info(f"   💡 首次运行需从 HuggingFace 下载约 500MB 模型文件")
             logging.info(f"   💡 如网络受限，设置环境变量: export HF_ENDPOINT=https://hf-mirror.com")
-            model = SentenceTransformer(model_name)
+            model = load_sentence_transformer(model_name)
             embeddings = model.encode(raw_affs, show_progress_bar=True)
         except (OSError, ConnectionError, TimeoutError) as e:
             logging.error("=" * 60)

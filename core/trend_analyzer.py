@@ -17,6 +17,8 @@ import logging
 from collections import defaultdict
 from tqdm import tqdm
 
+from utils.model_loader import load_sentence_transformer
+
 
 # ================================================================
 # 1. 概念维度降低 — 复用排头兵逻辑
@@ -71,12 +73,11 @@ def reduce_concept_dimensions(u3_data: list, target_clusters: int = 25,
 
     # 3. NLP 聚类 (仅在概念数量足够多时执行)
     try:
-        from sentence_transformers import SentenceTransformer
         from sklearn.cluster import AgglomerativeClustering
         import numpy as np
 
         try:
-            model = SentenceTransformer(model_name)
+            model = load_sentence_transformer(model_name)
             embeddings = model.encode(unique_concepts, show_progress_bar=True)
         except (OSError, ConnectionError, TimeoutError) as e:
             logging.warning(f"⚠️ 模型下载失败 (网络不通): {e}")

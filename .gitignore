@@ -33,10 +33,14 @@ data/02_analyzed/
 data/03_cleaned/
 data/output/
 data/input/
+data/import/
 
 # Config with secrets
 config/config.yaml
 !config/config.example.yaml
+
+# Local models (downloaded at runtime, ~470MB)
+models/
 
 # Logs
 *.log
