@@ -18,19 +18,26 @@ driver = None
 # Neo4j 连接超时 (秒)
 NEO4J_CONNECTION_TIMEOUT = 5
 
+# 图可视化参数 (由 start_visualizer_server 从 config 注入)
+DEFAULT_ECHARTS_CDN = "https://cdn.jsdelivr.net/npm/echarts@5.4.3/dist/echarts.min.js"
+_graph_cfg = {}
+
 def shorten(name):
-    """前端类别名称截断工具"""
+    """类别名称截断工具"""
+    max_len = _graph_cfg.get('shorten_max_len', 16)
     if not name or name in ["Unknown", "待分类", "N/A", "其他"]:
         return "其他单元"
     s = str(name).split(',')[0].split(' -')[0].strip()
-    return s[:16] + ".." if len(s) > 18 else s
+    return s[:max_len] + ".." if len(s) > max_len + 2 else s
 
 # ================= 后端 API 接口 =================
 
 @app.get("/api/graph")
 def get_graph(view: str = "admin", filter_name: str = ""):
-    limit = 3000 if filter_name == "" else 5000
-    min_w = 1
+    limit = _graph_cfg.get('max_edges_default', 3000) if filter_name == "" else _graph_cfg.get('max_edges_filtered', 5000)
+    min_w = _graph_cfg.get('min_weight', 1)
+    mentor_size = _graph_cfg.get('mentor_symbol_size', 32)
+    staff_size = _graph_cfg.get('staff_symbol_size', 12)
 
     if view == "admin":
         cypher = f"""
@@ -80,7 +87,7 @@ def get_graph(view: str = "admin", filter_name: str = ""):
                         "id": sid, "name": r[f'n{i}'], 
                         "category": shorten(r['cat']),
                         "symbol": "diamond" if is_pi else "circle",
-                        "symbolSize": 32 if is_pi else 12,
+                        "symbolSize": mentor_size if is_pi else staff_size,
                         "itemStyle": {"color": "#e74c3c" if is_pi else None},
                         "label": {"show": is_pi, "fontSize": 12, "fontWeight": "bold"}
                     }
@@ -179,14 +186,14 @@ def get_concept_map():
     return {}
 
 
-# ================= 前端 UI (原样保留) =================
+# ================= 可视化 UI (原样保留) =================
 HTML_CONTENT = """
 <!DOCTYPE html>
 <html>
 <head>
     <meta charset="utf-8">
     <title> 学术情报指挥舱 MKIV</title>
-    <script src="https://cdn.jsdelivr.net/npm/echarts@5.4.3/dist/echarts.min.js"></script>
+    <script src="__ECHARTS_CDN__"></script>
     <style>
         body { margin: 0; background: #0a0a0c; color: #fff; font-family: 'Segoe UI', sans-serif; overflow: hidden; }
         #main { width: 100vw; height: 100vh; }
@@ -296,7 +303,7 @@ ANALYTICS_HTML = """
 <head>
     <meta charset="utf-8">
     <title>MKIV 情报分析 — 学术演化与趋势</title>
-    <script src="https://cdn.jsdelivr.net/npm/echarts@5.4.3/dist/echarts.min.js"></script>
+    <script src="__ECHARTS_CDN__"></script>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body { background: #0a0a0c; color: #fff; font-family: 'Segoe UI', sans-serif; overflow: hidden; display: flex; flex-direction: column; height: 100vh; }
@@ -491,14 +498,19 @@ ANALYTICS_HTML = """
 """
 
 
+def _render(html: str) -> str:
+    """渲染 HTML 模板，注入可配置的 ECharts CDN 地址"""
+    return html.replace('__ECHARTS_CDN__', _graph_cfg.get('echarts_cdn', DEFAULT_ECHARTS_CDN))
+
+
 @app.get("/", response_class=HTMLResponse)
 def index():
-    return HTML_CONTENT
+    return _render(HTML_CONTENT)
 
 
 @app.get("/analytics", response_class=HTMLResponse)
 def analytics():
-    return ANALYTICS_HTML
+    return _render(ANALYTICS_HTML)
 
 # ================= 启动器 =================
 
@@ -506,11 +518,13 @@ _server = None
 _server_started = False
 
 
-def start_visualizer_server(db_config: dict, host: str = "0.0.0.0", port: int = DASHBOARD_PORT):
+def start_visualizer_server(db_config: dict, host: str = "0.0.0.0", port: int = DASHBOARD_PORT,
+                            graph_cfg: dict = None):
     """
     接收来自 Pipeline 的配置，动态连接 Neo4j 并启动 Web 服务 (阻塞模式, CLI 使用)
     """
-    global driver
+    global driver, _graph_cfg
+    _graph_cfg = graph_cfg or {}
     logging.info(f">> 📊 正在启动学术情报大屏服务端，连接图数据库...")
     try:
         driver = GraphDatabase.driver(
@@ -528,12 +542,14 @@ def start_visualizer_server(db_config: dict, host: str = "0.0.0.0", port: int = 
     uvicorn.run(app, host=host, port=port, log_level="warning")
 
 
-def start_visualizer_server_background(db_config: dict, host: str = DASHBOARD_HOST, port: int = DASHBOARD_PORT):
+def start_visualizer_server_background(db_config: dict, host: str = DASHBOARD_HOST, port: int = DASHBOARD_PORT,
+                                       graph_cfg: dict = None):
     """
     非阻塞模式：在后台守护线程中启动 FastAPI (GUI 使用)
     """
     import threading
-    global driver, _server, _server_started
+    global driver, _server, _server_started, _graph_cfg
+    _graph_cfg = graph_cfg or {}
 
     logging.info(f">> 📊 正在后台启动学术情报大屏服务端，连接图数据库...")
     try:

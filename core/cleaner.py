@@ -63,36 +63,53 @@ def tag_internal_nodes(raw_works: list, target_id: str, fallback_patterns: list)
 
     return raw_works, internal_count, external_count
 
-def _clean_noise(text: str) -> str:
+DEFAULT_STOP_WORDS = ["People's Republic of China", "P. R. China", "P.R. China", "PRC", "China", "Beijing"]
+
+
+def _clean_noise(text: str, stop_words=None) -> str:
     """
     [内部辅助函数] 物理硬规则清洗器，专门对付乱码和冗余信息。
     """
-    if not text or not isinstance(text, str): 
+    if not text or not isinstance(text, str):
         return ""
-        
+
+    if stop_words is None:
+        stop_words = DEFAULT_STOP_WORDS
+
     # 1. 剔除邮箱
     text = re.sub(r'[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+', '', text)
     # 2. 剔除邮编 (5-7位连续数字)
     text = re.sub(r'\b\d{5,7}\b', '', text)
     # 3. 剔除无用国家/城市名
-    stop_words = ["People's Republic of China", "P. R. China", "P.R. China", "PRC", "China", "Beijing"]
     for word in stop_words:
         text = re.compile(re.escape(word), re.IGNORECASE).sub('', text)
     # 4. 替换标点符号为空格并去除多余空白
     text = re.sub(r'[.,;，。；]+', ' ', text)
     text = re.sub(r'\s+', ' ', text).strip()
-    
+
     return text
 
-def extract_and_clean_entities(tagged_works: list) -> tuple:
+def extract_and_clean_entities(tagged_works: list, nlp_cfg: dict = None,
+                               cleaning_cfg: dict = None, labels_cfg: dict = None) -> tuple:
     """
     [核心逻辑] 清洗 U1.5 数据，并提取出用于 AI 聚类的 Unique 实体字典。
-    
+
     参数:
         tagged_works: 经过 U1.5 打标的数据列表
+        nlp_cfg: 阈值参数 (score_threshold / level_threshold)
+        cleaning_cfg: 清洗参数 (stop_words)
+        labels_cfg: 标签参数 (external)
     返回:
         (清洗后的 U2 数据列表, 提取出的 Unique 实体字典)
     """
+    nlp_cfg = nlp_cfg or {}
+    cleaning_cfg = cleaning_cfg or {}
+    labels_cfg = labels_cfg or {}
+    score_threshold = nlp_cfg.get('score_threshold', 0.4)
+    level_threshold = nlp_cfg.get('level_threshold', 1)
+    stop_words = cleaning_cfg.get('stop_words', DEFAULT_STOP_WORDS)
+    external_label = labels_cfg.get('external', '外部合作机构')
+
     unique_internal_affiliations = set()
     unique_concepts = set()
 
@@ -103,33 +120,33 @@ def extract_and_clean_entities(tagged_works: list) -> tuple:
 
         # 1. 提取高质量领域 (Concepts)
         for c in work.get('concepts') or []:
-            # 仅保留一级/二级学科 (level <= 1) 且置信度较高 (score > 0.4) 的大类
-            if c and c.get('level', 99) <= 1 and c.get('score', 0) > 0.4:
+            # 仅保留大类学科 (level <= level_threshold) 且置信度较高 (score > score_threshold)
+            if c and c.get('level', 99) <= level_threshold and c.get('score', 0) > score_threshold:
                 name = c.get('display_name')
                 if name:
                     unique_concepts.add(name.strip())
 
         # 2. 清洗机构 (Affiliations)
         for auth in work.get("authorships") or []:
-            # 如果是外部人员，直接暴力覆盖为“外部合作机构”，节约后续算力
+            # 如果是外部人员，直接暴力覆盖为外部标签，节约后续算力
             if not auth.get("is_internal_node"):
-                auth["raw_affiliation_strings"] = ["外部合作机构"]
+                auth["raw_affiliation_strings"] = [external_label]
                 continue
-            
+
             # 如果是内部人员，执行严格的硬规则清洗
             raw_strs = auth.get("raw_affiliation_strings", [])
-            cleaned_strs = [_clean_noise(s) for s in raw_strs if _clean_noise(s)]
-            
+            cleaned_strs = [_clean_noise(s, stop_words) for s in raw_strs if _clean_noise(s, stop_words)]
+
             # 记录到集合中去重
             unique_internal_affiliations.update(cleaned_strs)
-            
+
             # 写回清洗后的干净数据
             auth["raw_affiliation_strings"] = cleaned_strs
 
     # 构建用于大模型分析的字典
     unique_data = {
         "raw_affiliations": sorted(list(unique_internal_affiliations)),
-        "concepts": sorted(list(unique_concepts)) 
+        "concepts": sorted(list(unique_concepts))
     }
-    
+
     return tagged_works, unique_data

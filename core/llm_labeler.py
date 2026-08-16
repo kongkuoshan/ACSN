@@ -6,18 +6,19 @@ from tqdm import tqdm
 import logging
 
 
-def ask_llm(api_url: str, system_prompt: str, user_input: str) -> str:
+def ask_llm(api_url: str, system_prompt: str, user_input: str,
+            temperature: float = 0, max_tokens: int = 120, timeout: int = 30) -> str:
     """底层 LLM API 请求封装"""
     payload = {
         "messages": [
             {"role": "system", "content": system_prompt},
             {"role": "user", "content": user_input}
         ],
-        "temperature": 0,
-        "max_tokens": 120
+        "temperature": temperature,
+        "max_tokens": max_tokens
     }
     try:
-        res = requests.post(api_url, json=payload, timeout=30)
+        res = requests.post(api_url, json=payload, timeout=timeout)
         res.raise_for_status()
         return res.json()['choices'][0]['message']['content'].strip()
     except Exception as e:
@@ -29,18 +30,28 @@ def ask_llm(api_url: str, system_prompt: str, user_input: str) -> str:
 # 领域分类 (单条)
 # ================================================================
 
-def auto_label_concepts(df_con: pd.DataFrame, api_url: str, target_fields: str) -> pd.DataFrame:
+def auto_label_concepts(df_con: pd.DataFrame, api_url: str, target_fields: str,
+                        llm_cfg: dict = None) -> pd.DataFrame:
     """为领域表(Concepts)自动预填分类"""
     if df_con.empty:
         return df_con
 
-    sys_prompt = f"你是一个学术分类专家。请将输入的学科词汇归类到以下列表中的一个：[{target_fields}]。只输出分类名称，严禁任何解释。"
+    llm_cfg = llm_cfg or {}
+    temperature = llm_cfg.get('temperature', 0)
+    max_tokens = llm_cfg.get('max_tokens', 120)
+    timeout = llm_cfg.get('request_timeout', 30)
+    concept_prompt = llm_cfg.get(
+        'concept_prompt',
+        "你是一个学术分类专家。请将输入的学科词汇归类到以下列表中的一个：[{target_fields}]。只输出分类名称，严禁任何解释。"
+    )
+    sys_prompt = concept_prompt.format(target_fields=target_fields)
     df_res = df_con.copy()
 
     for i, row in tqdm(df_res.iterrows(), total=len(df_res), desc="🤖 LLM 领域分类进度"):
         raw_name = str(row.get('原始领域名称', ''))
         if raw_name:
-            result = ask_llm(api_url, sys_prompt, raw_name)
+            result = ask_llm(api_url, sys_prompt, raw_name,
+                             temperature=temperature, max_tokens=max_tokens, timeout=timeout)
             df_res.at[i, "填写标准大类 (如：人工智能)"] = result
 
     return df_res
@@ -50,16 +61,23 @@ def auto_label_concepts(df_con: pd.DataFrame, api_url: str, target_fields: str) 
 # 机构映射 — 逐条模式 (兼容旧版)
 # ================================================================
 
-def auto_label_affiliations(df_aff: pd.DataFrame, api_url: str, sys_prompt: str) -> pd.DataFrame:
+def auto_label_affiliations(df_aff: pd.DataFrame, api_url: str, sys_prompt: str,
+                            llm_cfg: dict = None) -> pd.DataFrame:
     """为机构表(Affiliations)逐条预填标准名称 (旧版兼容)"""
     if df_aff.empty:
         return df_aff
+
+    llm_cfg = llm_cfg or {}
+    temperature = llm_cfg.get('temperature', 0)
+    max_tokens = llm_cfg.get('max_tokens', 120)
+    timeout = llm_cfg.get('request_timeout', 30)
 
     df_res = df_aff.copy()
     for i, row in tqdm(df_res.iterrows(), total=len(df_res), desc="🏢 LLM 机构映射进度"):
         vanguard = str(row.get('🤖 AI 提取的【排头兵】', ''))
         if vanguard:
-            result = ask_llm(api_url, sys_prompt, vanguard)
+            result = ask_llm(api_url, sys_prompt, vanguard,
+                             temperature=temperature, max_tokens=max_tokens, timeout=timeout)
             df_res.at[i, "🧑‍🔧 填写标准名称 (抄左边/填中文/不认识留空)"] = result
 
     return df_res
@@ -70,7 +88,7 @@ def auto_label_affiliations(df_aff: pd.DataFrame, api_url: str, sys_prompt: str)
 # ================================================================
 
 def auto_label_affiliations_batch(df_aff: pd.DataFrame, api_url: str,
-                                  sys_prompt: str = None) -> pd.DataFrame:
+                                  sys_prompt: str = None, llm_cfg: dict = None) -> pd.DataFrame:
     """
     批量发送所有排头兵给 LLM，让 LLM 看到全景后再分类。
 
@@ -89,6 +107,12 @@ def auto_label_affiliations_batch(df_aff: pd.DataFrame, api_url: str,
     """
     if df_aff.empty:
         return df_aff
+
+    llm_cfg = llm_cfg or {}
+    temperature = llm_cfg.get('temperature', 0)
+    max_tokens = llm_cfg.get('max_tokens', 120)
+    timeout = llm_cfg.get('request_timeout', 30)
+    batch_size = llm_cfg.get('batch_size', 80)
 
     vanguard_col = '🤖 AI 提取的【排头兵】'
     standard_col = '🧑‍🔧 填写标准名称 (抄左边/填中文/不认识留空)'
@@ -111,8 +135,7 @@ def auto_label_affiliations_batch(df_aff: pd.DataFrame, api_url: str,
             "优先使用完整正式名称。不同实验室必须使用不同的标准名称。"
         )
 
-    # 分批发送 (每批最多 80 个, 避免超 token 限制)
-    batch_size = 80
+    # 分批发送 (每批最多 batch_size 个, 避免超 token 限制)
     name_map = {}
 
     for batch_start in tqdm(range(0, len(vanguards), batch_size), desc="🏢 LLM 批量映射"):
@@ -132,7 +155,8 @@ def auto_label_affiliations_batch(df_aff: pd.DataFrame, api_url: str,
         )
 
         try:
-            result = ask_llm(api_url, sys_prompt, user_prompt)
+            result = ask_llm(api_url, sys_prompt, user_prompt,
+                             temperature=temperature, max_tokens=max_tokens, timeout=timeout)
             # 尝试解析 JSON
             json_str = result.strip()
             if json_str.startswith("```"):
@@ -183,11 +207,12 @@ def auto_label_affiliations_batch(df_aff: pd.DataFrame, api_url: str,
 # 后处理: 合并同名排头兵
 # ================================================================
 
-def deduplicate_standard_names(df_aff: pd.DataFrame) -> pd.DataFrame:
+def deduplicate_standard_names(df_aff: pd.DataFrame, llm_cfg: dict = None) -> pd.DataFrame:
     """
     检测并合并 LLM 打标后产生的重名。
     如果两个排头兵被赋予相同的标准名, 将所有变体统一归到最短的排头兵下。
     """
+    similarity_threshold = (llm_cfg or {}).get('similarity_threshold', 0.85)
     vanguard_col = '🤖 AI 提取的【排头兵】'
     standard_col = '🧑‍🔧 填写标准名称 (抄左边/填中文/不认识留空)'
 
@@ -229,7 +254,6 @@ def deduplicate_standard_names(df_aff: pd.DataFrame) -> pd.DataFrame:
     unique_stds = list(std_to_vanguards.keys())
     if len(unique_stds) > 1:
         merge_map = {}
-        SIMILARITY_THRESHOLD = 0.85
 
         for i, s1 in enumerate(unique_stds):
             if s1 in merge_map:
@@ -240,7 +264,7 @@ def deduplicate_standard_names(df_aff: pd.DataFrame) -> pd.DataFrame:
                 # 跳过完全相同的 (已在第一遍处理过)
                 if s1 == s2:
                     continue
-                if SequenceMatcher(None, s1, s2).ratio() > SIMILARITY_THRESHOLD:
+                if SequenceMatcher(None, s1, s2).ratio() > similarity_threshold:
                     canonical = s1 if len(s1) <= len(s2) else s2
                     other = s2 if canonical == s1 else s1
                     merge_map[other] = canonical

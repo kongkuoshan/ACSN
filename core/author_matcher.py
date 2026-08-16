@@ -8,7 +8,8 @@ def _normalize_name(name: str) -> str:
     """特征指纹归一化"""
     return str(name).lower().replace('-', '').replace('.', '').replace(' ', '').strip()
 
-def build_local_database(all_works: list, parent_id: str, fallback_keywords: list = None) -> dict:
+def build_local_database(all_works: list, parent_id: str, fallback_keywords: list = None,
+                         nlp_cfg: dict = None) -> dict:
     """构建本地学者特征画像数据库"""
     logging.info(">> 🧠 [Step 0.2] 正在提取特征，构建【本地学者画像引擎】...")
     local_author_db = {}
@@ -16,10 +17,14 @@ def build_local_database(all_works: list, parent_id: str, fallback_keywords: lis
     if fallback_keywords is None:
         fallback_keywords = []
 
+    nlp_cfg = nlp_cfg or {}
+    score_threshold = nlp_cfg.get('score_threshold', 0.4)
+    min_aff_len = nlp_cfg.get('min_aff_len', 5)
+
     for work in tqdm(all_works, desc="解析学术特征"):
         if not work: continue
 
-        concepts = [c.get('display_name') for c in work.get('concepts', []) if c and c.get('score', 0) > 0.4]
+        concepts = [c.get('display_name') for c in work.get('concepts', []) if c and c.get('score', 0) > score_threshold]
         co_authors = [a.get("author", {}).get("id") for a in work.get("authorships", []) if a and a.get("author", {}).get("id")]
 
         for auth in work.get("authorships", []):
@@ -36,7 +41,7 @@ def build_local_database(all_works: list, parent_id: str, fallback_keywords: lis
             for aff in (auth.get("affiliations") or []):
                 if aff.get("raw_affiliation_string"): raw_strs.append(aff.get("raw_affiliation_string"))
 
-            clean_raw_strs = list(set([s.strip() for s in raw_strs if s and len(s.strip()) > 5]))
+            clean_raw_strs = list(set([s.strip() for s in raw_strs if s and len(s.strip()) > min_aff_len]))
 
             # 判断是否为内部人员
             is_internal = False

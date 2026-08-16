@@ -23,7 +23,8 @@ from tqdm import tqdm
 # ================================================================
 
 def reduce_concept_dimensions(u3_data: list, target_clusters: int = 25,
-                              api_url: str = None) -> dict:
+                              api_url: str = None, nlp_cfg: dict = None,
+                              llm_cfg: dict = None) -> dict:
     """
     提取 U3 中所有研究领域概念，通过 NLP 聚类 + 可选 LLM 命名
     生成 macro_category 映射表。
@@ -32,10 +33,15 @@ def reduce_concept_dimensions(u3_data: list, target_clusters: int = 25,
         u3_data: U3 黄金数据列表
         target_clusters: 目标宏类别数量 (默认 25)
         api_url: LLM API 地址 (None 表示不使用 LLM 命名)
+        nlp_cfg: NLP 参数 (model_name)
+        llm_cfg: LLM 参数 (concept_naming_prompt 等)
 
     返回:
         concept_dim_map: {原始概念小写: 宏类别名称}
     """
+    nlp_cfg = nlp_cfg or {}
+    model_name = nlp_cfg.get('model_name', 'paraphrase-multilingual-MiniLM-L12-v2')
+
     logging.info(">> 🧠 [Analytics] 启动概念维度降低引擎...")
 
     # 1. 收集全量唯一概念
@@ -69,9 +75,8 @@ def reduce_concept_dimensions(u3_data: list, target_clusters: int = 25,
         from sklearn.cluster import AgglomerativeClustering
         import numpy as np
 
-        MODEL_NAME = 'paraphrase-multilingual-MiniLM-L12-v2'
         try:
-            model = SentenceTransformer(MODEL_NAME)
+            model = SentenceTransformer(model_name)
             embeddings = model.encode(unique_concepts, show_progress_bar=True)
         except (OSError, ConnectionError, TimeoutError) as e:
             logging.warning(f"⚠️ 模型下载失败 (网络不通): {e}")
@@ -103,7 +108,7 @@ def reduce_concept_dimensions(u3_data: list, target_clusters: int = 25,
 
         # 4. LLM 命名 (可选)
         if api_url:
-            concept_dim_map = _llm_label_clusters(clusters, concept_dim_map, api_url)
+            concept_dim_map = _llm_label_clusters(clusters, concept_dim_map, api_url, llm_cfg)
 
         return concept_dim_map
 
@@ -115,22 +120,32 @@ def reduce_concept_dimensions(u3_data: list, target_clusters: int = 25,
         return {c.lower(): c for c in unique_concepts}
 
 
-def _llm_label_clusters(clusters: dict, concept_dim_map: dict, api_url: str) -> dict:
+def _llm_label_clusters(clusters: dict, concept_dim_map: dict, api_url: str,
+                        llm_cfg: dict = None) -> dict:
     """使用 LLM 为每个概念簇命名"""
     try:
         from core.llm_labeler import ask_llm
+
+        llm_cfg = llm_cfg or {}
+        temperature = llm_cfg.get('temperature', 0)
+        max_tokens = llm_cfg.get('max_tokens', 120)
+        timeout = llm_cfg.get('request_timeout', 30)
+        naming_prompt = llm_cfg.get(
+            'concept_naming_prompt',
+            "以下研究概念属于同一个主题簇:\n{sample}\n\n请为这个主题簇命名一个 2-6 字的中文名称..."
+        )
+        system_prompt = llm_cfg.get(
+            'concept_naming_system_prompt',
+            "你是学术分类专家。请根据输入的概念列表，给出一个简洁的中文主题名称。只输出名称。"
+        )
 
         new_map = {}
         for cid, texts in clusters.items():
             vanguard = min(texts, key=len)
             sample = ', '.join(texts[:5])
-            prompt = (
-                f"以下研究概念属于同一个主题簇:\n{sample}\n\n"
-                f"请为这个主题簇命名一个 2-6 字的中文名称（如：'具身智能与机器人'）："
-            )
-            label = ask_llm(api_url,
-                            "你是学术分类专家。请根据输入的概念列表，给出一个简洁的中文主题名称。只输出名称。",
-                            prompt)
+            prompt = naming_prompt.format(sample=sample)
+            label = ask_llm(api_url, system_prompt, prompt,
+                            temperature=temperature, max_tokens=max_tokens, timeout=timeout)
             if label and len(label) > 1:
                 for t in texts:
                     new_map[t.lower()] = label
@@ -296,7 +311,7 @@ def generate_lab_radar_data(u3_data: list, concept_dim_map: dict = None) -> dict
 # 4. 主题分布 — Sunburst / Treemap
 # ================================================================
 
-def generate_topic_distribution(u3_data: list, concept_dim_map: dict = None) -> dict:
+def generate_topic_distribution(u3_data: list, concept_dim_map: dict = None, nlp_cfg: dict = None) -> dict:
     """
     生成层级主题分布数据 (用于 ECharts Sunburst)。
 
@@ -316,13 +331,15 @@ def generate_topic_distribution(u3_data: list, concept_dim_map: dict = None) -> 
         ]
     }
     """
+    level_threshold = (nlp_cfg or {}).get('level_threshold', 1)
+
     logging.info(">> 🌳 [Analytics] 生成主题层级分布数据...")
 
     if concept_dim_map is None:
         concept_dim_map = {}
 
     # 按 level 构建层级
-    # level 0/1: 大类 → level 2+: 子类
+    # level <= level_threshold: 大类 → 更深层级: 子类
     level_counts = defaultdict(lambda: defaultdict(lambda: defaultdict(int)))
 
     for work in u3_data:
@@ -334,13 +351,13 @@ def generate_topic_distribution(u3_data: list, concept_dim_map: dict = None) -> 
                 continue
             level = c.get('level', 99)
 
-            if level <= 1:
+            if level <= level_threshold:
                 level_counts['L0'][name]['__total__'] += 1
             else:
-                # 找其父级概念 (同work中的 level 0/1 概念)
+                # 找其父级概念 (同work中的 level <= level_threshold 概念)
                 parent = "其他"
                 for cp in work.get('concepts', []):
-                    if isinstance(cp, dict) and cp.get('level', 99) <= 1:
+                    if isinstance(cp, dict) and cp.get('level', 99) <= level_threshold:
                         parent = cp.get('display_name', '其他')
                         break
                 level_counts[parent][name]['__total__'] += 1

@@ -55,10 +55,17 @@ paths:
 
 # === NLP 参数 ===
 nlp:
-  target_aff_clusters: 30                   # 机构名聚类目标簇数
-                                             # 建议设为你实际实验室/部门数量的 3~5 倍
-                                             # 簇稍多 → 人工在 Excel 中合并即可
-                                             # 簇太少 → 不同实验室可能被错误合并
+  target_aff_clusters: 30                   # 机构名聚类目标簇数 (建议设为实验室数量的 3~5 倍)
+  model_name: "paraphrase-multilingual-MiniLM-L12-v2"  # SBERT 语义模型
+  score_threshold: 0.4                      # 领域置信度阈值 (score > 该值才保留)
+  level_threshold: 1                        # 学科层级阈值 (level <= 该值视为大类)
+  min_aff_len: 5                            # 机构字符串最小长度 (过滤短噪音)
+  kmeans_switch_threshold: 3000             # 机构变体超过此数量时改用 KMeans
+  random_state: 42                          # 聚类随机种子 (可复现)
+  cluster_metric: "euclidean"               # 聚类距离度量
+  cluster_linkage: "ward"                   # 层次聚类链接方式
+  reference_max_len: 60                     # 辅助参考名截断长度
+  vanguard_strategy: "shortest"             # 排头兵选择策略: shortest | longest
 
 
 # === LLM 大模型辅助 (可选) ===
@@ -67,6 +74,13 @@ llm_assistant:
   api_url: "http://localhost:8080/v1/chat/completions"   # OpenAI 兼容 API
   concept_target_fields: "人工智能, 计算机视觉, 机器人学, 自动控制, 脑科学与神经科学, 医学影像, 计算机体系结构, 物理与工程, 生物与医学, 社会与人文, 数学与基础科学"
   affiliation_system_prompt: "你是一个机构识别专家。判断输入是否属于目标机构。如果是,输出其中文实验室/院系简称;如果不是,输出'外部合作机构'。只输出名称,不要解释。"
+  temperature: 0                             # 采样温度 (0=确定性)
+  max_tokens: 120                            # 单次返回最大 token
+  request_timeout: 30                        # LLM 请求超时 (秒)
+  batch_size: 80                             # 批量映射每批数量
+  similarity_threshold: 0.85                 # 相似标准名自动合并阈值
+  concept_prompt: "你是一个学术分类专家。请将输入的学科词汇归类到以下列表中的一个：[{target_fields}]。只输出分类名称，严禁任何解释。"
+  concept_naming_prompt: "以下研究概念属于同一个主题簇:\n{sample}\n\n请为这个主题簇命名一个 2-6 字的中文名称..."
 
 
 # === 作者画像匹配 ===
@@ -80,9 +94,54 @@ database:
   uri: "bolt://localhost:7688"              # Bolt 连接地址
   user: "neo4j"                              # 用户名
   password: "请修改此密码"                    # ⚠️ 务必修改!
+  connection_timeout: 10                     # 连接/获取超时 (秒)
 
 
 # === 情报分析 ===
 analytics:
   concept_clusters: 25                       # 概念降维目标簇数
   use_llm_labels: false                      # 是否用 LLM 命名概念簇
+
+
+# === 爬虫 (OpenAlex) ===
+crawler:
+  api_url: "https://api.openalex.org/works"  # OpenAlex API 地址
+  per_page: 200                              # 每页条数
+  request_timeout: 30                        # 请求超时 (秒)
+  rate_limit_sleep: 0.15                     # 每页间隔 (秒, 限速)
+  cache_min_bytes: 1024                      # 本地缓存有效性最小字节数
+  retry_total: 5                             # 重试次数
+  retry_backoff: 1                           # 重试退避因子
+  retry_status_codes: [429, 500, 502, 503, 504]  # 需要重试的状态码
+
+
+# === 数据清洗 ===
+cleaning:
+  stop_words:                                # 机构名清洗停用词 (会从机构串中剔除)
+    - "People's Republic of China"
+    - "P. R. China"
+    - "P.R. China"
+    - "PRC"
+    - "China"
+    - "Beijing"
+
+
+# === 分类/兜底标签 ===
+labels:
+  external: "外部合作机构"                    # 外部作者统一标签
+  unknown_dept: "(未知部门)"                  # 无法识别部门兜底
+  other_dept: "(其他部门)"                    # 未映射部门兜底
+  other_unit: "其他单元"                      # 无机构信息兜底
+  mentor_role: "导师"                         # 导师角色标签
+  staff_role: "研究员/学生"                   # 非导师角色标签
+
+
+# === 图可视化 (中心度/图规模) ===
+graph:
+  min_weight: 1                              # 合作边最小权重 (低于此值不显示)
+  max_edges_default: 3000                    # 默认视图最大边数
+  max_edges_filtered: 5000                   # 过滤视图最大边数
+  mentor_symbol_size: 32                     # 导师节点大小
+  staff_symbol_size: 12                      # 其他学者节点大小
+  shorten_max_len: 16                        # 类别名截断长度
+  echarts_cdn: "https://cdn.jsdelivr.net/npm/echarts@5.4.3/dist/echarts.min.js"

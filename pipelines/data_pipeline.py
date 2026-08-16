@@ -32,13 +32,14 @@ class AcademicPipeline:
         logging.info("=" * 50)
         logging.info(">> 🚀 [Step 0] 启动数据基石：全量抓取与作者画像分析...")
 
-        # 1. 执行工业级爬虫 (生成或读取 U1.json)
+        # 1. 执行爬虫 (生成或读取 U1.json)
         all_works = run_openalex_crawler(
             target_id=cfg['institution']['target_id'],
             email=cfg['institution']['email'],
             start_year=cfg['institution']['start_year'],
             end_year=cfg['institution'].get('end_year'),
-            output_path=cfg['paths']['data_u1_raw']
+            output_path=cfg['paths']['data_u1_raw'],
+            crawler_cfg=cfg.get('crawler', {})
         )
 
         if not all_works:
@@ -69,7 +70,8 @@ class AcademicPipeline:
                     target_id_short = cfg['institution']['target_id'].split("/")[-1]
                     fallback_kw = cfg['institution'].get('fallback_keywords', [])
                     local_db = build_local_database(all_works, parent_id=target_id_short,
-                                                    fallback_keywords=fallback_kw)
+                                                    fallback_keywords=fallback_kw,
+                                                    nlp_cfg=cfg.get('nlp', {}))
 
                     df_out = match_names_locally(
                         df_input=df_input,
@@ -129,7 +131,12 @@ class AcademicPipeline:
             logging.error("❌ U1.5 数据读取失败，终止流水线。")
             return
 
-        u2_data, unique_entities = extract_and_clean_entities(tagged_works=tagged_data)
+        u2_data, unique_entities = extract_and_clean_entities(
+            tagged_works=tagged_data,
+            nlp_cfg=self.config.get('nlp', {}),
+            cleaning_cfg=self.config.get('cleaning', {}),
+            labels_cfg=self.config.get('labels', {})
+        )
 
         save_json(u2_data, paths['data_u2_cleaned'])
         save_json(unique_entities, paths['data_u2_unique'])
@@ -156,7 +163,8 @@ class AcademicPipeline:
 
         df_con, df_aff, variant_mapping = build_cluster_mappings(
             unique_data=unique_data,
-            target_clusters=nlp_cfg.get('target_aff_clusters', 350)
+            target_clusters=nlp_cfg.get('target_aff_clusters', 350),
+            nlp_cfg=nlp_cfg
         )
 
         if not df_con.empty:
@@ -191,7 +199,8 @@ class AcademicPipeline:
             df_con_ai = auto_label_concepts(
                 df_con=df_con,
                 api_url=api_url,
-                target_fields=llm_cfg['concept_target_fields']
+                target_fields=llm_cfg['concept_target_fields'],
+                llm_cfg=llm_cfg
             )
             save_excel(df_con_ai, paths['excel_con_mapping_ai'])
 
@@ -201,10 +210,11 @@ class AcademicPipeline:
             df_aff_ai = auto_label_affiliations_batch(
                 df_aff=df_aff,
                 api_url=api_url,
-                sys_prompt=llm_cfg.get('affiliation_system_prompt')
+                sys_prompt=llm_cfg.get('affiliation_system_prompt'),
+                llm_cfg=llm_cfg
             )
             # 后处理: 合并 LLM 产生的重名
-            df_aff_ai = deduplicate_standard_names(df_aff_ai)
+            df_aff_ai = deduplicate_standard_names(df_aff_ai, llm_cfg=llm_cfg)
             save_excel(df_aff_ai, paths['excel_aff_mapping_ai'])
 
         logging.info(">> 🎉 LLM 预填完毕！请人类专家打开 `_AI预填版.xlsx` 进行最终抽检和修改。")
@@ -232,7 +242,8 @@ class AcademicPipeline:
             u2_5_data=u2_5_data,
             aff_map=aff_map,
             con_map=con_map,
-            golden_keys=golden_keys
+            golden_keys=golden_keys,
+            labels_cfg=self.config.get('labels', {})
         )
 
         save_json(u3_data, paths['data_u3_final'])
@@ -266,7 +277,9 @@ class AcademicPipeline:
         concept_dim_map = reduce_concept_dimensions(
             u3_data,
             target_clusters=analytics_cfg.get('concept_clusters', 25),
-            api_url=api_url
+            api_url=api_url,
+            nlp_cfg=self.config.get('nlp', {}),
+            llm_cfg=llm_cfg
         )
         save_json(concept_dim_map,
                   paths.get('data_concept_map',
@@ -285,7 +298,8 @@ class AcademicPipeline:
                            os.path.join(PROJECT_ROOT, 'data', 'output', 'lab_radar.json')))
 
         # 4. 主题分布 → Sunburst
-        topic_tree = generate_topic_distribution(u3_data, concept_dim_map)
+        topic_tree = generate_topic_distribution(u3_data, concept_dim_map,
+                                                 nlp_cfg=self.config.get('nlp', {}))
         save_json(topic_tree,
                   paths.get('data_topic_sunburst',
                            os.path.join(PROJECT_ROOT, 'data', 'output', 'topic_sunburst.json')))
@@ -312,10 +326,13 @@ class AcademicPipeline:
         import_dir = self.config.get('author_matcher', {}).get('neo4j_import_dir')
         if not import_dir:
             import_dir = os.path.join(PROJECT_ROOT, 'data', 'import')
-        extract_graph_to_csv(u3_data, df_pi, import_dir)
+        extract_graph_to_csv(u3_data, df_pi, import_dir,
+                             labels_cfg=self.config.get('labels', {}))
 
         try:
-            importer = Neo4jImporter(uri=db_cfg['uri'], user=db_cfg['user'], password=db_cfg['password'])
+            importer = Neo4jImporter(uri=db_cfg['uri'], user=db_cfg['user'],
+                                     password=db_cfg['password'],
+                                     connection_timeout=db_cfg.get('connection_timeout', 10))
             importer.execute_load()
         except Exception as e:
             logging.error(f"❌ Neo4j 入库失败，请检查数据库是否启动或配置是否正确: {e}")
@@ -330,6 +347,8 @@ class AcademicPipeline:
         logging.info(">> 🌐 [Step 6] 启动 ECharts 可视化服务端...")
 
         if background:
-            start_visualizer_server_background(db_config=db_cfg, host=DASHBOARD_HOST, port=DASHBOARD_PORT)
+            start_visualizer_server_background(db_config=db_cfg, host=DASHBOARD_HOST, port=DASHBOARD_PORT,
+                                               graph_cfg=self.config.get('graph', {}))
         else:
-            start_visualizer_server(db_config=db_cfg, host=DASHBOARD_HOST, port=DASHBOARD_PORT)
+            start_visualizer_server(db_config=db_cfg, host=DASHBOARD_HOST, port=DASHBOARD_PORT,
+                                    graph_cfg=self.config.get('graph', {}))

@@ -18,10 +18,15 @@ def _safe_text(text):
     if not text or str(text).lower() == 'nan': return "未知"
     return str(text).replace('"', "'").replace('\\', '').strip()
 
-def extract_graph_to_csv(u3_data: list, df_pi: pd.DataFrame, out_dir: str):
+def extract_graph_to_csv(u3_data: list, df_pi: pd.DataFrame, out_dir: str, labels_cfg: dict = None):
     """
     [核心逻辑] 解析 U3 和 0号表，提取点边关系并导出为 CSV。
     """
+    labels_cfg = labels_cfg or {}
+    mentor_role = labels_cfg.get('mentor_role', '导师')
+    staff_role = labels_cfg.get('staff_role', '研究员/学生')
+    other_unit = labels_cfg.get('other_unit', '其他单元')
+
     logging.info(">> 🧬 正在将 U3 黄金数据解析为图谱网格...")
     
     # 1. 建立导师身份映射 + ID 别名映射 (合并历史分身)
@@ -91,14 +96,14 @@ def extract_graph_to_csv(u3_data: list, df_pi: pd.DataFrame, out_dir: str):
             canonical_id = id_alias_map.get(aid, aid)
 
             s_name = pi_map.get(canonical_id) or pi_map.get(aid) or _safe_text(a_obj.get("display_name"))
-            s_role = "导师" if (canonical_id in pi_map or aid in pi_map) else "研究员/学生"
+            s_role = mentor_role if (canonical_id in pi_map or aid in pi_map) else staff_role
 
             nodes_scholar[canonical_id] = {"id": canonical_id, "name": s_name, "role": s_role}
 
             # 为该作者的所有挂靠机构建立 BELONGS_TO 边 (不止第一个)
             aff_strings = auth.get("raw_affiliation_strings") or []
             if not aff_strings:
-                fallback = auth.get("raw_affiliation_string") or "其他单元"
+                fallback = auth.get("raw_affiliation_string") or other_unit
                 aff_strings = [fallback]
             for aff in aff_strings:
                 lab_name = _safe_text(aff)
@@ -132,11 +137,11 @@ def extract_graph_to_csv(u3_data: list, df_pi: pd.DataFrame, out_dir: str):
             os.chmod(fp, stat.S_IRUSR | stat.S_IWUSR | stat.S_IRGRP | stat.S_IROTH)
 
 class Neo4jImporter:
-    def __init__(self, uri, user, password):
+    def __init__(self, uri, user, password, connection_timeout=10):
         self.driver = GraphDatabase.driver(
             uri, auth=(user, password),
-            connection_timeout=10,
-            connection_acquisition_timeout=10,
+            connection_timeout=connection_timeout,
+            connection_acquisition_timeout=connection_timeout,
         )
 
     def execute_load(self):
@@ -170,4 +175,4 @@ class Neo4jImporter:
                 sess.run(c)
 
         self.driver.close()
-        logging.info("🎉 [MKIV 引擎] 数据已全部载入 Neo4j，前端可直接展示！")
+        logging.info("🎉 [MKIV 引擎] 数据已全部载入 Neo4j，可在可视化大屏查看！")

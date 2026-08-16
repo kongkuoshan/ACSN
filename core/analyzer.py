@@ -6,16 +6,32 @@ from collections import defaultdict
 from tqdm import tqdm
 import logging
 
-def build_cluster_mappings(unique_data: dict, target_clusters: int) -> tuple:
+def _pick_vanguard(texts, strategy='shortest'):
+    """根据策略选择簇内"排头兵" (默认最短名)。"""
+    if strategy == 'longest':
+        return max(texts, key=len)
+    return min(texts, key=len)
+
+
+def build_cluster_mappings(unique_data: dict, target_clusters: int, nlp_cfg: dict = None) -> tuple:
     """
     [核心逻辑] 生成领域 Excel 模板，并利用 NLP 聚类生成机构排头兵及变体映射字典。
-    
+
     参数:
         unique_data: 包含 'concepts' 和 'raw_affiliations' 的字典
         target_clusters: 目标簇的数量 (如 350)
+        nlp_cfg: NLP 参数 (model_name / random_state / cluster_metric / ... )
     返回:
         (领域DataFrame, 机构DataFrame, 机构变体映射字典 variant_mapping)
     """
+    nlp_cfg = nlp_cfg or {}
+    model_name = nlp_cfg.get('model_name', 'paraphrase-multilingual-MiniLM-L12-v2')
+    kmeans_switch = nlp_cfg.get('kmeans_switch_threshold', 3000)
+    random_state = nlp_cfg.get('random_state', 42)
+    cluster_metric = nlp_cfg.get('cluster_metric', 'euclidean')
+    cluster_linkage = nlp_cfg.get('cluster_linkage', 'ward')
+    reference_max_len = nlp_cfg.get('reference_max_len', 60)
+    vanguard_strategy = nlp_cfg.get('vanguard_strategy', 'shortest')
     # ---------------------------------------------------------
     # 1. 通道一：研究领域 (Concepts) - 直接直出
     # ---------------------------------------------------------
@@ -41,12 +57,11 @@ def build_cluster_mappings(unique_data: dict, target_clusters: int) -> tuple:
         logging.info(f"🏢 启动 AI 聚类引擎，处理 {len(raw_affs)} 条机构变体...")
 
         # 加载语言模型 (首次运行会自动下载 ~500MB 到 ~/.cache/huggingface/)
-        MODEL_NAME = 'paraphrase-multilingual-MiniLM-L12-v2'
         try:
-            logging.info(f"   📦 加载 NLP 模型 {MODEL_NAME}...")
+            logging.info(f"   📦 加载 NLP 模型 {model_name}...")
             logging.info(f"   💡 首次运行需从 HuggingFace 下载约 500MB 模型文件")
             logging.info(f"   💡 如网络受限，设置环境变量: export HF_ENDPOINT=https://hf-mirror.com")
-            model = SentenceTransformer(MODEL_NAME)
+            model = SentenceTransformer(model_name)
             embeddings = model.encode(raw_affs, show_progress_bar=True)
         except (OSError, ConnectionError, TimeoutError) as e:
             logging.error("=" * 60)
@@ -55,8 +70,8 @@ def build_cluster_mappings(unique_data: dict, target_clusters: int) -> tuple:
             logging.error("   解决方案:")
             logging.error("   1. 设置镜像: export HF_ENDPOINT=https://hf-mirror.com")
             logging.error("   2. 或手动下载模型:")
-            logging.error(f"      git clone https://huggingface.co/sentence-transformers/{MODEL_NAME}")
-            logging.error(f"      放到 ~/.cache/huggingface/hub/models--sentence-transformers--{MODEL_NAME}/")
+            logging.error(f"      git clone https://huggingface.co/sentence-transformers/{model_name}")
+            logging.error(f"      放到 ~/.cache/huggingface/hub/models--sentence-transformers--{model_name}/")
             logging.error("=" * 60)
             return pd.DataFrame(), pd.DataFrame(), {}
         except MemoryError:
@@ -70,14 +85,14 @@ def build_cluster_mappings(unique_data: dict, target_clusters: int) -> tuple:
 
         # 对于大批量数据使用 KMeans 避免 O(n²) 内存
         try:
-            if len(raw_affs) > 3000:
+            if len(raw_affs) > kmeans_switch:
                 from sklearn.cluster import KMeans
                 logging.info("   -> 数据量较大，切换为 KMeans 聚类 (内存更安全)")
-                clustering_model = KMeans(n_clusters=target_clusters, random_state=42, n_init='auto')
+                clustering_model = KMeans(n_clusters=target_clusters, random_state=random_state, n_init='auto')
                 labels = clustering_model.fit_predict(embeddings)
             else:
                 clustering_model = AgglomerativeClustering(
-                    n_clusters=target_clusters, metric='euclidean', linkage='ward'
+                    n_clusters=target_clusters, metric=cluster_metric, linkage=cluster_linkage
                 )
                 labels = clustering_model.fit_predict(embeddings)
         except Exception as e:
@@ -91,21 +106,21 @@ def build_cluster_mappings(unique_data: dict, target_clusters: int) -> tuple:
 
         rows = []
         for cid, texts in cluster_dict.items():
-            # 💡 提取“排头兵”
-            shortest_text = min(texts, key=len)
+            # 💡 提取"排头兵"
+            vanguard = _pick_vanguard(texts, vanguard_strategy)
             longest_text = max(texts, key=len)
-            reference = longest_text if len(longest_text) <= 60 else longest_text[:57] + "..."
-            
-            # 将这个簇里所有的长尾变体，都指向这个最短的“排头兵”
+            reference = longest_text if len(longest_text) <= reference_max_len else longest_text[:reference_max_len - 3] + "..."
+
+            # 将这个簇里所有的长尾变体，都指向这个"排头兵"
             for text in texts:
-                variant_mapping[text] = shortest_text
+                variant_mapping[text] = vanguard
 
             rows.append({
                 "簇编号": cid,
                 "包含变体数": len(texts),
-                "🤖 AI 提取的【排头兵】": shortest_text,
+                "🤖 AI 提取的【排头兵】": vanguard,
                 "🧑‍🔧 填写标准名称 (抄左边/填中文/不认识留空)": "",
-                "🔍 辅助参考 (可忽略)": reference if reference != shortest_text else ""
+                "🔍 辅助参考 (可忽略)": reference if reference != vanguard else ""
             })
         
         df_aff = pd.DataFrame(rows).sort_values(by="包含变体数", ascending=False)

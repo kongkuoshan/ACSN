@@ -64,10 +64,14 @@ def parse_mapping_rules(df_aff: pd.DataFrame, df_con: pd.DataFrame) -> tuple:
     return aff_map, con_map
 
 
-def _get_standard_name(raw_text: str, aff_map: dict, golden_keys: dict) -> str:
+def _get_standard_name(raw_text: str, aff_map: dict, golden_keys: dict, labels_cfg: dict = None) -> str:
     """机构名标准化: Excel映射 → 金钥匙兜底 → 垃圾桶"""
+    labels_cfg = labels_cfg or {}
+    unknown_dept = labels_cfg.get('unknown_dept', '(未知部门)')
+    other_dept = labels_cfg.get('other_dept', '(其他部门)')
+
     if not raw_text or str(raw_text) == 'nan':
-        return "(未知部门)"
+        return unknown_dept
 
     if raw_text in aff_map:
         return aff_map[raw_text]
@@ -80,26 +84,30 @@ def _get_standard_name(raw_text: str, aff_map: dict, golden_keys: dict) -> str:
         if key.upper() in v_upper:
             return std_name
 
-    return "(其他部门)"
+    return other_dept
 
 
-def generate_final_u3(u2_5_data: list, aff_map: dict, con_map: dict, golden_keys: dict) -> tuple:
+def generate_final_u3(u2_5_data: list, aff_map: dict, con_map: dict, golden_keys: dict,
+                      labels_cfg: dict = None) -> tuple:
     """
     [暴露的主函数] 终极组装：执行领域严格过滤与机构最终映射。
     """
+    labels_cfg = labels_cfg or {}
+    external_label = labels_cfg.get('external', '外部合作机构')
+
     logging.info(">> ⚔️ 开始执行 U3 终极清洗替换 (启用严格过滤模式)...")
-    
-    concept_replace_count = 0 
-    concept_dropped_count = 0  
-    
+
+    concept_replace_count = 0
+    concept_dropped_count = 0
+
     for work in tqdm(u2_5_data, desc="U3 黄金组装"):
         # --- 1. 领域 (Concepts) 严格清洗 ---
         if 'concepts' in work:
-            cleaned_concepts = [] 
+            cleaned_concepts = []
             for c in work['concepts']:
                 orig_name_raw = c.get('display_name', '')
                 match_key = str(orig_name_raw).strip().lower()
-                
+
                 # 生死判决：只有在 Excel 里出现的，才能活下来
                 if match_key in con_map:
                     c['display_name'] = con_map[match_key]
@@ -107,7 +115,7 @@ def generate_final_u3(u2_5_data: list, aff_map: dict, con_map: dict, golden_keys
                     concept_replace_count += 1
                 else:
                     concept_dropped_count += 1
-            
+
             # 覆写纯净版领域
             work['concepts'] = cleaned_concepts
 
@@ -115,13 +123,13 @@ def generate_final_u3(u2_5_data: list, aff_map: dict, con_map: dict, golden_keys
         if 'authorships' in work:
             for auth in work['authorships']:
                 if not auth.get('is_internal_node'):
-                    auth['raw_affiliation_strings'] = ["外部合作机构"]
-                    auth['raw_affiliation_string'] = "外部合作机构"
+                    auth['raw_affiliation_strings'] = [external_label]
+                    auth['raw_affiliation_string'] = external_label
                     continue
-                
+
                 raw_strs = auth.get('raw_affiliation_strings', [])
-                new_affs = [_get_standard_name(s, aff_map, golden_keys) for s in raw_strs]
-                
+                new_affs = [_get_standard_name(s, aff_map, golden_keys, labels_cfg) for s in raw_strs]
+
                 auth['raw_affiliation_strings'] = new_affs
                 if new_affs:
                     auth['raw_affiliation_string'] = new_affs[0]
