@@ -58,7 +58,7 @@ nlp:
   target_aff_clusters: 30                   # 机构名聚类目标簇数 (建议设为实验室数量的 3~5 倍)
   model_name: "paraphrase-multilingual-MiniLM-L12-v2"  # SBERT 语义模型
   score_threshold: 0.4                      # 领域置信度阈值 (score > 该值才保留)
-  level_threshold: 1                        # 学科层级阈值 (level <= 该值视为大类)
+  level_threshold: 2                        # 概念最大层级 (level<=该值保留；1=大类 2=含二级概念)
   min_aff_len: 5                            # 机构字符串最小长度 (过滤短噪音)
   kmeans_switch_threshold: 3000             # 机构变体超过此数量时改用 KMeans
   random_state: 42                          # 聚类随机种子 (可复现)
@@ -87,6 +87,13 @@ llm_assistant:
 author_matcher:
   name_column: "导师姓名"                    # 输入 Excel 中姓名所在列
   neo4j_import_dir: "./data/import"          # Neo4j LOAD CSV 导入目录
+
+
+# === 映射表 (Step 3/4) ===
+mapping:
+  source: auto              # 映射表来源: auto(优先AI预填,回退人工) | ai(仅AI) | manual(仅人工)
+  collapse_external: true   # 是否把外部合作机构坍缩为一个节点 (false=保留各自名字)
+
 
 
 # === 图数据库 (Neo4j) ===

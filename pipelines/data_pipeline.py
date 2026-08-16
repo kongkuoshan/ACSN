@@ -240,9 +240,19 @@ class AcademicPipeline:
         logging.info(">> 🚀 [Step 4] 启动 U3 终极数据组装与注入引擎...")
 
         u2_5_data = load_json(paths['data_u2_5_nlp'])
-        # 优先使用 LLM 预填版 (Step 3.5 的输出)；不存在则回退到人工填写版
-        aff_path = paths['excel_aff_mapping_ai'] if os.path.exists(paths['excel_aff_mapping_ai']) else paths['excel_aff_mapping']
-        con_path = paths['excel_con_mapping_ai'] if os.path.exists(paths['excel_con_mapping_ai']) else paths['excel_con_mapping']
+        # 映射表来源: auto(优先AI预填,回退人工) | ai(仅AI) | manual(仅人工)
+        mapping_cfg = self.config.get('mapping', {})
+        source = mapping_cfg.get('source', 'auto')
+
+        def _pick(ai_path, manual_path):
+            if source == 'ai':
+                return ai_path
+            if source == 'manual':
+                return manual_path
+            return ai_path if os.path.exists(ai_path) else manual_path
+
+        aff_path = _pick(paths['excel_aff_mapping_ai'], paths['excel_aff_mapping'])
+        con_path = _pick(paths['excel_con_mapping_ai'], paths['excel_con_mapping'])
         df_aff = load_excel(aff_path)
         df_con = load_excel(con_path)
         logging.info(f"   📂 机构映射来源: {os.path.basename(aff_path)}")

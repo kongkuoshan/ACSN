@@ -106,7 +106,7 @@ def extract_and_clean_entities(tagged_works: list, nlp_cfg: dict = None,
     cleaning_cfg = cleaning_cfg or {}
     labels_cfg = labels_cfg or {}
     score_threshold = nlp_cfg.get('score_threshold', 0.4)
-    level_threshold = nlp_cfg.get('level_threshold', 1)
+    level_threshold = nlp_cfg.get('level_threshold', 2)
     stop_words = cleaning_cfg.get('stop_words', DEFAULT_STOP_WORDS)
     external_label = labels_cfg.get('external', '外部合作机构')
 

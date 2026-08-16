@@ -30,10 +30,17 @@ def run_openalex_crawler(target_id: str, email: str, start_year: int,
         end_year = datetime.now().year
     logging.info(f">> 🌐 [Step 0.1] 准备加载 {target_id} ({start_year}-{end_year}年) 全量文献...")
 
-    # 检查本地缓存 (即 U1.json)
+    # 检查本地缓存 (即 U1.json)，并校验抓取参数是否一致
+    meta_path = output_path + ".meta.json"
+    cache_params = {'target_id': target_id, 'start_year': start_year, 'end_year': end_year}
     if os.path.exists(output_path) and os.path.getsize(output_path) > cache_min_bytes:
-        logging.info(f">> 📦 发现有效本地缓存 {output_path}，跳过云端抓取。")
-        return load_json(output_path)
+        try:
+            if load_json(meta_path) == cache_params:
+                logging.info(f">> 📦 发现有效本地缓存 {output_path}，跳过云端抓取。")
+                return load_json(output_path)
+            logging.info(">> ♻️ 缓存参数不匹配 (target_id/年份已变)，重新抓取...")
+        except Exception:
+            logging.info(">> ♻️ 缓存缺少参数元信息，重新抓取...")
 
     logging.info(f">> 🚀 启动云端全量抓取...")
 
@@ -96,6 +103,7 @@ def run_openalex_crawler(target_id: str, email: str, start_year: int,
         logging.info(f">> ✅ 云端抓取完成！共获取 {len(all_works)} 篇文献。")
         if all_works:
             save_json(all_works, output_path)
+            save_json(cache_params, meta_path)
             logging.info(f"   💾 完整数据已缓存到 {output_path}")
     else:
         logging.warning(f">> ⚠️ 云端抓取中断，已获取 {len(all_works)} 篇（未完成，未缓存，下次运行将重抓）。")
