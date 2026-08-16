@@ -241,6 +241,7 @@ HTML_CONTENT = """
         }
         async function loadGraph() {
             myChart.showLoading({text: '情报分析中...', maskColor: 'rgba(10, 10, 12, 0.8)'});
+            try {
             const view = document.getElementById('viewSelect').value;
             const filter = document.getElementById('filterSelect').value;
             const res = await fetch(`/api/graph?view=${view}&filter_name=${encodeURIComponent(filter)}`);
@@ -258,7 +259,11 @@ HTML_CONTENT = """
                     lineStyle: { color: 'source', curveness: 0.1, opacity: 0.4 }
                 }]
             }, true);
-            myChart.hideLoading();
+            } catch(e) {
+                myChart.setOption({ title: { text: '加载失败', subtext: String(e.message || e), left: 'center', top: 'center', textStyle: { color: '#555', fontSize: 20 }, subtextStyle: { color: '#444', fontSize: 14 } } }, true);
+            } finally {
+                myChart.hideLoading();
+            }
         }
         async function searchNode() {
             const query = document.getElementById('searchInput').value.toLowerCase().trim();
