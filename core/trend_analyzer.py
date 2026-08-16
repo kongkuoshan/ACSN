@@ -332,62 +332,24 @@ def generate_topic_distribution(u3_data: list, concept_dim_map: dict = None, nlp
         ]
     }
     """
-    level_threshold = (nlp_cfg or {}).get('level_threshold', 1)
-
     logging.info(">> 🌳 [Analytics] 生成主题层级分布数据...")
 
-    if concept_dim_map is None:
-        concept_dim_map = {}
-
-    # 按 level 构建层级
-    # level <= level_threshold: 大类 → 更深层级: 子类
-    level_counts = defaultdict(lambda: defaultdict(lambda: defaultdict(int)))
-
+    # 按已标准化的大类 (display_name) 统计文献数 (每篇文献每个大类计 1 次)
+    topic_counts = defaultdict(int)
     for work in u3_data:
+        seen = set()
         for c in work.get('concepts', []):
             if not isinstance(c, dict):
                 continue
-            name = c.get('display_name', '').strip()
-            if not name:
-                continue
-            level = c.get('level', 99)
+            name = str(c.get('display_name', '')).strip()
+            if name and name not in seen:
+                topic_counts[name] += 1
+                seen.add(name)
 
-            if level <= level_threshold:
-                level_counts['L0'][name]['__total__'] += 1
-            else:
-                # 找其父级概念 (同work中的 level <= level_threshold 概念)
-                parent = "其他"
-                for cp in work.get('concepts', []):
-                    if isinstance(cp, dict) and cp.get('level', 99) <= level_threshold:
-                        parent = cp.get('display_name', '其他')
-                        break
-                level_counts[parent][name]['__total__'] += 1
-
-    # 构建 Sunburst 层级
-    children = []
-    for parent, sub_topics in level_counts.items():
-        if parent == 'L0':
-            continue  # L0 作为顶层
-
-        sub_children = []
-        parent_total = 0
-        for topic, counts in sorted(sub_topics.items(),
-                                     key=lambda x: sum(x[1].values()),
-                                     reverse=True):
-            cnt = sum(counts.values())
-            if cnt > 0:
-                sub_children.append({"name": topic, "value": cnt})
-                parent_total += cnt
-
-        if parent_total > 0:
-            children.append({
-                "name": parent,
-                "value": parent_total,
-                "children": sub_children
-            })
-
-    # 按 value 排序
-    children.sort(key=lambda x: x['value'], reverse=True)
+    children = [
+        {"name": name, "value": cnt}
+        for name, cnt in sorted(topic_counts.items(), key=lambda x: -x[1])
+    ]
 
     result = {"name": "全部研究领域", "children": children}
 

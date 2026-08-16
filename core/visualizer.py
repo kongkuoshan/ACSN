@@ -461,6 +461,7 @@ ANALYTICS_HTML = """
                     tooltip: { trigger: 'item', formatter: '{b}: {c} 篇' },
                     series: [{
                         type: 'sunburst',
+                        roam: true,
                         data: data.children,
                         radius: ['20%', '90%'],
                         label: { rotate: 'radial', color: '#ccc', fontSize: 11 },
