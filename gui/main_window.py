@@ -48,7 +48,7 @@ class MainWindow(QMainWindow):
 
     def __init__(self):
         super().__init__()
-        self.setWindowTitle("MKIV 学术情报指挥舱 — 工业级客户端")
+        self.setWindowTitle("MKIV 学术情报指挥舱 — 桌面客户端")
         self.resize(1500, 850)
 
         # 核心组件

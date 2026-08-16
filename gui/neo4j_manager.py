@@ -18,6 +18,7 @@ Neo4j 环境管理器 — Docker 生命周期 + 连接检测
 import os
 import platform
 import subprocess
+import threading
 import time
 from PySide6.QtCore import QObject, QThread, Signal
 
@@ -161,12 +162,54 @@ class Neo4jManager(QObject):
             connection_acquisition_timeout=NEO4J_CONNECTION_TIMEOUT,
         )
 
-    def _run_interruptible(self, reporter, cmd, timeout):
-        """运行子进程并支持中断。返回 (returncode, stdout, stderr)"""
+    def _run_interruptible(self, reporter, cmd, timeout, stream_log=False):
+        """运行子进程并支持中断。返回 (returncode, stdout, stderr)
+
+        stream_log=True 时，实时把 stdout 转发到日志面板，
+        同时按回车/换行两种分隔符切分，避免拉取大镜像时界面毫无反馈。
+        """
         proc = subprocess.Popen(
-            cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True
+            cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, bufsize=0
         )
         deadline = time.time() + timeout
+        stdout_lines = []
+        last_emitted = [None]
+
+        def _read_stdout():
+            """后台线程：按 \\r / \\n 切分 stdout 并转发到日志"""
+            buf = b""
+            while True:
+                chunk = proc.stdout.read(4096)
+                if not chunk:
+                    break
+                buf += chunk
+                while True:
+                    # 取最近的 \r 或 \n 作为行分隔符
+                    idx = -1
+                    for sep in (b"\r", b"\n"):
+                        i = buf.find(sep)
+                        if i != -1 and (idx == -1 or i < idx):
+                            idx = i
+                    if idx == -1:
+                        break
+                    line = buf[:idx].decode("utf-8", "replace").strip()
+                    buf = buf[idx + 1:]
+                    if not line:
+                        continue
+                    stdout_lines.append(line)
+                    if stream_log and line != last_emitted[0]:
+                        reporter.log_message.emit(line)
+                        last_emitted[0] = line
+            tail = buf.decode("utf-8", "replace").strip()
+            if tail:
+                stdout_lines.append(tail)
+                if stream_log and tail != last_emitted[0]:
+                    reporter.log_message.emit(tail)
+                    last_emitted[0] = tail
+
+        reader = threading.Thread(target=_read_stdout, daemon=True)
+        reader.start()
+
         while True:
             if reporter.isInterruptionRequested():
                 proc.terminate()
@@ -174,17 +217,20 @@ class Neo4jManager(QObject):
                     proc.wait(timeout=5)
                 except subprocess.TimeoutExpired:
                     proc.kill()
-                return -1, "", "interrupted"
+                reader.join(timeout=2)
+                return -1, "\n".join(stdout_lines), "interrupted"
             if proc.poll() is not None:
-                out, err = proc.communicate()
-                return proc.returncode, out, err
+                reader.join(timeout=5)
+                err = proc.stderr.read()
+                return proc.returncode, "\n".join(stdout_lines), err.decode("utf-8", "replace").strip()
             if time.time() > deadline:
                 proc.terminate()
                 try:
                     proc.wait(timeout=5)
                 except subprocess.TimeoutExpired:
                     proc.kill()
-                return -1, "", "timeout"
+                reader.join(timeout=2)
+                return -1, "\n".join(stdout_lines), "timeout"
             time.sleep(0.5)
 
     # ================================================================
@@ -264,7 +310,7 @@ class Neo4jManager(QObject):
 
         # 3. 拉取镜像 (可中断)
         pull_code, pull_out, pull_err = self._run_interruptible(
-            reporter, ["docker", "pull", self.IMAGE_NAME], timeout=300
+            reporter, ["docker", "pull", self.IMAGE_NAME], timeout=300, stream_log=True
         )
         if reporter.isInterruptionRequested():
             reporter.log_message.emit("⏹ 镜像拉取已取消。")
@@ -286,7 +332,13 @@ class Neo4jManager(QObject):
 
         # 5. 准备导入目录挂载
         abs_import = os.path.abspath(import_dir) if import_dir else os.path.abspath("./data/import")
-        os.makedirs(abs_import, exist_ok=True)
+        try:
+            os.makedirs(abs_import, exist_ok=True)
+        except OSError as e:
+            reporter.log_message.emit(f"⚠️ 无法创建导入目录 {abs_import}: {e}")
+            reporter.log_message.emit("   回退到项目内 ./data/import")
+            abs_import = os.path.abspath("./data/import")
+            os.makedirs(abs_import, exist_ok=True)
         if self._os_type == "Windows":
             abs_import = abs_import.replace("\\", "/")
 

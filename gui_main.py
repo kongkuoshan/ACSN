@@ -19,6 +19,13 @@ from utils.project_paths import ensure_in_sys_path, get_config_path
 # 确保项目根目录在 sys.path 中
 ensure_in_sys_path()
 
+# ⚠️ 必须在导入任何 PySide6.QtWebEngine* 之前先 import openpyxl。
+# QtWebEngine (Chromium) 加载后会覆盖 Python 的 libexpat，导致
+# xml.etree.ElementTree 报 "No module named expat; use SimpleXMLTreeBuilder instead"，
+# 进而让 openpyxl (解析 xlsx 依赖 ElementTree) 无法导入。
+# 提前 import openpyxl 可先把 pyexpat 绑定到系统 libexpat，规避冲突。
+import openpyxl  # noqa: F401  — 提前绑定 expat，避免被 QtWebEngine 破坏
+
 
 def setup_basic_logging():
     """基础的终端日志配置 (GUI 面板会另行拦截)"""
