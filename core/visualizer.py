@@ -215,6 +215,7 @@ HTML_CONTENT = """
         <select id="filterSelect" onchange="loadGraph()"><option value="">-- 全景星图 --</option></select>
         <input type="text" id="searchInput" placeholder="搜索学者姓名/ID..." onkeypress="if(event.key=='Enter') searchNode()">
         <button onclick="searchNode()">🔍 追踪定位</button>
+        <button onclick="location.href='/analytics'" style="background:#2ecc71;">📈 情报分析</button>
     </div>
     <div id="sidebar">
         <span class="close-btn" onclick="closeSidebar()">&times;</span>
@@ -333,7 +334,7 @@ ANALYTICS_HTML = """
 <body>
     <div class="nav">
         <span class="title">MKIV 学术情报分析</span>
-        <a href="/" class="active">🕸️ 关系星图</a>
+        <a href="/">🕸️ 关系星图</a>
         <a href="/analytics" class="active">📈 情报分析</a>
     </div>
     <div class="tabs">
