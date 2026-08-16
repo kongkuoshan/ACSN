@@ -30,7 +30,7 @@ HELP = {
         "目标机构 OpenAlex ID\n\n"
         "机构在 OpenAlex 数据库中的唯一标识符。\n"
         "这是爬虫搜索文献的核心锚点。\n"
-        "格式: https://openalex.org/I4210112150\n\n"
+        "格式: https://openalex.org/IXXXXXXX\n\n"
         "可在 OpenAlex 官网搜索机构名称获取。"
     ),
     "institution.fallback_keywords": (
@@ -41,7 +41,7 @@ HELP = {
         "每行一个关键词，不区分大小写。\n\n"
         "示例:\n"
         "  清华大学 → Tsinghua, THU, 清华\n"
-        "  自动化所 → automation, CASIA, NLPR"
+        "  某研究所 → institute, automation, lab"
     ),
     "institution.golden_keys": (
         "金钥匙映射表\n\n"
@@ -51,7 +51,7 @@ HELP = {
         "左边: 关键字（会出现在原始挂靠文本中的词）\n"
         "右边: 标准名称（你要统一成的规范名）\n\n"
         "示例:\n"
-        "  NLPR → 模式识别国家重点实验室\n"
+        "  example-lab → 示例重点实验室\n"
         "  THU → 清华大学\n"
         "提示: 关键字不区分大小写。"
     ),

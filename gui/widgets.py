@@ -1,11 +1,18 @@
 # gui/widgets.py
 """
 可复用的 GUI 组件工厂函数
+
+注意: openpyxl 必须在 pandas 之前导入。
+当 parameter_panel 调用 load_excel() → pd.read_excel() 时，
+pandas 会动态发现 openpyxl 作为 xlsx 引擎。如果 openpyxl 尚未被导入
+且存在版本/路径冲突，pandas 可能找不到该引擎。先 import openpyxl
+确保正确的版本已加载。
 """
 
+import openpyxl  # noqa: F401 — 必须在 pandas 之前，确保 xlsx 引擎可用
 import os
 from PySide6.QtWidgets import (
-    QPushButton, QHBoxLayout, QLabel, QMessageBox, QFileDialog,
+    QPushButton, QHBoxLayout, QVBoxLayout, QLabel, QMessageBox, QFileDialog,
     QLineEdit, QToolButton
 )
 from PySide6.QtCore import Qt

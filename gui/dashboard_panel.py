@@ -4,10 +4,20 @@
 
 加载 FastAPI/ECharts 可视化大屏,
 支持自动重试连接、加载状态指示、错误处理。
+
+关键设计:
+  1. 自动重试时使用后台线程做 HTTP HEAD 探测，不在主线程阻塞。
+  2. 只有在服务器确认可连通后才调用 setUrl() 一次加载 — 避免反复 setUrl() 导致白屏闪烁。
+  3. 定时器仅检查探测结果 → 不触碰 QWebEngineView 直到就绪。
 """
 
+import threading
+import urllib.request
+import urllib.error
 from PySide6.QtWidgets import QWidget, QVBoxLayout, QLabel
 from PySide6.QtCore import QUrl, QTimer, Qt
+
+from core.constants import DASHBOARD_BASE_URL
 
 # QWebEngineView 是可选的 (某些环境下可能不可用)
 try:
@@ -125,10 +135,11 @@ class DashboardPanel(QWidget):
         reload(): 刷新当前页
     """
 
-    def __init__(self, default_url: str = "http://127.0.0.1:8000", parent=None):
+    def __init__(self, default_url: str = DASHBOARD_BASE_URL, parent=None):
         super().__init__(parent)
         self.default_url = default_url
         self._current_url = default_url
+        self._probe_generation = 0
 
         # 防止闪烁穿透: 自身填充纯黑背景
         self.setAttribute(Qt.WA_OpaquePaintEvent, True)
@@ -154,7 +165,6 @@ class DashboardPanel(QWidget):
             self._browser.setHtml(PLACEHOLDER_HTML)
             layout.addWidget(self._browser)
         else:
-            # 降级模式: 仅显示提示标签
             self._browser = None
             fallback = QLabel(
                 "⚠️ QWebEngineView 不可用\n\n"
@@ -174,6 +184,8 @@ class DashboardPanel(QWidget):
 
     def load_dashboard(self, url: str = None):
         """加载可视化大屏 URL"""
+        # 先停止任何进行中的自动重连, 避免旧 URL 覆盖用户当前视图
+        self._stop_retry()
         if url:
             self._current_url = url
         if self._browser and self._current_url:
@@ -185,7 +197,7 @@ class DashboardPanel(QWidget):
             self._browser.setHtml(PLACEHOLDER_HTML)
 
     def show_loading(self):
-        """显示加载中动画"""
+        """显示加载中动画 (保持显示，不做额外 setUrl 以避免闪烁)"""
         if self._browser:
             self._browser.setHtml(LOADING_HTML)
 
@@ -204,12 +216,18 @@ class DashboardPanel(QWidget):
         self._current_url = url
 
     # ================================================================
-    # 自动连接
+    # 自动连接 (不闪烁版本)
     # ================================================================
 
-    def auto_connect_with_retry(self, url: str = None, max_retries: int = 30, interval_ms: int = 2000):
+    def auto_connect_with_retry(self, url: str = None, max_retries: int = 10, interval_ms: int = 3000):
         """
         自动重试连接大屏服务器。
+
+        原理:
+          - 显示 LOADING 静态 HTML (旋转动画，不加载任何外部资源)
+          - 每 interval_ms 启动一个后台线程做 HTTP HEAD 探测 (timeout=2s)
+          - 定时器只检查探测结果: 成功→load URL 一次，失败→继续等
+          - QWebEngineView 在就绪前只被 setHtml() 过一次，零闪烁
 
         参数:
             url: 目标 URL (默认为实例化时设置的值)
@@ -219,21 +237,75 @@ class DashboardPanel(QWidget):
         if url:
             self._current_url = url
 
+        # 停止之前的定时器（如果有）
+        self._stop_retry()
+
         self.show_loading()
         self._retry_count = 0
         self._max_retries = max_retries
+        self._probe_result = None   # None=等待线程结果, True=成功, False=失败
+        self._probe_thread = None
+
+        # 立即启动第一次探测
+        self._start_probe()
 
         self._retry_timer = QTimer(self)
         self._retry_timer.timeout.connect(self._on_retry_tick)
         self._retry_timer.start(interval_ms)
 
-    def _on_retry_tick(self):
-        """定时器回调: 尝试加载 URL"""
-        self._retry_count += 1
-        if self._browser:
-            # 尝试加载 - 如果服务器未就绪, QWebEngineView 会显示错误页
-            self._browser.setUrl(QUrl(self._current_url))
+    def _start_probe(self):
+        """启动后台 HTTP 探测线程"""
+        self._probe_generation += 1
+        gen = self._probe_generation
+        self._probe_result = None
+        self._probe_thread = threading.Thread(target=self._do_probe, args=(gen,), daemon=True)
+        self._probe_thread.start()
 
+    def _do_probe(self, gen):
+        """后台线程: HTTP HEAD 探测服务器是否就绪 (结果仅在代数匹配时写回)"""
+        try:
+            req = urllib.request.Request(self._current_url, method='HEAD')
+            urllib.request.urlopen(req, timeout=2)
+            ok = True
+        except Exception:
+            ok = False
+        # 只接受当前代数的结果, 丢弃已过期的在途探测
+        if gen == self._probe_generation:
+            self._probe_result = ok
+
+    def _on_retry_tick(self):
+        """
+        定时器回调 (主线程)。
+
+        不做任何 HTTP 请求 — 只检查后台线程的探测结果:
+          - None (还跑着): 跳过，等下一个 tick
+          - True (成功): 关定时器，加载 URL 一次
+          - False (失败): 计数 + 1，达到上限则显示错误，否则启动新探测
+        """
+        if self._probe_result is None:
+            # 上一次探测线程还在运行中，不操作
+            return
+
+        if self._probe_result is True:
+            # 服务器就绪 → 一次性加载，停止一切
+            self._stop_retry()
+            if self._browser:
+                self._browser.setUrl(QUrl(self._current_url))
+            return
+
+        # 探测失败
+        self._retry_count += 1
         if self._retry_count >= self._max_retries:
-            self._retry_timer.stop()
+            self._stop_retry()
             self.show_error()
+            return
+
+        # 启动新一轮探测
+        self._start_probe()
+
+    def _stop_retry(self):
+        """停止重试定时器并清理状态"""
+        self._probe_generation += 1  # 使在途探测结果失效
+        if hasattr(self, '_retry_timer') and self._retry_timer is not None:
+            self._retry_timer.stop()
+            self._retry_timer = None

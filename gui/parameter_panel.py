@@ -19,6 +19,7 @@ from gui.widgets import (
     create_int_row, create_checkbox_row, create_textarea_row,
     make_help_btn
 )
+from utils.project_paths import get_config_path
 
 
 class ParameterPanel(QScrollArea):
@@ -41,9 +42,9 @@ class ParameterPanel(QScrollArea):
     restart_neo4j_requested = Signal()
     check_neo4j_requested = Signal()
 
-    def __init__(self, config_path: str = "config/config.yaml", parent=None):
+    def __init__(self, config_path: str = None, parent=None):
         super().__init__(parent)
-        self.config_path = config_path
+        self.config_path = config_path or get_config_path("config.yaml")
         self.config = {}
         self._widgets = {}  # param_key -> widget reference
         self._step_checkboxes = {}  # stage_key -> QCheckBox
@@ -219,20 +220,25 @@ class ParameterPanel(QScrollArea):
         self._widgets["database.user"] = w
         layout.addRow(w)
 
-        _, w = create_text_row("密码:", default="12345678",
+        _, w = create_text_row("密码:", default="",
                                param_key="database.password", password=True, parent=self)
         self._widgets["database.password"] = w
         layout.addRow(w)
 
-        _, w = create_dir_row("Neo4j Import 目录:", param_key="author_matcher.paths.neo4j_import_dir",
+        _, w = create_dir_row("Neo4j Import 目录:", param_key="author_matcher.neo4j_import_dir",
                               parent=self)
-        self._widgets["author_matcher.paths.neo4j_import_dir"] = w
+        self._widgets["author_matcher.neo4j_import_dir"] = w
         layout.addRow(w)
 
         # Neo4j 状态标签
         self._neo4j_status_label = QLabel("状态: 未检测")
         self._neo4j_status_label.setStyleSheet("color: #888; font-size: 12px; padding: 4px 0;")
         layout.addRow(self._neo4j_status_label)
+
+        # 部署进度标签 (与流水线进度条分离, 避免互相覆盖)
+        self._deploy_progress_label = QLabel("部署进度: 就绪")
+        self._deploy_progress_label.setStyleSheet("color: #888; font-size: 12px; padding: 4px 0;")
+        layout.addRow(self._deploy_progress_label)
 
         # Neo4j 控制按钮行
         from PySide6.QtWidgets import QHBoxLayout
@@ -405,7 +411,7 @@ class ParameterPanel(QScrollArea):
             self._set_int("institution.start_year", inst.get('start_year', 2021))
             end_year = inst.get('end_year')
             self._set_int("institution.end_year", end_year if end_year else 0)
-            golden = inst.get('golden_keys', inst.get('casia_keys', {}))  # 向后兼容旧名
+            golden = inst.get('golden_keys', {})
             self._set_table("institution.golden_keys", golden)
             self._set_text("institution.fallback_keywords",
                            '\n'.join(inst.get('fallback_keywords', [])))
@@ -443,7 +449,7 @@ class ParameterPanel(QScrollArea):
                 am_paths = am.get('paths', {})
                 if isinstance(am_paths, dict):
                     import_dir = am_paths.get('neo4j_import_dir', '')
-            self._set_text("author_matcher.paths.neo4j_import_dir", import_dir or '')
+            self._set_text("author_matcher.neo4j_import_dir", import_dir or '')
 
             # 作者匹配
             self._set_text("author_matcher.name_column",
@@ -470,7 +476,7 @@ class ParameterPanel(QScrollArea):
         inst['start_year'] = self._get_int("institution.start_year")
         end_val = self._get_int("institution.end_year")
         inst['end_year'] = end_val if end_val > 0 else None
-        inst['casia_keys'] = self._get_table("institution.golden_keys")
+        inst['golden_keys'] = self._get_table("institution.golden_keys")
         inst['fallback_keywords'] = [
             line.strip() for line in self._get_text("institution.fallback_keywords").split('\n')
             if line.strip()
@@ -513,7 +519,7 @@ class ParameterPanel(QScrollArea):
         if 'author_matcher' not in self.config:
             self.config['author_matcher'] = {}
         self.config['author_matcher']['neo4j_import_dir'] = \
-            self._get_text("author_matcher.paths.neo4j_import_dir")
+            self._get_text("author_matcher.neo4j_import_dir")
 
         # 作者匹配
         self.config['author_matcher']['name_column'] = \
@@ -548,6 +554,10 @@ class ParameterPanel(QScrollArea):
         self._progress.setValue(pct)
         if status:
             self._progress.setFormat(status)
+
+    def update_deploy_progress(self, pct: int, status: str = ""):
+        """更新 Neo4j 部署进度标签 (独立于流水线进度条)"""
+        self._deploy_progress_label.setText(f"部署进度: {pct}% {status}".strip())
 
     def update_neo4j_status(self, connected: bool, status: str):
         """更新 Neo4j 状态标签"""

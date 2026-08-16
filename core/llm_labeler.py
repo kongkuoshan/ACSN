@@ -215,4 +215,43 @@ def deduplicate_standard_names(df_aff: pd.DataFrame) -> pd.DataFrame:
                 mask = df_aff[vanguard_col] == van
                 df_aff.loc[mask, standard_col] = canonical
 
+    # ---- 第二遍: 模糊合并相似标准名 (解决跨批次 LLM 命名不一致) ----
+    from difflib import SequenceMatcher
+
+    # 收集当前所有唯一标准名
+    std_to_vanguards = {}
+    for _, row in df_aff.iterrows():
+        std = str(row.get(standard_col, '')).strip()
+        van = str(row.get(vanguard_col, '')).strip()
+        if std and std.lower() != 'nan' and van:
+            std_to_vanguards.setdefault(std, []).append(van)
+
+    unique_stds = list(std_to_vanguards.keys())
+    if len(unique_stds) > 1:
+        merge_map = {}
+        SIMILARITY_THRESHOLD = 0.85
+
+        for i, s1 in enumerate(unique_stds):
+            if s1 in merge_map:
+                continue
+            for s2 in unique_stds[i + 1:]:
+                if s2 in merge_map:
+                    continue
+                # 跳过完全相同的 (已在第一遍处理过)
+                if s1 == s2:
+                    continue
+                if SequenceMatcher(None, s1, s2).ratio() > SIMILARITY_THRESHOLD:
+                    canonical = s1 if len(s1) <= len(s2) else s2
+                    other = s2 if canonical == s1 else s1
+                    merge_map[other] = canonical
+
+        if merge_map:
+            logging.info(f"🔧 模糊合并: 发现 {len(merge_map)} 对相似标准名")
+            for from_name, to_name in merge_map.items():
+                vans = std_to_vanguards.get(from_name, [])
+                logging.info(f"   「{from_name[:40]}」→「{to_name[:40]}」({len(vans)}个排头兵)")
+                for van in vans:
+                    mask = df_aff[vanguard_col] == van
+                    df_aff.loc[mask, standard_col] = to_name
+
     return df_aff

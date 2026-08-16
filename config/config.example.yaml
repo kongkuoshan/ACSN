@@ -11,13 +11,12 @@ institution:
   email: "youremail@example.com"           # 你的邮箱 (OpenAlex Polite Pool 需要)
   start_year: 2021                          # 文献抓取起始年份
   end_year: null                             # 抓取结束年份 (null=当前年份)
-  target_id: "https://openalex.org/I4210112150"  # 目标机构 OpenAlex ID
+  target_id: "https://openalex.org/IXXXXXXX"  # 目标机构 OpenAlex ID (请替换为你的机构)
   fallback_keywords:                        # 机构名兜底关键词 (正则匹配)
-    - "automation"
-    - "NLPR"
-    - "CASIA"
+    - "university"                          # 示例: 机构英文关键词
+    - "institute"
   golden_keys:                              # 金钥匙兜底映射 (关键字 → 标准名, 不区分大小写)
-    '': ''                                    # 示例: NLPR → 模式识别国家重点实验室
+    # "example-lab": "示例重点实验室"           # 示例: 关键字(不区分大小写) → 标准名称
 
 # === 数据路径 ===
 paths:

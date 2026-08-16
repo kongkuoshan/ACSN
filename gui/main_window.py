@@ -23,6 +23,8 @@ from gui.neo4j_manager import Neo4jManager
 from gui.log_handler import LogSignal, install_gui_logger
 from gui.dark_theme import apply_dark_theme
 from gui.startup_wizard import StartupWizard, is_first_run, mark_initialized
+from utils.project_paths import get_config_path
+from core.constants import DASHBOARD_BASE_URL
 
 
 class MainWindow(QMainWindow):
@@ -53,6 +55,7 @@ class MainWindow(QMainWindow):
         self._pipeline_runner = None
         self._neo4j_manager = Neo4jManager(self)
         self._log_signal = LogSignal()
+        self._config_loaded = False
 
         # 构建 UI
         self._setup_menu_bar()
@@ -66,10 +69,11 @@ class MainWindow(QMainWindow):
         # 信号连接
         self._connect_signals()
 
-        # 加载配置
+        # 加载配置 (同步操作，先完成再触发环境检测)
         self._param_panel.load_config()
+        self._config_loaded = True
 
-        # 初始环境检测
+        # 初始环境检测 — 等配置加载完成后才执行
         QTimer.singleShot(500, self._initial_env_check)
 
         # 首次运行向导
@@ -136,8 +140,9 @@ class MainWindow(QMainWindow):
         splitter = QSplitter(Qt.Horizontal, self)
         self.setCentralWidget(splitter)
 
-        # 左侧: 参数面板
-        self._param_panel = ParameterPanel(config_path="config/config.yaml")
+        # 左侧: 参数面板 — 使用绝对路径
+        config_path = get_config_path("config.yaml")
+        self._param_panel = ParameterPanel(config_path=config_path)
         splitter.addWidget(self._param_panel)
 
         # 右侧: 大屏面板 + 视图切换栏
@@ -189,11 +194,11 @@ class MainWindow(QMainWindow):
     def _switch_view(self, view: str):
         """切换右侧大屏视图: graph (关系星图) 或 analytics (情报分析)"""
         if view == "graph":
-            self._dashboard_panel.load_dashboard("http://127.0.0.1:8000/")
+            self._dashboard_panel.load_dashboard(DASHBOARD_BASE_URL + "/")
             self.btn_graph_view.setChecked(True)
             self.btn_analytics_view.setChecked(False)
         else:
-            self._dashboard_panel.load_dashboard("http://127.0.0.1:8000/analytics")
+            self._dashboard_panel.load_dashboard(DASHBOARD_BASE_URL + "/analytics")
             self.btn_graph_view.setChecked(False)
             self.btn_analytics_view.setChecked(True)
 
@@ -222,8 +227,8 @@ class MainWindow(QMainWindow):
         self.setStatusBar(self._status_bar)
 
         self._status_labels = {
-            "docker": QLabel("Docker: 检测中..."),
-            "neo4j": QLabel("Neo4j: 检测中..."),
+            "docker": QLabel("Docker: 待检测"),
+            "neo4j": QLabel("Neo4j: 待检测"),
             "progress": QLabel("就绪"),
         }
         self._status_bar.addWidget(self._status_labels["docker"])
@@ -252,7 +257,7 @@ class MainWindow(QMainWindow):
         self._neo4j_manager.neo4j_status.connect(self._param_panel.update_neo4j_status)
         self._neo4j_manager.deploy_finished.connect(self._on_deploy_finished)
         self._neo4j_manager.log_message.connect(lambda m: logging.info(m))
-        self._neo4j_manager.operation_progress.connect(self._param_panel.update_progress)
+        self._neo4j_manager.operation_progress.connect(self._param_panel.update_deploy_progress)
 
     # ================================================================
     # 流水线控制
@@ -303,8 +308,8 @@ class MainWindow(QMainWindow):
 
         if success:
             self._status_labels["progress"].setText("完成 — 大屏已启动")
-            # 加载大屏
-            QTimer.singleShot(2000, lambda: self._dashboard_panel.auto_connect_with_retry(max_retries=15))
+            # 加载大屏 (减少重试次数和频率，避免闪烁)
+            QTimer.singleShot(2000, lambda: self._dashboard_panel.auto_connect_with_retry(max_retries=10))
             logging.info(f"🎉 {message}")
         else:
             self._status_labels["progress"].setText("已中断")
@@ -318,7 +323,7 @@ class MainWindow(QMainWindow):
         """读取当前配置的数据库凭据"""
         config = self._param_panel.config or {}
         db = config.get('database') or {}
-        return db.get('user', 'neo4j'), db.get('password', '12345678')
+        return db.get('user', 'neo4j'), db.get('password', '')
 
     def _on_start_neo4j(self):
         user, pw = self._get_db_creds()
@@ -350,7 +355,7 @@ class MainWindow(QMainWindow):
         self._neo4j_manager.deploy_neo4j(
             uri=db_cfg.get('uri', 'bolt://localhost:7688'),
             user=db_cfg.get('user', 'neo4j'),
-            password=db_cfg.get('password', '12345678'),
+            password=db_cfg.get('password', ''),
             import_dir=(config.get('author_matcher', {}).get('neo4j_import_dir') or
                         config.get('paths', {}).get('neo4j_import_dir') or
                         './data/import')
@@ -361,14 +366,14 @@ class MainWindow(QMainWindow):
     # ================================================================
 
     def _initial_env_check(self):
-        """启动时检测环境"""
+        """启动时检测环境 (在 config 加载完成后调用)"""
         self._neo4j_manager.check_docker()
         config = self._param_panel.config or {}
         db = config.get('database', {})
         self._neo4j_manager.check_neo4j_connection(
             uri=db.get('uri', 'bolt://localhost:7688'),
             user=db.get('user', 'neo4j'),
-            password=db.get('password', '12345678')
+            password=db.get('password', '')
         )
 
     def _check_docker(self):
@@ -383,20 +388,21 @@ class MainWindow(QMainWindow):
         self._neo4j_manager.check_neo4j_connection(
             uri=db.get('uri', 'bolt://localhost:7688'),
             user=db.get('user', 'neo4j'),
-            password=db.get('password', '12345678')
+            password=db.get('password', '')
         )
 
     def _load_and_check_neo4j(self):
         """从文件加载配置后再检测"""
         import yaml
         try:
-            with open("config/config.yaml", 'r', encoding='utf-8') as f:
+            config_path = get_config_path("config.yaml")
+            with open(config_path, 'r', encoding='utf-8') as f:
                 cfg = yaml.safe_load(f)
             db = cfg.get('database', {})
             self._neo4j_manager.check_neo4j_connection(
                 uri=db.get('uri', 'bolt://localhost:7688'),
                 user=db.get('user', 'neo4j'),
-                password=db.get('password', '12345678')
+                password=db.get('password', '')
             )
         except Exception as e:
             logging.warning(f"无法读取配置进行 Neo4j 检测: {e}")
@@ -452,8 +458,8 @@ class MainWindow(QMainWindow):
     # 日志
     # ================================================================
 
-    def _append_log(self, message: str, levelno: int):
-        """将日志追加到底部控制台"""
+    def _append_log(self, message: str):
+        """将批量日志追加到底部控制台"""
         self._log_output.appendPlainText(message)
 
     # ================================================================
@@ -496,9 +502,21 @@ class MainWindow(QMainWindow):
                 event.ignore()
                 return
             self._pipeline_runner.stop()
-            self._pipeline_runner.wait(5000)
+            # 给流水线线程更充足的时间来停止
+            if not self._pipeline_runner.wait(10000):
+                logging.warning("流水线线程未在 10 秒内停止，强制终止。")
+                # 强杀前先断开信号, 避免排队信号打到已销毁控件
+                try:
+                    self._pipeline_runner.disconnect()
+                except Exception:
+                    pass
+                self._pipeline_runner.terminate()
+                self._pipeline_runner.wait(3000)
 
-        # 尝试停止可视化服务器
+        # 停止 Neo4j 后台任务, 避免线程向已销毁对象发信号
+        self._neo4j_manager.shutdown()
+
+        # 停止可视化服务器并关闭数据库驱动
         try:
             from core.visualizer import stop_visualizer_server
             stop_visualizer_server()

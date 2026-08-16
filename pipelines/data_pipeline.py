@@ -2,6 +2,7 @@
 import os
 import logging
 from core.visualizer import start_visualizer_server, start_visualizer_server_background
+from core.constants import DASHBOARD_HOST, DASHBOARD_PORT
 from core.db_importer import extract_graph_to_csv, Neo4jImporter
 from core.crawler import run_openalex_crawler
 from core.author_matcher import build_local_database, match_names_locally
@@ -11,15 +12,17 @@ from core.assembler import parse_mapping_rules, generate_final_u3
 from core.llm_labeler import auto_label_concepts, auto_label_affiliations, auto_label_affiliations_batch, deduplicate_standard_names
 from core.trend_analyzer import reduce_concept_dimensions, generate_evolution_data, generate_lab_radar_data, generate_topic_distribution
 from utils.file_handler import load_json, save_json, load_excel, save_excel
+from utils.project_paths import resolve_all_paths
 
 
 class AcademicPipeline:
     """
-    MKIV 主学术数据处理流水线 (7阶段: Step 0 → Step 6)
+    MKIV 主学术数据处理流水线 (9阶段: Step 0 → Step 6)
     """
 
     def __init__(self, config: dict):
-        self.config = config
+        # 将所有相对路径解析为基于项目根目录的绝对路径
+        self.config = resolve_all_paths(config)
 
     # ================================================================
     # Step 0: 核心数据采集与作者画像匹配
@@ -211,9 +214,7 @@ class AcademicPipeline:
     # ================================================================
     def run_final_assembly_stage(self):
         paths = self.config['paths']
-        # 向后兼容: golden_keys 优先, casia_keys 作为回退
-        golden_keys = self.config['institution'].get('golden_keys',
-                        self.config['institution'].get('casia_keys', {}))
+        golden_keys = self.config['institution'].get('golden_keys', {})
 
         logging.info(">> 🚀 [Step 4] 启动 U3 终极数据组装与注入引擎...")
 
@@ -259,6 +260,7 @@ class AcademicPipeline:
             logging.error("❌ U3 数据不可用，跳过分析阶段。")
             return
 
+        from utils.project_paths import PROJECT_ROOT
         # 1. 概念降维 (复用排头兵 + LLM 逻辑)
         api_url = llm_cfg.get('api_url') if analytics_cfg.get('use_llm_labels', True) else None
         concept_dim_map = reduce_concept_dimensions(
@@ -266,19 +268,27 @@ class AcademicPipeline:
             target_clusters=analytics_cfg.get('concept_clusters', 25),
             api_url=api_url
         )
-        save_json(concept_dim_map, paths.get('data_concept_map', './data/output/concept_dim_map.json'))
+        save_json(concept_dim_map,
+                  paths.get('data_concept_map',
+                           os.path.join(PROJECT_ROOT, 'data', 'output', 'concept_dim_map.json')))
 
         # 2. 演化分析 → Theme River
         trends = generate_evolution_data(u3_data, concept_dim_map)
-        save_json(trends, paths.get('data_trends', './data/output/trends.json'))
+        save_json(trends,
+                  paths.get('data_trends',
+                           os.path.join(PROJECT_ROOT, 'data', 'output', 'trends.json')))
 
         # 3. 实验室雷达
         lab_profiles = generate_lab_radar_data(u3_data, concept_dim_map)
-        save_json(lab_profiles, paths.get('data_lab_radar', './data/output/lab_radar.json'))
+        save_json(lab_profiles,
+                  paths.get('data_lab_radar',
+                           os.path.join(PROJECT_ROOT, 'data', 'output', 'lab_radar.json')))
 
         # 4. 主题分布 → Sunburst
         topic_tree = generate_topic_distribution(u3_data, concept_dim_map)
-        save_json(topic_tree, paths.get('data_topic_sunburst', './data/output/topic_sunburst.json'))
+        save_json(topic_tree,
+                  paths.get('data_topic_sunburst',
+                           os.path.join(PROJECT_ROOT, 'data', 'output', 'topic_sunburst.json')))
 
         logging.info(">> 🎉 情报分析完成! 已生成演化趋势、实验室雷达和主题分布数据。")
 
@@ -299,7 +309,9 @@ class AcademicPipeline:
             logging.error("❌ 找不到 U3.json，无法执行入库。")
             return
 
-        import_dir = self.config.get('author_matcher', {}).get('neo4j_import_dir', './data/import')
+        import_dir = self.config.get('author_matcher', {}).get('neo4j_import_dir')
+        if not import_dir:
+            import_dir = os.path.join(PROJECT_ROOT, 'data', 'import')
         extract_graph_to_csv(u3_data, df_pi, import_dir)
 
         try:
@@ -318,6 +330,6 @@ class AcademicPipeline:
         logging.info(">> 🌐 [Step 6] 启动 ECharts 可视化服务端...")
 
         if background:
-            start_visualizer_server_background(db_config=db_cfg, host="127.0.0.1", port=8000)
+            start_visualizer_server_background(db_config=db_cfg, host=DASHBOARD_HOST, port=DASHBOARD_PORT)
         else:
-            start_visualizer_server(db_config=db_cfg, host="127.0.0.1", port=8000)
+            start_visualizer_server(db_config=db_cfg, host=DASHBOARD_HOST, port=DASHBOARD_PORT)

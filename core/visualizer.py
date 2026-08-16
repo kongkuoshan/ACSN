@@ -1,16 +1,22 @@
 # core/visualizer.py
 import os
+import logging
 from fastapi import FastAPI
 from fastapi.responses import HTMLResponse
 from neo4j import GraphDatabase
 import uvicorn
-import logging
+
+from utils.project_paths import PROJECT_ROOT
+from core.constants import DASHBOARD_HOST, DASHBOARD_PORT
 
 # 初始化 FastAPI 应用
 app = FastAPI(title="MKIV 学术情报指挥舱")
 
 # 全局数据库驱动，等待流水线启动时注入
 driver = None
+
+# Neo4j 连接超时 (秒)
+NEO4J_CONNECTION_TIMEOUT = 5
 
 def shorten(name):
     """前端类别名称截断工具"""
@@ -31,13 +37,16 @@ def get_graph(view: str = "admin", filter_name: str = ""):
         MATCH (s1:Scholar)
         WHERE $f = '' OR EXISTS((s1)-[:BELONGS_TO]->(:Lab {{name: $f}}))
         MATCH (s1)-[r:CO_WORK]-(s2:Scholar)
-        WHERE r.weight >= {min_w} AND s1.id < s2.id 
+        WHERE r.weight >= {min_w} AND s1.id < s2.id
         WITH s1, s2, r
         ORDER BY r.weight DESC LIMIT {limit}
         OPTIONAL MATCH (s1)-[:BELONGS_TO]->(lab:Lab)
-        WITH s1, s2, r, collect(DISTINCT lab.name)[0] as cat
-        RETURN s1.id as id1, s1.name as n1, s1.role as r1, 
-               s2.id as id2, s2.name as n2, s2.role as r2, 
+        WITH s1, s2, r, lab.name as ln
+        WITH s1, s2, r, ln, count(*) as freq
+        ORDER BY freq DESC
+        WITH s1, s2, r, collect(ln)[0] as cat
+        RETURN s1.id as id1, s1.name as n1, s1.role as r1,
+               s2.id as id2, s2.name as n2, s2.role as r2,
                coalesce(cat, "其他单元") as cat, r.weight as w
         """
     else:
@@ -49,9 +58,12 @@ def get_graph(view: str = "admin", filter_name: str = ""):
         WITH s1, s2, r
         ORDER BY r.weight DESC LIMIT {limit}
         OPTIONAL MATCH (s1)-[:WROTE]->()-[:MAPPED_TO]->(t:Topic)
-        WITH s1, s2, r, collect(DISTINCT t.name)[0] as cat
-        RETURN s1.id as id1, s1.name as n1, s1.role as r1, 
-               s2.id as id2, s2.name as n2, s2.role as r2, 
+        WITH s1, s2, r, t.name as tn
+        WITH s1, s2, r, tn, count(*) as freq
+        ORDER BY freq DESC
+        WITH s1, s2, r, collect(tn)[0] as cat
+        RETURN s1.id as id1, s1.name as n1, s1.role as r1,
+               s2.id as id2, s2.name as n2, s2.role as r2,
                coalesce(cat, "其他单元") as cat, r.weight as w
         """
     
@@ -123,7 +135,7 @@ def search_exact(query: str):
 def _load_analytics_data(filename: str):
     """从磁盘加载分析数据文件"""
     import json
-    filepath = os.path.join("data", "output", filename)
+    filepath = os.path.join(PROJECT_ROOT, "data", "output", filename)
     if os.path.exists(filepath):
         with open(filepath, 'r', encoding='utf-8') as f:
             return json.load(f)
@@ -494,24 +506,29 @@ _server = None
 _server_started = False
 
 
-def start_visualizer_server(db_config: dict, host: str = "0.0.0.0", port: int = 8000):
+def start_visualizer_server(db_config: dict, host: str = "0.0.0.0", port: int = DASHBOARD_PORT):
     """
     接收来自 Pipeline 的配置，动态连接 Neo4j 并启动 Web 服务 (阻塞模式, CLI 使用)
     """
     global driver
     logging.info(f">> 📊 正在启动学术情报大屏服务端，连接图数据库...")
     try:
-        driver = GraphDatabase.driver(db_config['uri'], auth=(db_config['user'], db_config['password']))
+        driver = GraphDatabase.driver(
+            db_config['uri'],
+            auth=(db_config['user'], db_config['password']),
+            connection_timeout=NEO4J_CONNECTION_TIMEOUT,
+            connection_acquisition_timeout=NEO4J_CONNECTION_TIMEOUT,
+        )
         logging.info(f"   ✅ 图数据库连接成功。")
     except Exception as e:
         logging.error(f"   ❌ 图数据库连接失败: {e}")
         return
 
-    logging.info(f"🚀 MKIV 指挥舱已点火！请在浏览器访问: http://127.0.0.1:{port}")
+    logging.info(f"🚀 MKIV 指挥舱已点火！请在浏览器访问: http://{DASHBOARD_HOST}:{port}")
     uvicorn.run(app, host=host, port=port, log_level="warning")
 
 
-def start_visualizer_server_background(db_config: dict, host: str = "127.0.0.1", port: int = 8000):
+def start_visualizer_server_background(db_config: dict, host: str = DASHBOARD_HOST, port: int = DASHBOARD_PORT):
     """
     非阻塞模式：在后台守护线程中启动 FastAPI (GUI 使用)
     """
@@ -520,7 +537,12 @@ def start_visualizer_server_background(db_config: dict, host: str = "127.0.0.1",
 
     logging.info(f">> 📊 正在后台启动学术情报大屏服务端，连接图数据库...")
     try:
-        driver = GraphDatabase.driver(db_config['uri'], auth=(db_config['user'], db_config['password']))
+        driver = GraphDatabase.driver(
+            db_config['uri'],
+            auth=(db_config['user'], db_config['password']),
+            connection_timeout=NEO4J_CONNECTION_TIMEOUT,
+            connection_acquisition_timeout=NEO4J_CONNECTION_TIMEOUT,
+        )
         logging.info(f"   ✅ 图数据库连接成功。")
     except Exception as e:
         logging.error(f"   ❌ 图数据库连接失败: {e}")
@@ -535,13 +557,17 @@ def start_visualizer_server_background(db_config: dict, host: str = "127.0.0.1",
 
 
 def stop_visualizer_server():
-    """停止后台运行的 FastAPI 服务器"""
-    global _server, _server_started
+    """停止后台运行的 FastAPI 服务器并关闭数据库连接"""
+    global driver, _server, _server_started
     if _server is not None:
         _server.should_exit = True
         _server = None
         _server_started = False
         logging.info(">> 🛑 可视化服务器已停止。")
+    if driver is not None:
+        driver.close()
+        driver = None
+        logging.info(">> 🔌 数据库连接已关闭。")
 
 
 def is_visualizer_running() -> bool:

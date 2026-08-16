@@ -105,7 +105,7 @@ exe = EXE(
     target_arch=None,
     codesign_identity=None,
     entitlements_file=None,
-    icon=None,  # Add custom .ico file to gui/resources/
+    icon=str(PROJECT_ROOT / 'gui' / 'resources' / 'app.ico'),
 )
 
 if sys.platform == 'win32':

@@ -72,6 +72,7 @@ class PipelineRunner(QThread):
     def stop(self):
         """请求停止流水线 (在下一个阶段边界检查)"""
         self._stop_requested = True
+        self.requestInterruption()
         self.log_line.emit("⚠️ 收到停止请求，当前阶段完成后将终止流水线。")
 
     def run(self):
@@ -87,7 +88,7 @@ class PipelineRunner(QThread):
         success = True
 
         for idx, stage_key in enumerate(self._stages):
-            if self._stop_requested:
+            if self._stop_requested or self.isInterruptionRequested():
                 self.log_line.emit("⏹ 流水线已被用户中断。")
                 break
 

@@ -24,12 +24,33 @@ def extract_graph_to_csv(u3_data: list, df_pi: pd.DataFrame, out_dir: str):
     """
     logging.info(">> 🧬 正在将 U3 黄金数据解析为图谱网格...")
     
-    # 1. 建立导师身份映射
+    # 1. 建立导师身份映射 + ID 别名映射 (合并历史分身)
     pi_map = {}
+    id_alias_map = {}  # historical_id → primary_id
+
     if not df_pi.empty:
+        # 按姓名分组，识别主号与历史分身
+        name_groups = {}
         for _, row in df_pi.iterrows():
+            raw_name = str(row.get("原始名单姓名", "")).strip()
             aid = _get_clean_id(row.get("OpenAlex_ID"))
-            if aid: pi_map[aid] = str(row.get("原始名单姓名", "未知导师")).strip()
+            if not aid or not raw_name:
+                continue
+            id_status = str(row.get("ID归属状态", ""))
+            entry = name_groups.setdefault(raw_name, {"primary": None, "aliases": set()})
+            entry["aliases"].add(aid)
+            if "主号" in id_status or entry["primary"] is None:
+                entry["primary"] = aid
+
+        for name, group in name_groups.items():
+            primary = group["primary"]
+            if primary:
+                pi_map[primary] = name
+                # 为所有历史分身建立指向主号的别名映射
+                for alias in group["aliases"]:
+                    pi_map[alias] = name
+                    if alias != primary:
+                        id_alias_map[alias] = primary
 
     nodes_scholar, nodes_paper, nodes_lab, nodes_topic = {}, {}, set(), set()
     rels_wrote, rels_belongs, rels_mapped = set(), set(), set()
@@ -61,20 +82,32 @@ def extract_graph_to_csv(u3_data: list, df_pi: pd.DataFrame, out_dir: str):
         p_author_ids = []
         for auth in (work.get("authorships") or []):
             if not auth or not auth.get("is_internal_node"): continue
-            
+
             a_obj = auth.get("author") or {}
             aid = _get_clean_id(a_obj.get("id"))
             if not aid: continue
-            
-            s_name = pi_map[aid] if aid in pi_map else _safe_text(a_obj.get("display_name"))
-            s_role = "导师" if aid in pi_map else "研究员/学生"
-            lab_name = _safe_text(auth.get("raw_affiliation_string") or "其他单元")
 
-            nodes_scholar[aid] = {"id": aid, "name": s_name, "role": s_role}
-            nodes_lab.add(lab_name)
-            rels_wrote.add((aid, pid))
-            rels_belongs.add((aid, lab_name))
-            p_author_ids.append(aid)
+            # 别名解析: 历史分身 ID → 主号 ID
+            canonical_id = id_alias_map.get(aid, aid)
+
+            s_name = pi_map.get(canonical_id) or pi_map.get(aid) or _safe_text(a_obj.get("display_name"))
+            s_role = "导师" if (canonical_id in pi_map or aid in pi_map) else "研究员/学生"
+
+            nodes_scholar[canonical_id] = {"id": canonical_id, "name": s_name, "role": s_role}
+
+            # 为该作者的所有挂靠机构建立 BELONGS_TO 边 (不止第一个)
+            aff_strings = auth.get("raw_affiliation_strings") or []
+            if not aff_strings:
+                fallback = auth.get("raw_affiliation_string") or "其他单元"
+                aff_strings = [fallback]
+            for aff in aff_strings:
+                lab_name = _safe_text(aff)
+                if lab_name != "未知":
+                    nodes_lab.add(lab_name)
+                    rels_belongs.add((canonical_id, lab_name))
+
+            rels_wrote.add((canonical_id, pid))
+            p_author_ids.append(canonical_id)
         
         # 合作关系权重
         for u, v in itertools.combinations(p_author_ids, 2):
@@ -100,21 +133,24 @@ def extract_graph_to_csv(u3_data: list, df_pi: pd.DataFrame, out_dir: str):
 
 class Neo4jImporter:
     def __init__(self, uri, user, password):
-        self.driver = GraphDatabase.driver(uri, auth=(user, password))
+        self.driver = GraphDatabase.driver(
+            uri, auth=(user, password),
+            connection_timeout=10,
+            connection_acquisition_timeout=10,
+        )
 
     def execute_load(self):
         logging.info(">> 🔗 连接 Neo4j，开始执行全量加载...")
         with self.driver.session() as sess:
-            logging.info("   -> 清理旧数据...")
-            sess.run("MATCH (n) DETACH DELETE n") 
-            
-            logging.info("   -> 正在建立数据库索引...")
-            sess.run("DROP CONSTRAINT s_id_unique IF EXISTS")
-            sess.run("CREATE CONSTRAINT s_id_unique IF NOT EXISTS FOR (s:Scholar) REQUIRE s.id IS UNIQUE")
+            logging.info("   -> 正在建立数据库索引 (首次运行)...")
+            try:
+                sess.run("CREATE CONSTRAINT s_id_unique IF NOT EXISTS FOR (s:Scholar) REQUIRE s.id IS UNIQUE")
+            except Exception:
+                pass  # 约束可能已存在
             sess.run("CREATE INDEX p_id_idx IF NOT EXISTS FOR (p:Paper) ON (p.id)")
             sess.run("CREATE INDEX l_name_idx IF NOT EXISTS FOR (l:Lab) ON (l.name)")
             sess.run("CREATE INDEX t_name_idx IF NOT EXISTS FOR (t:Topic) ON (t.name)")
-            
+
             load_cmds = [
                 "LOAD CSV WITH HEADERS FROM 'file:///s.csv' AS row MERGE (s:Scholar {id: row.id}) SET s.name=row.name, s.role=row.role",
                 "LOAD CSV WITH HEADERS FROM 'file:///p.csv' AS row MERGE (p:Paper {id: row.id}) SET p.title=row.title, p.journal=row.journal, p.doi=row.doi",
@@ -123,12 +159,15 @@ class Neo4jImporter:
                 "LOAD CSV WITH HEADERS FROM 'file:///r_w.csv' AS row MATCH (s:Scholar {id:row.aid}), (p:Paper {id:row.pid}) MERGE (s)-[:WROTE]->(p)",
                 "LOAD CSV WITH HEADERS FROM 'file:///r_b.csv' AS row MATCH (s:Scholar {id:row.aid}), (l:Lab {name:row.lab}) MERGE (s)-[:BELONGS_TO]->(l)",
                 "LOAD CSV WITH HEADERS FROM 'file:///r_m.csv' AS row MATCH (p:Paper {id:row.pid}), (t:Topic {name:row.top}) MERGE (p)-[:MAPPED_TO]->(t)",
-                "LOAD CSV WITH HEADERS FROM 'file:///r_c.csv' AS row MATCH (s1:Scholar {id:row.u}), (s2:Scholar {id:row.v}) MERGE (s1)-[r:CO_WORK]-(s2) SET r.weight=toInteger(row.w)"
+                "LOAD CSV WITH HEADERS FROM 'file:///r_c.csv' AS row MATCH (s1:Scholar {id:row.u}), (s2:Scholar {id:row.v}) MERGE (s1)-[r:CO_WORK]-(s2) SET r.weight=toInteger(row.w)",
             ]
-            
+
+            logging.info("   -> 清理旧数据...")
+            sess.run("MATCH (n) DETACH DELETE n")
+
             logging.info("   -> 正在织入节点与边...")
-            for c in tqdm(load_cmds, desc="执行 Cypher"): 
+            for c in tqdm(load_cmds, desc="执行 Cypher"):
                 sess.run(c)
-                
+
         self.driver.close()
         logging.info("🎉 [MKIV 引擎] 数据已全部载入 Neo4j，前端可直接展示！")

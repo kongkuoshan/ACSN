@@ -3,7 +3,10 @@ import sys
 import os
 import yaml
 import logging
-from pipelines.data_pipeline import AcademicPipeline
+
+from utils.project_paths import ensure_in_sys_path, get_config_path, resolve_all_paths
+
+ensure_in_sys_path()
 
 
 def setup_logging():
@@ -17,9 +20,12 @@ def setup_logging():
 def ensure_config():
     """首次运行时自动从模板生成 config.yaml"""
     import shutil
-    config_path = "config/config.yaml"
-    example_path = "config/config.example.yaml"
+    config_path = get_config_path("config.yaml")
+    example_path = get_config_path("config.example.yaml")
     if not os.path.exists(config_path):
+        if not os.path.exists(example_path):
+            print("❌ 致命错误: config.example.yaml 也丢失了！请重新克隆项目。")
+            sys.exit(1)
         shutil.copy(example_path, config_path)
         logging.info("📋 首次运行: 已从 config.example.yaml 生成 config/config.yaml")
         logging.info("   请编辑 config/config.yaml 填入你的机构 ID、邮箱和数据库密码。")
@@ -33,30 +39,27 @@ if __name__ == "__main__":
         sys.exit(0)
 
     # 首次运行自动生成配置
-    if not os.path.exists("config/config.yaml"):
-        if not os.path.exists("config/config.example.yaml"):
-            print("❌ 致命错误: config.example.yaml 也丢失了！请重新克隆项目。")
-            sys.exit(1)
-        import shutil
-        shutil.copy("config/config.example.yaml", "config/config.yaml")
-        print("📋 首次运行: 已从 config.example.yaml 生成 config/config.yaml")
-        print("   请编辑 config/config.yaml 填入你的机构 ID、邮箱和数据库密码。")
-        print()
+    ensure_config()
 
     setup_logging()
 
     # 1. 加载唯一的全局配置
+    config_path = get_config_path("config.yaml")
     try:
-        with open("config/config.yaml", 'r', encoding='utf-8') as f:
+        with open(config_path, 'r', encoding='utf-8') as f:
             config = yaml.safe_load(f)
     except FileNotFoundError:
-        logging.error("❌ 找不到 config/config.yaml 文件，请先创建！")
+        logging.error(f"❌ 找不到配置文件: {config_path}")
         exit(1)
 
-    # 2. 实例化流水线
+    # 2. 将所有相对路径解析为绝对路径
+    config = resolve_all_paths(config)
+
+    # 3. 实例化流水线
+    from pipelines.data_pipeline import AcademicPipeline
     pipeline = AcademicPipeline(config)
 
-    # 3. 🚀 一键执行自动化流水线
+    # 4. 🚀 一键执行自动化流水线
     try:
         logging.info("🌟 欢迎使用 MKIV 学术情报图谱引擎 🌟")
 

@@ -223,10 +223,10 @@ def generate_lab_radar_data(u3_data: list, concept_dim_map: dict = None) -> dict
 
     返回格式:
     {
-        "labs": ["模式识别重点实验室", "脑网络组中心", ...],
+        "labs": ["实验室A", "实验室B", ...],
         "indicators": ["人工智能", "计算机视觉", ...],
         "series": [
-            {"name": "模式识别重点实验室", "value": [35, 20, ...]},
+            {"name": "实验室A", "value": [35, 20, ...]},
             ...
         ]
     }
@@ -391,7 +391,7 @@ def generate_scholar_profile(u3_data: list, scholar_id: str,
         "name": "张三",
         "topics": ["人工智能(35)", "计算机视觉(28)", ...],
         "collaborators": ["李四", "王五", ...],
-        "lab": "模式识别重点实验室",
+        "lab": "实验室A",
         "publication_years": [2020, 2021, ...],
         "topic_timeline": {"人工智能": [2020, 2021, 2023], ...}
     }

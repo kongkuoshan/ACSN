@@ -75,6 +75,8 @@ def _get_standard_name(raw_text: str, aff_map: dict, golden_keys: dict) -> str:
     # 金钥匙兜底: 关键字不区分大小写匹配
     v_upper = str(raw_text).upper()
     for key, std_name in golden_keys.items():
+        if not key or not str(std_name).strip():
+            continue
         if key.upper() in v_upper:
             return std_name
 

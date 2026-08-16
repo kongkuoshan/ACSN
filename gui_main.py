@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
 MKIV Academic Intelligence Graph Engine — GUI 启动入口
-=======================================================
+========================================================
 
 用法:
     python gui_main.py              # 直接启动 GUI
@@ -14,10 +14,10 @@ import sys
 import os
 import logging
 
+from utils.project_paths import ensure_in_sys_path, get_config_path
+
 # 确保项目根目录在 sys.path 中
-_project_root = os.path.dirname(os.path.abspath(__file__))
-if _project_root not in sys.path:
-    sys.path.insert(0, _project_root)
+ensure_in_sys_path()
 
 
 def setup_basic_logging():
@@ -30,7 +30,12 @@ def setup_basic_logging():
 
 
 def check_dependencies():
-    """检查关键依赖。返回 (required_missing, optional_missing)"""
+    """检查关键依赖。返回 (required_missing, optional_missing)
+
+    注意: import 顺序很重要。
+    openpyxl 必须在 pandas 之前检测，因为 pandas 导入时会尝试发现 openpyxl 引擎；
+    如果存在版本冲突，先 import openpyxl 能确保正确的版本已加载。
+    """
     required_missing = []
     optional_missing = []
 
@@ -39,8 +44,8 @@ def check_dependencies():
         ("PySide6.QtWebEngineWidgets", "PySide6 (QtWebEngine)"),
         ("yaml", "pyyaml"),
         ("neo4j", "neo4j"),
+        ("openpyxl", "openpyxl"),     # ⚠️ 必须在 pandas 之前
         ("pandas", "pandas"),
-        ("openpyxl", "openpyxl"),
         ("pypinyin", "pypinyin"),
         ("uvicorn", "uvicorn"),
         ("fastapi", "fastapi"),
@@ -70,8 +75,8 @@ def check_dependencies():
 
 def ensure_config():
     """首次运行时自动从模板生成 config.yaml"""
-    config_path = os.path.join(_project_root, "config", "config.yaml")
-    example_path = os.path.join(_project_root, "config", "config.example.yaml")
+    config_path = get_config_path("config.yaml")
+    example_path = get_config_path("config.example.yaml")
 
     if not os.path.exists(config_path):
         if not os.path.exists(example_path):
