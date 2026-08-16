@@ -178,7 +178,8 @@ mkdir -p ./data/import
 docker run -d --name mkiv_neo4j \
   -p 7688:7687 -p 7689:7474 \
   -e NEO4J_AUTH=neo4j/your_password \
-  -v $(pwd)/data/import:/var/lib/neo4j/import \
+  -e NEO4J_server_directories_import=/import \
+  -v $(pwd)/data/import:/import \
   neo4j:5-community
 ```
 

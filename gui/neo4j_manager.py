@@ -354,7 +354,8 @@ class Neo4jManager(QObject):
             "-p", f"{http_port}:7474",
             "-e", f"NEO4J_AUTH={user}/{password}",
             "-e", "NEO4J_PLUGINS=[\"apoc\"]",
-            "-v", f"{abs_import}:/var/lib/neo4j/import",
+            "-e", "NEO4J_server_directories_import=/import",
+            "-v", f"{abs_import}:/import",
             "--restart", "unless-stopped",
             self.IMAGE_NAME,
         ]
