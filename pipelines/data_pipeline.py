@@ -12,7 +12,7 @@ from core.assembler import parse_mapping_rules, generate_final_u3
 from core.llm_labeler import auto_label_concepts, auto_label_affiliations, auto_label_affiliations_batch, deduplicate_standard_names
 from core.trend_analyzer import reduce_concept_dimensions, generate_evolution_data, generate_lab_radar_data, generate_topic_distribution
 from utils.file_handler import load_json, save_json, load_excel, save_excel
-from utils.project_paths import resolve_all_paths
+from utils.project_paths import PROJECT_ROOT, resolve_all_paths
 
 
 def _save_template_if_unfilled(df, path, fill_keyword):
@@ -297,7 +297,6 @@ class AcademicPipeline:
             logging.error("❌ U3 数据不可用，跳过分析阶段。")
             return
 
-        from utils.project_paths import PROJECT_ROOT
         # 1. 概念降维 (复用排头兵 + LLM 逻辑)
         api_url = llm_cfg.get('api_url') if analytics_cfg.get('use_llm_labels', True) else None
         concept_dim_map = reduce_concept_dimensions(

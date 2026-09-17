@@ -5,9 +5,9 @@ MKIV Academic Intelligence Graph Engine — GUI 启动入口
 
 用法:
     python gui_main.py              # 直接启动 GUI
-    python main.py --gui            # 通过 CLI 入口启动 GUI (需要修改 main.py)
+    python main.py --gui            # 通过 CLI 入口启动 GUI (等价)
 
-这是 PyInstaller 打包时的目标脚本。
+这是 PyInstaller 打包时的目标脚本 (双击 EXE 即走此入口)。
 """
 
 import sys
@@ -24,7 +24,11 @@ ensure_in_sys_path()
 # xml.etree.ElementTree 报 "No module named expat; use SimpleXMLTreeBuilder instead"，
 # 进而让 openpyxl (解析 xlsx 依赖 ElementTree) 无法导入。
 # 提前 import openpyxl 可先把 pyexpat 绑定到系统 libexpat，规避冲突。
-import openpyxl  # noqa: F401  — 提前绑定 expat，避免被 QtWebEngine 破坏
+try:
+    import openpyxl  # noqa: F401  — 提前绑定 expat，避免被 QtWebEngine 破坏
+except ImportError:
+    # 缺少 openpyxl 时不应在此抛裸 traceback，交由 check_dependencies() 统一友好提示
+    pass
 
 
 def setup_basic_logging():
@@ -90,6 +94,7 @@ def ensure_config():
             print("❌ 致命错误: config.example.yaml 也丢失了！请重新克隆项目。")
             sys.exit(1)
         import shutil
+        os.makedirs(os.path.dirname(config_path), exist_ok=True)
         shutil.copy(example_path, config_path)
         print("📋 首次运行: 已从 config.example.yaml 生成 config/config.yaml")
         print("   请编辑 config/config.yaml 填入你的机构 ID、邮箱和数据库密码。")

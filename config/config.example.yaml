@@ -72,7 +72,7 @@ nlp:
 llm_assistant:
   enabled: false                             # 是否启用
   api_url: "http://localhost:8080/v1/chat/completions"   # OpenAI 兼容 API
-  concept_target_fields: "人工智能, 计算机视觉, 机器人学, 自动控制, 脑科学与神经科学, 医学影像, 计算机体系结构, 物理与工程, 生物与医学, 社会与人文, 数学与基础科学"
+  concept_target_fields: "数学, 物理, 化学, 生物学, 计算机科学, 工程, 医学, 社会科学, 人文艺术"  # 示例分类，请按你的机构研究方向替换
   affiliation_system_prompt: "你是一个机构识别专家。判断输入是否属于目标机构。如果是,输出其中文实验室/院系简称;如果不是,输出'外部合作机构'。只输出名称,不要解释。"
   temperature: 0                             # 采样温度 (0=确定性)
   max_tokens: 120                            # 单次返回最大 token

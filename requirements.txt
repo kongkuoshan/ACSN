@@ -1,5 +1,8 @@
 # MKIV Academic Intelligence Graph Engine — Dependencies
 # ================================================================
+# 核心依赖：CLI 流水线 + 桌面 GUI 开箱即用。
+# NLP 语义聚类 (Step 3) 需要额外的 sentence-transformers / scikit-learn，
+# 请另行安装: pip install -r requirements-ml.txt
 
 # === Core Pipeline ===
 pyyaml>=6.0
@@ -8,10 +11,6 @@ pandas>=2.0.0
 openpyxl>=3.1.0
 tqdm>=4.65.0
 urllib3>=2.0.0
-
-# === NLP & Machine Learning ===
-sentence-transformers>=2.2.0
-scikit-learn>=1.3.0
 
 # === Chinese Name Processing ===
 pypinyin>=0.49.0

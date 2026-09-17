@@ -63,7 +63,9 @@ jobs:
       - name: Package artifact
         run: |
           cd dist
-          tar -czf ../MKIV-Academic-Graph-Linux.tar.gz MKIV_Academic_Graph/
+          # 注意: mkiv-gui.spec 仅在 Windows 下生成 COLLECT 目录，
+          # Linux 产物为单文件可执行程序，故此处直接打包该文件。
+          tar -czf ../MKIV-Academic-Graph-Linux.tar.gz MKIV_Academic_Graph
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4

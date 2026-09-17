@@ -1,0 +1,8 @@
+# MKIV — 开发/测试依赖 (CI 与本地跑测试用)
+# 安装: pip install -r requirements.txt -r requirements-dev.txt
+pytest>=8.0
+
+# 聚类分支的单元测试会真实调用 KMeans / AgglomerativeClustering。
+# 只装 sklearn，不装 sentence-transformers —— 测试里编码器是假模型，
+# 不需要下载 500MB 的模型权重。
+scikit-learn>=1.3.0

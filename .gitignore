@@ -32,8 +32,12 @@ data/01_raw/
 data/02_analyzed/
 data/03_cleaned/
 data/output/
-data/input/
+data/input/*
+!data/input/.gitkeep
 data/import/
+
+# 合成演示数据要提交 (JOSS 审稿人需要)，但其运行产物不提交
+data/sample/_run/
 
 # Config with secrets
 config/config.yaml
@@ -56,3 +60,6 @@ docker-compose.override.yml
 # Sentinels
 .mkiv_gui_initialized
 .claude/
+
+# 本地上传暂存目录（手工同步用，不属于仓库内容）
+上传专用/

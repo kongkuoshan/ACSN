@@ -1,7 +1,6 @@
 # core/analyzer.py
 import pandas as pd
 from utils.model_loader import load_sentence_transformer
-from sklearn.cluster import AgglomerativeClustering
 from collections import defaultdict
 from tqdm import tqdm
 import logging
@@ -91,6 +90,8 @@ def build_cluster_mappings(unique_data: dict, target_clusters: int, nlp_cfg: dic
                 clustering_model = KMeans(n_clusters=target_clusters, random_state=random_state, n_init='auto')
                 labels = clustering_model.fit_predict(embeddings)
             else:
+                # 懒加载: sklearn 仅在真正跑聚类时才需要 (打包 EXE 默认不含 sklearn)
+                from sklearn.cluster import AgglomerativeClustering
                 clustering_model = AgglomerativeClustering(
                     n_clusters=target_clusters, metric=cluster_metric, linkage=cluster_linkage
                 )

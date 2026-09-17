@@ -1,0 +1,4818 @@
+[
+  {
+    "id": "https://openalex.org/W1",
+    "title": "Synthetic study 1 on 机器人学",
+    "publication_year": 2019,
+    "doi": "https://doi.org/10.0000/synth.1",
+    "primary_location": {
+      "source": {
+        "display_name": "Proceedings of the Synthetic Society"
+      }
+    },
+    "concepts": [
+      {
+        "display_name": "Computer Vision",
+        "level": 1,
+        "score": 0.8
+      },
+      {
+        "display_name": "Robotics",
+        "level": 1,
+        "score": 0.65
+      }
+    ],
+    "authorships": [
+      {
+        "author": {
+          "id": "https://openalex.org/A101",
+          "display_name": "Alice Chen"
+        },
+        "author_position": "first",
+        "institutions": [
+          {
+            "id": "https://openalex.org/I0000000",
+            "display_name": "Synthetic Institute of Technology",
+            "lineage": [
+              "https://openalex.org/I0000000"
+            ]
+          }
+        ],
+        "raw_affiliation_strings": [
+          "Synth Robotics Lab (SRL), Beijing 100190, China"
+        ]
+      },
+      {
+        "author": {
+          "id": "https://openalex.org/A500",
+          "display_name": "Eve Sun"
+        },
+        "author_position": "first",
+        "institutions": [
+          {
+            "id": "https://openalex.org/I0000000",
+            "display_name": "Synthetic Institute of Technology",
+            "lineage": [
+              "https://openalex.org/I0000000"
+            ]
+          }
+        ],
+        "raw_affiliation_strings": [
+          "Synth. Vision Lab (SVL), People's Republic of China"
+        ]
+      },
+      {
+        "author": {
+          "id": "https://openalex.org/AXPaulGarcia",
+          "display_name": "Paul Garcia"
+        },
+        "author_position": "middle",
+        "institutions": [
+          {
+            "id": "https://openalex.org/I9999999",
+            "display_name": "Foreign Synthetic University",
+            "lineage": [
+              "https://openalex.org/I9999999"
+            ]
+          }
+        ],
+        "raw_affiliation_strings": [
+          "Foreign Synthetic University, USA"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "https://openalex.org/W2",
+    "title": "Synthetic study 2 on 人工智能",
+    "publication_year": 2019,
+    "doi": "https://doi.org/10.0000/synth.2",
+    "primary_location": {
+      "source": {
+        "display_name": "Proceedings of the Synthetic Society"
+      }
+    },
+    "concepts": [
+      {
+        "display_name": "Neural Networks",
+        "level": 1,
+        "score": 0.63
+      }
+    ],
+    "authorships": [
+      {
+        "author": {
+          "id": "https://openalex.org/A900",
+          "display_name": "Ivy Luo"
+        },
+        "author_position": "first",
+        "institutions": [
+          {
+            "id": "https://openalex.org/I0000000",
+            "display_name": "Synthetic Institute of Technology",
+            "lineage": [
+              "https://openalex.org/I0000000"
+            ]
+          }
+        ],
+        "raw_affiliation_strings": [
+          "Synth. Vision Lab (SVL), People's Republic of China"
+        ]
+      },
+      {
+        "author": {
+          "id": "https://openalex.org/A200",
+          "display_name": "Bob Liu"
+        },
+        "author_position": "first",
+        "institutions": [
+          {
+            "id": "https://openalex.org/I0000000",
+            "display_name": "Synthetic Institute of Technology",
+            "lineage": [
+              "https://openalex.org/I0000000"
+            ]
+          }
+        ],
+        "raw_affiliation_strings": [
+          "Robotics Group, Synthetic Institute of Technology, P.R. China"
+        ]
+      },
+      {
+        "author": {
+          "id": "https://openalex.org/AXTinaNovak",
+          "display_name": "Tina Novak"
+        },
+        "author_position": "middle",
+        "institutions": [
+          {
+            "id": "https://openalex.org/I9999999",
+            "display_name": "Foreign Synthetic University",
+            "lineage": [
+              "https://openalex.org/I9999999"
+            ]
+          }
+        ],
+        "raw_affiliation_strings": [
+          "Foreign Synthetic University, USA"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "https://openalex.org/W3",
+    "title": "Synthetic study 3 on 计算机视觉",
+    "publication_year": 2019,
+    "doi": "https://doi.org/10.0000/synth.3",
+    "primary_location": {
+      "source": {
+        "display_name": "Synthetic Transactions on Intelligence"
+      }
+    },
+    "concepts": [
+      {
+        "display_name": "Deep Learning",
+        "level": 1,
+        "score": 0.89
+      },
+      {
+        "display_name": "Computer Vision",
+        "level": 1,
+        "score": 0.99
+      }
+    ],
+    "authorships": [
+      {
+        "author": {
+          "id": "https://openalex.org/A120",
+          "display_name": "Kelly Fang"
+        },
+        "author_position": "first",
+        "institutions": [
+          {
+            "id": "https://openalex.org/I0000000",
+            "display_name": "Synthetic Institute of Technology",
+            "lineage": [
+              "https://openalex.org/I0000000"
+            ]
+          }
+        ],
+        "raw_affiliation_strings": [
+          "sbl.admin@synth.example Synthetic Brain Lab"
+        ]
+      },
+      {
+        "author": {
+          "id": "https://openalex.org/A130",
+          "display_name": "Leo Qiu"
+        },
+        "author_position": "first",
+        "institutions": [
+          {
+            "id": "https://openalex.org/I0000000",
+            "display_name": "Synthetic Institute of Technology",
+            "lineage": [
+              "https://openalex.org/I0000000"
+            ]
+          }
+        ],
+        "raw_affiliation_strings": [
+          "Synthetic Brain Lab, Beijing 100190, China"
+        ]
+      },
+      {
+        "author": {
+          "id": "https://openalex.org/AXPaulGarcia",
+          "display_name": "Paul Garcia"
+        },
+        "author_position": "middle",
+        "institutions": [
+          {
+            "id": "https://openalex.org/I9999999",
+            "display_name": "Foreign Synthetic University",
+            "lineage": [
+              "https://openalex.org/I9999999"
+            ]
+          }
+        ],
+        "raw_affiliation_strings": [
+          "Foreign Synthetic University, USA"
+        ]
+      },
+      {
+        "author": {
+          "id": "https://openalex.org/AXQuinnMiller",
+          "display_name": "Quinn Miller"
+        },
+        "author_position": "middle",
+        "institutions": [
+          {
+            "id": "https://openalex.org/I9999999",
+            "display_name": "Foreign Synthetic University",
+            "lineage": [
+              "https://openalex.org/I9999999"
+            ]
+          }
+        ],
+        "raw_affiliation_strings": [
+          "Foreign Synthetic University, USA"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "https://openalex.org/W4",
+    "title": "Synthetic study 4 on 人工智能",
+    "publication_year": 2019,
+    "doi": "https://doi.org/10.0000/synth.4",
+    "primary_location": {
+      "source": {
+        "display_name": "Proceedings of the Synthetic Society"
+      }
+    },
+    "concepts": [
+      {
+        "display_name": "Deep Learning",
+        "level": 1,
+        "score": 0.9
+      },
+      {
+        "display_name": "Image Segmentation",
+        "level": 1,
+        "score": 0.73
+      },
+      {
+        "display_name": "Robotics",
+        "level": 1,
+        "score": 0.93
+      }
+    ],
+    "authorships": [
+      {
+        "author": {
+          "id": "https://openalex.org/A130",
+          "display_name": "Leo Qiu"
+        },
+        "author_position": "first",
+        "institutions": [
+          {
+            "id": "https://openalex.org/I0000000",
+            "display_name": "Synthetic Institute of Technology",
+            "lineage": [
+              "https://openalex.org/I0000000"
+            ]
+          }
+        ],
+        "raw_affiliation_strings": [
+          "Vision Lab, Synthetic Institute of Technology"
+        ]
+      },
+      {
+        "author": {
+          "id": "https://openalex.org/A200",
+          "display_name": "Bob Liu"
+        },
+        "author_position": "first",
+        "institutions": [
+          {
+            "id": "https://openalex.org/I0000000",
+            "display_name": "Synthetic Institute of Technology",
+            "lineage": [
+              "https://openalex.org/I0000000"
+            ]
+          }
+        ],
+        "raw_affiliation_strings": [
+          "Synth Robotics Lab (SRL), Beijing 100190, China"
+        ]
+      },
+      {
+        "author": {
+          "id": "https://openalex.org/A900",
+          "display_name": "Ivy Luo"
+        },
+        "author_position": "first",
+        "institutions": [
+          {
+            "id": "https://openalex.org/I0000000",
+            "display_name": "Synthetic Institute of Technology",
+            "lineage": [
+              "https://openalex.org/I0000000"
+            ]
+          }
+        ],
+        "raw_affiliation_strings": [
+          "sbl.admin@synth.example Synthetic Brain Lab"
+        ]
+      },
+      {
+        "author": {
+          "id": "https://openalex.org/AXPaulGarcia",
+          "display_name": "Paul Garcia"
+        },
+        "author_position": "middle",
+        "institutions": [
+          {
+            "id": "https://openalex.org/I9999999",
+            "display_name": "Foreign Synthetic University",
+            "lineage": [
+              "https://openalex.org/I9999999"
+            ]
+          }
+        ],
+        "raw_affiliation_strings": [
+          "Foreign Synthetic University, USA"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "https://openalex.org/W5",
+    "title": "Synthetic study 5 on 人工智能",
+    "publication_year": 2018,
+    "doi": "https://doi.org/10.0000/synth.5",
+    "primary_location": {
+      "source": {
+        "display_name": "Proceedings of the Synthetic Society"
+      }
+    },
+    "concepts": [
+      {
+        "display_name": "Deep Learning",
+        "level": 1,
+        "score": 0.74
+      }
+    ],
+    "authorships": [
+      {
+        "author": {
+          "id": "https://openalex.org/A700",
+          "display_name": "Grace Hu"
+        },
+        "author_position": "first",
+        "institutions": [
+          {
+            "id": "https://openalex.org/I0000000",
+            "display_name": "Synthetic Institute of Technology",
+            "lineage": [
+              "https://openalex.org/I0000000"
+            ]
+          }
+        ],
+        "raw_affiliation_strings": [
+          "Synthetic Robotics Lab, Beijing, China"
+        ]
+      },
+      {
+        "author": {
+          "id": "https://openalex.org/A900",
+          "display_name": "Ivy Luo"
+        },
+        "author_position": "first",
+        "institutions": [
+          {
+            "id": "https://openalex.org/I0000000",
+            "display_name": "Synthetic Institute of Technology",
+            "lineage": [
+              "https://openalex.org/I0000000"
+            ]
+          }
+        ],
+        "raw_affiliation_strings": [
+          "Robotics Group, Synthetic Institute of Technology, P.R. China"
+        ]
+      },
+      {
+        "author": {
+          "id": "https://openalex.org/A500",
+          "display_name": "Eve Sun"
+        },
+        "author_position": "first",
+        "institutions": [
+          {
+            "id": "https://openalex.org/I0000000",
+            "display_name": "Synthetic Institute of Technology",
+            "lineage": [
+              "https://openalex.org/I0000000"
+            ]
+          }
+        ],
+        "raw_affiliation_strings": [
+          "Synth. Vision Lab (SVL), People's Republic of China"
+        ]
+      },
+      {
+        "author": {
+          "id": "https://openalex.org/AXRitaSato",
+          "display_name": "Rita Sato"
+        },
+        "author_position": "middle",
+        "institutions": [
+          {
+            "id": "https://openalex.org/I9999999",
+            "display_name": "Foreign Synthetic University",
+            "lineage": [
+              "https://openalex.org/I9999999"
+            ]
+          }
+        ],
+        "raw_affiliation_strings": [
+          "Foreign Synthetic University, USA"
+        ]
+      },
+      {
+        "author": {
+          "id": "https://openalex.org/AXMonaPatel",
+          "display_name": "Mona Patel"
+        },
+        "author_position": "middle",
+        "institutions": [
+          {
+            "id": "https://openalex.org/I9999999",
+            "display_name": "Foreign Synthetic University",
+            "lineage": [
+              "https://openalex.org/I9999999"
+            ]
+          }
+        ],
+        "raw_affiliation_strings": [
+          "Foreign Synthetic University, USA"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "https://openalex.org/W6",
+    "title": "Synthetic study 6 on 机器人学",
+    "publication_year": 2021,
+    "doi": "https://doi.org/10.0000/synth.6",
+    "primary_location": {
+      "source": {
+        "display_name": "Proceedings of the Synthetic Society"
+      }
+    },
+    "concepts": [
+      {
+        "display_name": "Robotics",
+        "level": 1,
+        "score": 0.51
+      }
+    ],
+    "authorships": [
+      {
+        "author": {
+          "id": "https://openalex.org/A130",
+          "display_name": "Leo Qiu"
+        },
+        "author_position": "first",
+        "institutions": [
+          {
+            "id": "https://openalex.org/I0000000",
+            "display_name": "Synthetic Institute of Technology",
+            "lineage": [
+              "https://openalex.org/I0000000"
+            ]
+          }
+        ],
+        "raw_affiliation_strings": [
+          "Synth. Vision Lab (SVL), People's Republic of China"
+        ]
+      },
+      {
+        "author": {
+          "id": "https://openalex.org/A400",
+          "display_name": "David Zhao"
+        },
+        "author_position": "first",
+        "institutions": [
+          {
+            "id": "https://openalex.org/I0000000",
+            "display_name": "Synthetic Institute of Technology",
+            "lineage": [
+              "https://openalex.org/I0000000"
+            ]
+          }
+        ],
+        "raw_affiliation_strings": [
+          "Synthetic Vision Lab, Beijing 100190, China"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "https://openalex.org/W7",
+    "title": "Synthetic study 7 on 计算机视觉",
+    "publication_year": 2019,
+    "doi": "https://doi.org/10.0000/synth.7",
+    "primary_location": {
+      "source": {
+        "display_name": "Journal of Synthetic Systems"
+      }
+    },
+    "concepts": [
+      {
+        "display_name": "Robot Manipulation",
+        "level": 1,
+        "score": 0.8
+      }
+    ],
+    "authorships": [
+      {
+        "author": {
+          "id": "https://openalex.org/A700",
+          "display_name": "Grace Hu"
+        },
+        "author_position": "first",
+        "institutions": [
+          {
+            "id": "https://openalex.org/I0000000",
+            "display_name": "Synthetic Institute of Technology",
+            "lineage": [
+              "https://openalex.org/I0000000"
+            ]
+          }
+        ],
+        "raw_affiliation_strings": [
+          "Synthetic Brain Lab, Beijing 100190, China"
+        ]
+      },
+      {
+        "author": {
+          "id": "https://openalex.org/A200",
+          "display_name": "Bob Liu"
+        },
+        "author_position": "first",
+        "institutions": [
+          {
+            "id": "https://openalex.org/I0000000",
+            "display_name": "Synthetic Institute of Technology",
+            "lineage": [
+              "https://openalex.org/I0000000"
+            ]
+          }
+        ],
+        "raw_affiliation_strings": [
+          "Synthetic Brain Lab, Beijing 100190, China"
+        ]
+      },
+      {
+        "author": {
+          "id": "https://openalex.org/A600",
+          "display_name": "Frank Ma"
+        },
+        "author_position": "first",
+        "institutions": [
+          {
+            "id": "https://openalex.org/I0000000",
+            "display_name": "Synthetic Institute of Technology",
+            "lineage": [
+              "https://openalex.org/I0000000"
+            ]
+          }
+        ],
+        "raw_affiliation_strings": [
+          "Vision Lab, Synthetic Institute of Technology"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "https://openalex.org/W8",
+    "title": "Synthetic study 8 on 计算机视觉",
+    "publication_year": 2021,
+    "doi": "https://doi.org/10.0000/synth.8",
+    "primary_location": {
+      "source": {
+        "display_name": "Synthetic Transactions on Intelligence"
+      }
+    },
+    "concepts": [],
+    "authorships": [
+      {
+        "author": {
+          "id": "https://openalex.org/A500",
+          "display_name": "Eve Sun"
+        },
+        "author_position": "first",
+        "institutions": [
+          {
+            "id": "https://openalex.org/I0000000",
+            "display_name": "Synthetic Institute of Technology",
+            "lineage": [
+              "https://openalex.org/I0000000"
+            ]
+          }
+        ],
+        "raw_affiliation_strings": [
+          "Synthetic Vision Lab, Beijing 100190, China"
+        ]
+      },
+      {
+        "author": {
+          "id": "https://openalex.org/AXMonaPatel",
+          "display_name": "Mona Patel"
+        },
+        "author_position": "middle",
+        "institutions": [
+          {
+            "id": "https://openalex.org/I9999999",
+            "display_name": "Foreign Synthetic University",
+            "lineage": [
+              "https://openalex.org/I9999999"
+            ]
+          }
+        ],
+        "raw_affiliation_strings": [
+          "Foreign Synthetic University, USA"
+        ]
+      },
+      {
+        "author": {
+          "id": "https://openalex.org/AXQuinnMiller",
+          "display_name": "Quinn Miller"
+        },
+        "author_position": "middle",
+        "institutions": [
+          {
+            "id": "https://openalex.org/I9999999",
+            "display_name": "Foreign Synthetic University",
+            "lineage": [
+              "https://openalex.org/I9999999"
+            ]
+          }
+        ],
+        "raw_affiliation_strings": [
+          "Foreign Synthetic University, USA"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "https://openalex.org/W9",
+    "title": "Synthetic study 9 on 机器人学",
+    "publication_year": 2022,
+    "doi": "https://doi.org/10.0000/synth.9",
+    "primary_location": {
+      "source": {
+        "display_name": "Proceedings of the Synthetic Society"
+      }
+    },
+    "concepts": [
+      {
+        "display_name": "Neural Networks",
+        "level": 1,
+        "score": 0.95
+      },
+      {
+        "display_name": "Robot Manipulation",
+        "level": 1,
+        "score": 0.94
+      }
+    ],
+    "authorships": [
+      {
+        "author": {
+          "id": "https://openalex.org/A800",
+          "display_name": "Henry Xu"
+        },
+        "author_position": "first",
+        "institutions": [
+          {
+            "id": "https://openalex.org/I0000000",
+            "display_name": "Synthetic Institute of Technology",
+            "lineage": [
+              "https://openalex.org/I0000000"
+            ]
+          }
+        ],
+        "raw_affiliation_strings": [
+          "Synthetic Brain Lab, Beijing 100190, China"
+        ]
+      },
+      {
+        "author": {
+          "id": "https://openalex.org/A110",
+          "display_name": "Jack Deng"
+        },
+        "author_position": "first",
+        "institutions": [
+          {
+            "id": "https://openalex.org/I0000000",
+            "display_name": "Synthetic Institute of Technology",
+            "lineage": [
+              "https://openalex.org/I0000000"
+            ]
+          }
+        ],
+        "raw_affiliation_strings": [
+          "Synthetic Robotics Lab, Beijing, China"
+        ]
+      },
+      {
+        "author": {
+          "id": "https://openalex.org/AXRitaSato",
+          "display_name": "Rita Sato"
+        },
+        "author_position": "middle",
+        "institutions": [
+          {
+            "id": "https://openalex.org/I9999999",
+            "display_name": "Foreign Synthetic University",
+            "lineage": [
+              "https://openalex.org/I9999999"
+            ]
+          }
+        ],
+        "raw_affiliation_strings": [
+          "Foreign Synthetic University, USA"
+        ]
+      },
+      {
+        "author": {
+          "id": "https://openalex.org/AXQuinnMiller",
+          "display_name": "Quinn Miller"
+        },
+        "author_position": "middle",
+        "institutions": [
+          {
+            "id": "https://openalex.org/I9999999",
+            "display_name": "Foreign Synthetic University",
+            "lineage": [
+              "https://openalex.org/I9999999"
+            ]
+          }
+        ],
+        "raw_affiliation_strings": [
+          "Foreign Synthetic University, USA"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "https://openalex.org/W10",
+    "title": "Synthetic study 10 on 机器人学",
+    "publication_year": 2020,
+    "doi": "https://doi.org/10.0000/synth.10",
+    "primary_location": {
+      "source": {
+        "display_name": "Proceedings of the Synthetic Society"
+      }
+    },
+    "concepts": [
+      {
+        "display_name": "Image Segmentation",
+        "level": 1,
+        "score": 0.67
+      },
+      {
+        "display_name": "Robot Manipulation",
+        "level": 1,
+        "score": 0.79
+      }
+    ],
+    "authorships": [
+      {
+        "author": {
+          "id": "https://openalex.org/A120",
+          "display_name": "Kelly Fang"
+        },
+        "author_position": "first",
+        "institutions": [
+          {
+            "id": "https://openalex.org/I0000000",
+            "display_name": "Synthetic Institute of Technology",
+            "lineage": [
+              "https://openalex.org/I0000000"
+            ]
+          }
+        ],
+        "raw_affiliation_strings": [
+          "Brain Lab, Synthetic Institute of Technology, PRC"
+        ]
+      },
+      {
+        "author": {
+          "id": "https://openalex.org/A500",
+          "display_name": "Eve Sun"
+        },
+        "author_position": "first",
+        "institutions": [
+          {
+            "id": "https://openalex.org/I0000000",
+            "display_name": "Synthetic Institute of Technology",
+            "lineage": [
+              "https://openalex.org/I0000000"
+            ]
+          }
+        ],
+        "raw_affiliation_strings": [
+          "Synth Robotics Lab (SRL), Beijing 100190, China"
+        ]
+      },
+      {
+        "author": {
+          "id": "https://openalex.org/AXMonaPatel",
+          "display_name": "Mona Patel"
+        },
+        "author_position": "middle",
+        "institutions": [
+          {
+            "id": "https://openalex.org/I9999999",
+            "display_name": "Foreign Synthetic University",
+            "lineage": [
+              "https://openalex.org/I9999999"
+            ]
+          }
+        ],
+        "raw_affiliation_strings": [
+          "Foreign Synthetic University, USA"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "https://openalex.org/W11",
+    "title": "Synthetic study 11 on 机器人学",
+    "publication_year": 2024,
+    "doi": "https://doi.org/10.0000/synth.11",
+    "primary_location": {
+      "source": {
+        "display_name": "Proceedings of the Synthetic Society"
+      }
+    },
+    "concepts": [
+      {
+        "display_name": "Deep Learning",
+        "level": 1,
+        "score": 0.81
+      },
+      {
+        "display_name": "Image Segmentation",
+        "level": 1,
+        "score": 0.52
+      }
+    ],
+    "authorships": [
+      {
+        "author": {
+          "id": "https://openalex.org/A130",
+          "display_name": "Leo Qiu"
+        },
+        "author_position": "first",
+        "institutions": [
+          {
+            "id": "https://openalex.org/I0000000",
+            "display_name": "Synthetic Institute of Technology",
+            "lineage": [
+              "https://openalex.org/I0000000"
+            ]
+          }
+        ],
+        "raw_affiliation_strings": [
+          "Synthetic Robotics Lab, Beijing, China"
+        ]
+      },
+      {
+        "author": {
+          "id": "https://openalex.org/A700",
+          "display_name": "Grace Hu"
+        },
+        "author_position": "first",
+        "institutions": [
+          {
+            "id": "https://openalex.org/I0000000",
+            "display_name": "Synthetic Institute of Technology",
+            "lineage": [
+              "https://openalex.org/I0000000"
+            ]
+          }
+        ],
+        "raw_affiliation_strings": [
+          "Robotics Group, Synthetic Institute of Technology, P.R. China"
+        ]
+      },
+      {
+        "author": {
+          "id": "https://openalex.org/AXRitaSato",
+          "display_name": "Rita Sato"
+        },
+        "author_position": "middle",
+        "institutions": [
+          {
+            "id": "https://openalex.org/I9999999",
+            "display_name": "Foreign Synthetic University",
+            "lineage": [
+              "https://openalex.org/I9999999"
+            ]
+          }
+        ],
+        "raw_affiliation_strings": [
+          "Foreign Synthetic University, USA"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "https://openalex.org/W12",
+    "title": "Synthetic study 12 on 计算机视觉",
+    "publication_year": 2021,
+    "doi": "https://doi.org/10.0000/synth.12",
+    "primary_location": {
+      "source": {
+        "display_name": "Proceedings of the Synthetic Society"
+      }
+    },
+    "concepts": [
+      {
+        "display_name": "Image Segmentation",
+        "level": 1,
+        "score": 0.52
+      }
+    ],
+    "authorships": [
+      {
+        "author": {
+          "id": "https://openalex.org/A300",
+          "display_name": "Carol Wang"
+        },
+        "author_position": "first",
+        "institutions": [
+          {
+            "id": "https://openalex.org/I0000000",
+            "display_name": "Synthetic Institute of Technology",
+            "lineage": [
+              "https://openalex.org/I0000000"
+            ]
+          }
+        ],
+        "raw_affiliation_strings": [
+          "Synth. Vision Lab (SVL), People's Republic of China"
+        ]
+      },
+      {
+        "author": {
+          "id": "https://openalex.org/A800",
+          "display_name": "Henry Xu"
+        },
+        "author_position": "first",
+        "institutions": [
+          {
+            "id": "https://openalex.org/I0000000",
+            "display_name": "Synthetic Institute of Technology",
+            "lineage": [
+              "https://openalex.org/I0000000"
+            ]
+          }
+        ],
+        "raw_affiliation_strings": [
+          "Robotics Group, Synthetic Institute of Technology, P.R. China"
+        ]
+      },
+      {
+        "author": {
+          "id": "https://openalex.org/A200",
+          "display_name": "Bob Liu"
+        },
+        "author_position": "first",
+        "institutions": [
+          {
+            "id": "https://openalex.org/I0000000",
+            "display_name": "Synthetic Institute of Technology",
+            "lineage": [
+              "https://openalex.org/I0000000"
+            ]
+          }
+        ],
+        "raw_affiliation_strings": [
+          "Synthetic Robotics Lab, Beijing, China"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "https://openalex.org/W13",
+    "title": "Synthetic study 13 on 人工智能",
+    "publication_year": 2019,
+    "doi": "https://doi.org/10.0000/synth.13",
+    "primary_location": {
+      "source": {
+        "display_name": "Synthetic Transactions on Intelligence"
+      }
+    },
+    "concepts": [
+      {
+        "display_name": "Computer Vision",
+        "level": 1,
+        "score": 0.8
+      },
+      {
+        "display_name": "Robot Manipulation",
+        "level": 1,
+        "score": 0.64
+      }
+    ],
+    "authorships": [
+      {
+        "author": {
+          "id": "https://openalex.org/A130",
+          "display_name": "Leo Qiu"
+        },
+        "author_position": "first",
+        "institutions": [
+          {
+            "id": "https://openalex.org/I0000000",
+            "display_name": "Synthetic Institute of Technology",
+            "lineage": [
+              "https://openalex.org/I0000000"
+            ]
+          }
+        ],
+        "raw_affiliation_strings": [
+          "Synth. Vision Lab (SVL), People's Republic of China"
+        ]
+      },
+      {
+        "author": {
+          "id": "https://openalex.org/A300",
+          "display_name": "Carol Wang"
+        },
+        "author_position": "first",
+        "institutions": [
+          {
+            "id": "https://openalex.org/I0000000",
+            "display_name": "Synthetic Institute of Technology",
+            "lineage": [
+              "https://openalex.org/I0000000"
+            ]
+          }
+        ],
+        "raw_affiliation_strings": [
+          "Synthetic Brain Lab, Beijing 100190, China"
+        ]
+      },
+      {
+        "author": {
+          "id": "https://openalex.org/A100",
+          "display_name": "Alice Chen"
+        },
+        "author_position": "first",
+        "institutions": [
+          {
+            "id": "https://openalex.org/I0000000",
+            "display_name": "Synthetic Institute of Technology",
+            "lineage": [
+              "https://openalex.org/I0000000"
+            ]
+          }
+        ],
+        "raw_affiliation_strings": [
+          "Robotics Group, Synthetic Institute of Technology, P.R. China"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "https://openalex.org/W14",
+    "title": "Synthetic study 14 on 计算机视觉",
+    "publication_year": 2018,
+    "doi": "https://doi.org/10.0000/synth.14",
+    "primary_location": {
+      "source": {
+        "display_name": "Proceedings of the Synthetic Society"
+      }
+    },
+    "concepts": [
+      {
+        "display_name": "Computer Vision",
+        "level": 1,
+        "score": 0.52
+      },
+      {
+        "display_name": "Robot Manipulation",
+        "level": 1,
+        "score": 0.77
+      }
+    ],
+    "authorships": [
+      {
+        "author": {
+          "id": "https://openalex.org/A200",
+          "display_name": "Bob Liu"
+        },
+        "author_position": "first",
+        "institutions": [
+          {
+            "id": "https://openalex.org/I0000000",
+            "display_name": "Synthetic Institute of Technology",
+            "lineage": [
+              "https://openalex.org/I0000000"
+            ]
+          }
+        ],
+        "raw_affiliation_strings": [
+          "Synthetic Vision Lab, Beijing 100190, China"
+        ]
+      },
+      {
+        "author": {
+          "id": "https://openalex.org/A100",
+          "display_name": "Alice Chen"
+        },
+        "author_position": "first",
+        "institutions": [
+          {
+            "id": "https://openalex.org/I0000000",
+            "display_name": "Synthetic Institute of Technology",
+            "lineage": [
+              "https://openalex.org/I0000000"
+            ]
+          }
+        ],
+        "raw_affiliation_strings": [
+          "Vision Lab, Synthetic Institute of Technology"
+        ]
+      },
+      {
+        "author": {
+          "id": "https://openalex.org/AXRitaSato",
+          "display_name": "Rita Sato"
+        },
+        "author_position": "middle",
+        "institutions": [
+          {
+            "id": "https://openalex.org/I9999999",
+            "display_name": "Foreign Synthetic University",
+            "lineage": [
+              "https://openalex.org/I9999999"
+            ]
+          }
+        ],
+        "raw_affiliation_strings": [
+          "Foreign Synthetic University, USA"
+        ]
+      },
+      {
+        "author": {
+          "id": "https://openalex.org/AXMonaPatel",
+          "display_name": "Mona Patel"
+        },
+        "author_position": "middle",
+        "institutions": [
+          {
+            "id": "https://openalex.org/I9999999",
+            "display_name": "Foreign Synthetic University",
+            "lineage": [
+              "https://openalex.org/I9999999"
+            ]
+          }
+        ],
+        "raw_affiliation_strings": [
+          "Foreign Synthetic University, USA"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "https://openalex.org/W15",
+    "title": "Synthetic study 15 on 人工智能",
+    "publication_year": 2020,
+    "doi": "https://doi.org/10.0000/synth.15",
+    "primary_location": {
+      "source": {
+        "display_name": "Proceedings of the Synthetic Society"
+      }
+    },
+    "concepts": [
+      {
+        "display_name": "Machine Learning",
+        "level": 1,
+        "score": 0.89
+      },
+      {
+        "display_name": "Robotics",
+        "level": 1,
+        "score": 0.52
+      }
+    ],
+    "authorships": [
+      {
+        "author": {
+          "id": "https://openalex.org/A120",
+          "display_name": "Kelly Fang"
+        },
+        "author_position": "first",
+        "institutions": [
+          {
+            "id": "https://openalex.org/I0000000",
+            "display_name": "Synthetic Institute of Technology",
+            "lineage": [
+              "https://openalex.org/I0000000"
+            ]
+          }
+        ],
+        "raw_affiliation_strings": [
+          "Synth Robotics Lab (SRL), Beijing 100190, China"
+        ]
+      },
+      {
+        "author": {
+          "id": "https://openalex.org/A800",
+          "display_name": "Henry Xu"
+        },
+        "author_position": "first",
+        "institutions": [
+          {
+            "id": "https://openalex.org/I0000000",
+            "display_name": "Synthetic Institute of Technology",
+            "lineage": [
+              "https://openalex.org/I0000000"
+            ]
+          }
+        ],
+        "raw_affiliation_strings": [
+          "Synthetic Robotics Lab, Beijing, China"
+        ]
+      },
+      {
+        "author": {
+          "id": "https://openalex.org/A130",
+          "display_name": "Leo Qiu"
+        },
+        "author_position": "first",
+        "institutions": [
+          {
+            "id": "https://openalex.org/I0000000",
+            "display_name": "Synthetic Institute of Technology",
+            "lineage": [
+              "https://openalex.org/I0000000"
+            ]
+          }
+        ],
+        "raw_affiliation_strings": [
+          "Synthetic Vision Lab, Beijing 100190, China"
+        ]
+      },
+      {
+        "author": {
+          "id": "https://openalex.org/AXOlgaIvanova",
+          "display_name": "Olga Ivanova"
+        },
+        "author_position": "middle",
+        "institutions": [
+          {
+            "id": "https://openalex.org/I9999999",
+            "display_name": "Foreign Synthetic University",
+            "lineage": [
+              "https://openalex.org/I9999999"
+            ]
+          }
+        ],
+        "raw_affiliation_strings": [
+          "Foreign Synthetic University, USA"
+        ]
+      },
+      {
+        "author": {
+          "id": "https://openalex.org/AXNickBrown",
+          "display_name": "Nick Brown"
+        },
+        "author_position": "middle",
+        "institutions": [
+          {
+            "id": "https://openalex.org/I9999999",
+            "display_name": "Foreign Synthetic University",
+            "lineage": [
+              "https://openalex.org/I9999999"
+            ]
+          }
+        ],
+        "raw_affiliation_strings": [
+          "Foreign Synthetic University, USA"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "https://openalex.org/W16",
+    "title": "Synthetic study 16 on 计算机视觉",
+    "publication_year": 2019,
+    "doi": "https://doi.org/10.0000/synth.16",
+    "primary_location": {
+      "source": {
+        "display_name": "Synthetic Transactions on Intelligence"
+      }
+    },
+    "concepts": [
+      {
+        "display_name": "Neural Networks",
+        "level": 1,
+        "score": 0.86
+      },
+      {
+        "display_name": "Image Segmentation",
+        "level": 1,
+        "score": 0.65
+      },
+      {
+        "display_name": "Robot Manipulation",
+        "level": 1,
+        "score": 0.73
+      }
+    ],
+    "authorships": [
+      {
+        "author": {
+          "id": "https://openalex.org/A700",
+          "display_name": "Grace Hu"
+        },
+        "author_position": "first",
+        "institutions": [
+          {
+            "id": "https://openalex.org/I0000000",
+            "display_name": "Synthetic Institute of Technology",
+            "lineage": [
+              "https://openalex.org/I0000000"
+            ]
+          }
+        ],
+        "raw_affiliation_strings": [
+          "Synthetic Brain Lab, Beijing 100190, China"
+        ]
+      },
+      {
+        "author": {
+          "id": "https://openalex.org/A900",
+          "display_name": "Ivy Luo"
+        },
+        "author_position": "first",
+        "institutions": [
+          {
+            "id": "https://openalex.org/I0000000",
+            "display_name": "Synthetic Institute of Technology",
+            "lineage": [
+              "https://openalex.org/I0000000"
+            ]
+          }
+        ],
+        "raw_affiliation_strings": [
+          "Synthetic Vision Lab, Beijing 100190, China"
+        ]
+      },
+      {
+        "author": {
+          "id": "https://openalex.org/AXQuinnMiller",
+          "display_name": "Quinn Miller"
+        },
+        "author_position": "middle",
+        "institutions": [
+          {
+            "id": "https://openalex.org/I9999999",
+            "display_name": "Foreign Synthetic University",
+            "lineage": [
+              "https://openalex.org/I9999999"
+            ]
+          }
+        ],
+        "raw_affiliation_strings": [
+          "Foreign Synthetic University, USA"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "https://openalex.org/W17",
+    "title": "Synthetic study 17 on 人工智能",
+    "publication_year": 2021,
+    "doi": "https://doi.org/10.0000/synth.17",
+    "primary_location": {
+      "source": {
+        "display_name": "Proceedings of the Synthetic Society"
+      }
+    },
+    "concepts": [
+      {
+        "display_name": "Computer Vision",
+        "level": 1,
+        "score": 0.81
+      },
+      {
+        "display_name": "Robotics",
+        "level": 1,
+        "score": 0.53
+      }
+    ],
+    "authorships": [
+      {
+        "author": {
+          "id": "https://openalex.org/A800",
+          "display_name": "Henry Xu"
+        },
+        "author_position": "first",
+        "institutions": [
+          {
+            "id": "https://openalex.org/I0000000",
+            "display_name": "Synthetic Institute of Technology",
+            "lineage": [
+              "https://openalex.org/I0000000"
+            ]
+          }
+        ],
+        "raw_affiliation_strings": [
+          "Synth. Vision Lab (SVL), People's Republic of China"
+        ]
+      },
+      {
+        "author": {
+          "id": "https://openalex.org/AXRitaSato",
+          "display_name": "Rita Sato"
+        },
+        "author_position": "middle",
+        "institutions": [
+          {
+            "id": "https://openalex.org/I9999999",
+            "display_name": "Foreign Synthetic University",
+            "lineage": [
+              "https://openalex.org/I9999999"
+            ]
+          }
+        ],
+        "raw_affiliation_strings": [
+          "Foreign Synthetic University, USA"
+        ]
+      },
+      {
+        "author": {
+          "id": "https://openalex.org/AXTinaNovak",
+          "display_name": "Tina Novak"
+        },
+        "author_position": "middle",
+        "institutions": [
+          {
+            "id": "https://openalex.org/I9999999",
+            "display_name": "Foreign Synthetic University",
+            "lineage": [
+              "https://openalex.org/I9999999"
+            ]
+          }
+        ],
+        "raw_affiliation_strings": [
+          "Foreign Synthetic University, USA"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "https://openalex.org/W18",
+    "title": "Synthetic study 18 on 人工智能",
+    "publication_year": 2024,
+    "doi": "https://doi.org/10.0000/synth.18",
+    "primary_location": {
+      "source": {
+        "display_name": "Journal of Synthetic Systems"
+      }
+    },
+    "concepts": [
+      {
+        "display_name": "Image Segmentation",
+        "level": 1,
+        "score": 0.89
+      }
+    ],
+    "authorships": [
+      {
+        "author": {
+          "id": "https://openalex.org/A700",
+          "display_name": "Grace Hu"
+        },
+        "author_position": "first",
+        "institutions": [
+          {
+            "id": "https://openalex.org/I0000000",
+            "display_name": "Synthetic Institute of Technology",
+            "lineage": [
+              "https://openalex.org/I0000000"
+            ]
+          }
+        ],
+        "raw_affiliation_strings": [
+          "Brain Lab, Synthetic Institute of Technology, PRC"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "https://openalex.org/W19",
+    "title": "Synthetic study 19 on 人工智能",
+    "publication_year": 2019,
+    "doi": "https://doi.org/10.0000/synth.19",
+    "primary_location": {
+      "source": {
+        "display_name": "Synthetic Transactions on Intelligence"
+      }
+    },
+    "concepts": [
+      {
+        "display_name": "Robot Manipulation",
+        "level": 1,
+        "score": 0.87
+      }
+    ],
+    "authorships": [
+      {
+        "author": {
+          "id": "https://openalex.org/A500",
+          "display_name": "Eve Sun"
+        },
+        "author_position": "first",
+        "institutions": [
+          {
+            "id": "https://openalex.org/I0000000",
+            "display_name": "Synthetic Institute of Technology",
+            "lineage": [
+              "https://openalex.org/I0000000"
+            ]
+          }
+        ],
+        "raw_affiliation_strings": [
+          "Synthetics Brain Lab (SBL), Beijing, China"
+        ]
+      },
+      {
+        "author": {
+          "id": "https://openalex.org/A110",
+          "display_name": "Jack Deng"
+        },
+        "author_position": "first",
+        "institutions": [
+          {
+            "id": "https://openalex.org/I0000000",
+            "display_name": "Synthetic Institute of Technology",
+            "lineage": [
+              "https://openalex.org/I0000000"
+            ]
+          }
+        ],
+        "raw_affiliation_strings": [
+          "Synthetic Vision Lab, Beijing 100190, China"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "https://openalex.org/W20",
+    "title": "Synthetic study 20 on 机器人学",
+    "publication_year": 2024,
+    "doi": "https://doi.org/10.0000/synth.20",
+    "primary_location": {
+      "source": {
+        "display_name": "Proceedings of the Synthetic Society"
+      }
+    },
+    "concepts": [
+      {
+        "display_name": "Deep Learning",
+        "level": 1,
+        "score": 0.55
+      }
+    ],
+    "authorships": [
+      {
+        "author": {
+          "id": "https://openalex.org/A400",
+          "display_name": "David Zhao"
+        },
+        "author_position": "first",
+        "institutions": [
+          {
+            "id": "https://openalex.org/I0000000",
+            "display_name": "Synthetic Institute of Technology",
+            "lineage": [
+              "https://openalex.org/I0000000"
+            ]
+          }
+        ],
+        "raw_affiliation_strings": [
+          "Synthetics Brain Lab (SBL), Beijing, China"
+        ]
+      },
+      {
+        "author": {
+          "id": "https://openalex.org/A120",
+          "display_name": "Kelly Fang"
+        },
+        "author_position": "first",
+        "institutions": [
+          {
+            "id": "https://openalex.org/I0000000",
+            "display_name": "Synthetic Institute of Technology",
+            "lineage": [
+              "https://openalex.org/I0000000"
+            ]
+          }
+        ],
+        "raw_affiliation_strings": [
+          "Brain Lab, Synthetic Institute of Technology, PRC"
+        ]
+      },
+      {
+        "author": {
+          "id": "https://openalex.org/AXSamOkafor",
+          "display_name": "Sam Okafor"
+        },
+        "author_position": "middle",
+        "institutions": [
+          {
+            "id": "https://openalex.org/I9999999",
+            "display_name": "Foreign Synthetic University",
+            "lineage": [
+              "https://openalex.org/I9999999"
+            ]
+          }
+        ],
+        "raw_affiliation_strings": [
+          "Foreign Synthetic University, USA"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "https://openalex.org/W21",
+    "title": "Synthetic study 21 on 人工智能",
+    "publication_year": 2022,
+    "doi": "https://doi.org/10.0000/synth.21",
+    "primary_location": {
+      "source": {
+        "display_name": "Proceedings of the Synthetic Society"
+      }
+    },
+    "concepts": [
+      {
+        "display_name": "Robot Manipulation",
+        "level": 1,
+        "score": 0.52
+      }
+    ],
+    "authorships": [
+      {
+        "author": {
+          "id": "https://openalex.org/A900",
+          "display_name": "Ivy Luo"
+        },
+        "author_position": "first",
+        "institutions": [
+          {
+            "id": "https://openalex.org/I0000000",
+            "display_name": "Synthetic Institute of Technology",
+            "lineage": [
+              "https://openalex.org/I0000000"
+            ]
+          }
+        ],
+        "raw_affiliation_strings": [
+          "Vision Lab, Synthetic Institute of Technology"
+        ]
+      },
+      {
+        "author": {
+          "id": "https://openalex.org/A800",
+          "display_name": "Henry Xu"
+        },
+        "author_position": "first",
+        "institutions": [
+          {
+            "id": "https://openalex.org/I0000000",
+            "display_name": "Synthetic Institute of Technology",
+            "lineage": [
+              "https://openalex.org/I0000000"
+            ]
+          }
+        ],
+        "raw_affiliation_strings": [
+          "Robotics Group, Synthetic Institute of Technology, P.R. China"
+        ]
+      },
+      {
+        "author": {
+          "id": "https://openalex.org/A600",
+          "display_name": "Frank Ma"
+        },
+        "author_position": "first",
+        "institutions": [
+          {
+            "id": "https://openalex.org/I0000000",
+            "display_name": "Synthetic Institute of Technology",
+            "lineage": [
+              "https://openalex.org/I0000000"
+            ]
+          }
+        ],
+        "raw_affiliation_strings": [
+          "Synthetic Robotics Lab, Beijing, China"
+        ]
+      },
+      {
+        "author": {
+          "id": "https://openalex.org/AXRitaSato",
+          "display_name": "Rita Sato"
+        },
+        "author_position": "middle",
+        "institutions": [
+          {
+            "id": "https://openalex.org/I9999999",
+            "display_name": "Foreign Synthetic University",
+            "lineage": [
+              "https://openalex.org/I9999999"
+            ]
+          }
+        ],
+        "raw_affiliation_strings": [
+          "Foreign Synthetic University, USA"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "https://openalex.org/W22",
+    "title": "Synthetic study 22 on 人工智能",
+    "publication_year": 2025,
+    "doi": "https://doi.org/10.0000/synth.22",
+    "primary_location": {
+      "source": {
+        "display_name": "Synthetic Transactions on Intelligence"
+      }
+    },
+    "concepts": [
+      {
+        "display_name": "Robotics",
+        "level": 1,
+        "score": 0.52
+      }
+    ],
+    "authorships": [
+      {
+        "author": {
+          "id": "https://openalex.org/A110",
+          "display_name": "Jack Deng"
+        },
+        "author_position": "first",
+        "institutions": [
+          {
+            "id": "https://openalex.org/I0000000",
+            "display_name": "Synthetic Institute of Technology",
+            "lineage": [
+              "https://openalex.org/I0000000"
+            ]
+          }
+        ],
+        "raw_affiliation_strings": [
+          "Synthetic Vision Lab, Beijing 100190, China"
+        ]
+      },
+      {
+        "author": {
+          "id": "https://openalex.org/AXNickBrown",
+          "display_name": "Nick Brown"
+        },
+        "author_position": "middle",
+        "institutions": [
+          {
+            "id": "https://openalex.org/I9999999",
+            "display_name": "Foreign Synthetic University",
+            "lineage": [
+              "https://openalex.org/I9999999"
+            ]
+          }
+        ],
+        "raw_affiliation_strings": [
+          "Foreign Synthetic University, USA"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "https://openalex.org/W23",
+    "title": "Synthetic study 23 on 机器人学",
+    "publication_year": 2019,
+    "doi": "https://doi.org/10.0000/synth.23",
+    "primary_location": {
+      "source": {
+        "display_name": "Proceedings of the Synthetic Society"
+      }
+    },
+    "concepts": [
+      {
+        "display_name": "Neural Networks",
+        "level": 1,
+        "score": 0.75
+      }
+    ],
+    "authorships": [
+      {
+        "author": {
+          "id": "https://openalex.org/A120",
+          "display_name": "Kelly Fang"
+        },
+        "author_position": "first",
+        "institutions": [
+          {
+            "id": "https://openalex.org/I0000000",
+            "display_name": "Synthetic Institute of Technology",
+            "lineage": [
+              "https://openalex.org/I0000000"
+            ]
+          }
+        ],
+        "raw_affiliation_strings": [
+          "Vision Lab, Synthetic Institute of Technology"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "https://openalex.org/W24",
+    "title": "Synthetic study 24 on 计算机视觉",
+    "publication_year": 2019,
+    "doi": "https://doi.org/10.0000/synth.24",
+    "primary_location": {
+      "source": {
+        "display_name": "Synthetic Transactions on Intelligence"
+      }
+    },
+    "concepts": [
+      {
+        "display_name": "Computer Vision",
+        "level": 1,
+        "score": 0.65
+      }
+    ],
+    "authorships": [
+      {
+        "author": {
+          "id": "https://openalex.org/A500",
+          "display_name": "Eve Sun"
+        },
+        "author_position": "first",
+        "institutions": [
+          {
+            "id": "https://openalex.org/I0000000",
+            "display_name": "Synthetic Institute of Technology",
+            "lineage": [
+              "https://openalex.org/I0000000"
+            ]
+          }
+        ],
+        "raw_affiliation_strings": [
+          "Synth Robotics Lab (SRL), Beijing 100190, China"
+        ]
+      },
+      {
+        "author": {
+          "id": "https://openalex.org/A900",
+          "display_name": "Ivy Luo"
+        },
+        "author_position": "first",
+        "institutions": [
+          {
+            "id": "https://openalex.org/I0000000",
+            "display_name": "Synthetic Institute of Technology",
+            "lineage": [
+              "https://openalex.org/I0000000"
+            ]
+          }
+        ],
+        "raw_affiliation_strings": [
+          "Synthetic Vision Lab, Beijing 100190, China"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "https://openalex.org/W25",
+    "title": "Synthetic study 25 on 人工智能",
+    "publication_year": 2023,
+    "doi": "https://doi.org/10.0000/synth.25",
+    "primary_location": {
+      "source": {
+        "display_name": "Synthetic Transactions on Intelligence"
+      }
+    },
+    "concepts": [
+      {
+        "display_name": "Computer Vision",
+        "level": 1,
+        "score": 0.74
+      },
+      {
+        "display_name": "Robotics",
+        "level": 1,
+        "score": 0.83
+      }
+    ],
+    "authorships": [
+      {
+        "author": {
+          "id": "https://openalex.org/A700",
+          "display_name": "Grace Hu"
+        },
+        "author_position": "first",
+        "institutions": [
+          {
+            "id": "https://openalex.org/I0000000",
+            "display_name": "Synthetic Institute of Technology",
+            "lineage": [
+              "https://openalex.org/I0000000"
+            ]
+          }
+        ],
+        "raw_affiliation_strings": [
+          "Synthetic Vision Lab, Beijing 100190, China"
+        ]
+      },
+      {
+        "author": {
+          "id": "https://openalex.org/A130",
+          "display_name": "Leo Qiu"
+        },
+        "author_position": "first",
+        "institutions": [
+          {
+            "id": "https://openalex.org/I0000000",
+            "display_name": "Synthetic Institute of Technology",
+            "lineage": [
+              "https://openalex.org/I0000000"
+            ]
+          }
+        ],
+        "raw_affiliation_strings": [
+          "Synthetic Robotics Lab, Beijing, China"
+        ]
+      },
+      {
+        "author": {
+          "id": "https://openalex.org/AXQuinnMiller",
+          "display_name": "Quinn Miller"
+        },
+        "author_position": "middle",
+        "institutions": [
+          {
+            "id": "https://openalex.org/I9999999",
+            "display_name": "Foreign Synthetic University",
+            "lineage": [
+              "https://openalex.org/I9999999"
+            ]
+          }
+        ],
+        "raw_affiliation_strings": [
+          "Foreign Synthetic University, USA"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "https://openalex.org/W26",
+    "title": "Synthetic study 26 on 计算机视觉",
+    "publication_year": 2019,
+    "doi": "https://doi.org/10.0000/synth.26",
+    "primary_location": {
+      "source": {
+        "display_name": "Journal of Synthetic Systems"
+      }
+    },
+    "concepts": [
+      {
+        "display_name": "Computer Vision",
+        "level": 1,
+        "score": 0.81
+      },
+      {
+        "display_name": "Robot Manipulation",
+        "level": 1,
+        "score": 0.6
+      }
+    ],
+    "authorships": [
+      {
+        "author": {
+          "id": "https://openalex.org/A800",
+          "display_name": "Henry Xu"
+        },
+        "author_position": "first",
+        "institutions": [
+          {
+            "id": "https://openalex.org/I0000000",
+            "display_name": "Synthetic Institute of Technology",
+            "lineage": [
+              "https://openalex.org/I0000000"
+            ]
+          }
+        ],
+        "raw_affiliation_strings": [
+          "Synthetic Vision Lab, Beijing 100190, China"
+        ]
+      },
+      {
+        "author": {
+          "id": "https://openalex.org/AXNickBrown",
+          "display_name": "Nick Brown"
+        },
+        "author_position": "middle",
+        "institutions": [
+          {
+            "id": "https://openalex.org/I9999999",
+            "display_name": "Foreign Synthetic University",
+            "lineage": [
+              "https://openalex.org/I9999999"
+            ]
+          }
+        ],
+        "raw_affiliation_strings": [
+          "Foreign Synthetic University, USA"
+        ]
+      },
+      {
+        "author": {
+          "id": "https://openalex.org/AXPaulGarcia",
+          "display_name": "Paul Garcia"
+        },
+        "author_position": "middle",
+        "institutions": [
+          {
+            "id": "https://openalex.org/I9999999",
+            "display_name": "Foreign Synthetic University",
+            "lineage": [
+              "https://openalex.org/I9999999"
+            ]
+          }
+        ],
+        "raw_affiliation_strings": [
+          "Foreign Synthetic University, USA"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "https://openalex.org/W27",
+    "title": "Synthetic study 27 on 人工智能",
+    "publication_year": 2025,
+    "doi": "https://doi.org/10.0000/synth.27",
+    "primary_location": {
+      "source": {
+        "display_name": "Synthetic Transactions on Intelligence"
+      }
+    },
+    "concepts": [
+      {
+        "display_name": "Robot Manipulation",
+        "level": 1,
+        "score": 0.72
+      }
+    ],
+    "authorships": [
+      {
+        "author": {
+          "id": "https://openalex.org/A800",
+          "display_name": "Henry Xu"
+        },
+        "author_position": "first",
+        "institutions": [
+          {
+            "id": "https://openalex.org/I0000000",
+            "display_name": "Synthetic Institute of Technology",
+            "lineage": [
+              "https://openalex.org/I0000000"
+            ]
+          }
+        ],
+        "raw_affiliation_strings": [
+          "Robotics Group, Synthetic Institute of Technology, P.R. China"
+        ]
+      },
+      {
+        "author": {
+          "id": "https://openalex.org/A110",
+          "display_name": "Jack Deng"
+        },
+        "author_position": "first",
+        "institutions": [
+          {
+            "id": "https://openalex.org/I0000000",
+            "display_name": "Synthetic Institute of Technology",
+            "lineage": [
+              "https://openalex.org/I0000000"
+            ]
+          }
+        ],
+        "raw_affiliation_strings": [
+          "Synthetic Robotics Lab, Beijing, China"
+        ]
+      },
+      {
+        "author": {
+          "id": "https://openalex.org/A600",
+          "display_name": "Frank Ma"
+        },
+        "author_position": "first",
+        "institutions": [
+          {
+            "id": "https://openalex.org/I0000000",
+            "display_name": "Synthetic Institute of Technology",
+            "lineage": [
+              "https://openalex.org/I0000000"
+            ]
+          }
+        ],
+        "raw_affiliation_strings": [
+          "Vision Lab, Synthetic Institute of Technology"
+        ]
+      },
+      {
+        "author": {
+          "id": "https://openalex.org/AXNickBrown",
+          "display_name": "Nick Brown"
+        },
+        "author_position": "middle",
+        "institutions": [
+          {
+            "id": "https://openalex.org/I9999999",
+            "display_name": "Foreign Synthetic University",
+            "lineage": [
+              "https://openalex.org/I9999999"
+            ]
+          }
+        ],
+        "raw_affiliation_strings": [
+          "Foreign Synthetic University, USA"
+        ]
+      },
+      {
+        "author": {
+          "id": "https://openalex.org/AXQuinnMiller",
+          "display_name": "Quinn Miller"
+        },
+        "author_position": "middle",
+        "institutions": [
+          {
+            "id": "https://openalex.org/I9999999",
+            "display_name": "Foreign Synthetic University",
+            "lineage": [
+              "https://openalex.org/I9999999"
+            ]
+          }
+        ],
+        "raw_affiliation_strings": [
+          "Foreign Synthetic University, USA"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "https://openalex.org/W28",
+    "title": "Synthetic study 28 on 计算机视觉",
+    "publication_year": 2019,
+    "doi": "https://doi.org/10.0000/synth.28",
+    "primary_location": {
+      "source": {
+        "display_name": "Journal of Synthetic Systems"
+      }
+    },
+    "concepts": [
+      {
+        "display_name": "Image Segmentation",
+        "level": 1,
+        "score": 0.95
+      }
+    ],
+    "authorships": [
+      {
+        "author": {
+          "id": "https://openalex.org/A100",
+          "display_name": "Alice Chen"
+        },
+        "author_position": "first",
+        "institutions": [
+          {
+            "id": "https://openalex.org/I0000000",
+            "display_name": "Synthetic Institute of Technology",
+            "lineage": [
+              "https://openalex.org/I0000000"
+            ]
+          }
+        ],
+        "raw_affiliation_strings": [
+          "Vision Lab, Synthetic Institute of Technology"
+        ]
+      },
+      {
+        "author": {
+          "id": "https://openalex.org/A130",
+          "display_name": "Leo Qiu"
+        },
+        "author_position": "first",
+        "institutions": [
+          {
+            "id": "https://openalex.org/I0000000",
+            "display_name": "Synthetic Institute of Technology",
+            "lineage": [
+              "https://openalex.org/I0000000"
+            ]
+          }
+        ],
+        "raw_affiliation_strings": [
+          "Synthetic Robotics Lab, Beijing, China"
+        ]
+      },
+      {
+        "author": {
+          "id": "https://openalex.org/A800",
+          "display_name": "Henry Xu"
+        },
+        "author_position": "first",
+        "institutions": [
+          {
+            "id": "https://openalex.org/I0000000",
+            "display_name": "Synthetic Institute of Technology",
+            "lineage": [
+              "https://openalex.org/I0000000"
+            ]
+          }
+        ],
+        "raw_affiliation_strings": [
+          "sbl.admin@synth.example Synthetic Brain Lab"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "https://openalex.org/W29",
+    "title": "Synthetic study 29 on 人工智能",
+    "publication_year": 2023,
+    "doi": "https://doi.org/10.0000/synth.29",
+    "primary_location": {
+      "source": {
+        "display_name": "Journal of Synthetic Systems"
+      }
+    },
+    "concepts": [],
+    "authorships": [
+      {
+        "author": {
+          "id": "https://openalex.org/A130",
+          "display_name": "Leo Qiu"
+        },
+        "author_position": "first",
+        "institutions": [
+          {
+            "id": "https://openalex.org/I0000000",
+            "display_name": "Synthetic Institute of Technology",
+            "lineage": [
+              "https://openalex.org/I0000000"
+            ]
+          }
+        ],
+        "raw_affiliation_strings": [
+          "Vision Lab, Synthetic Institute of Technology"
+        ]
+      },
+      {
+        "author": {
+          "id": "https://openalex.org/A100",
+          "display_name": "Alice Chen"
+        },
+        "author_position": "first",
+        "institutions": [
+          {
+            "id": "https://openalex.org/I0000000",
+            "display_name": "Synthetic Institute of Technology",
+            "lineage": [
+              "https://openalex.org/I0000000"
+            ]
+          }
+        ],
+        "raw_affiliation_strings": [
+          "Synth. Vision Lab (SVL), People's Republic of China"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "https://openalex.org/W30",
+    "title": "Synthetic study 30 on 计算机视觉",
+    "publication_year": 2023,
+    "doi": "https://doi.org/10.0000/synth.30",
+    "primary_location": {
+      "source": {
+        "display_name": "Proceedings of the Synthetic Society"
+      }
+    },
+    "concepts": [
+      {
+        "display_name": "Deep Learning",
+        "level": 1,
+        "score": 0.9
+      },
+      {
+        "display_name": "Computer Vision",
+        "level": 1,
+        "score": 0.6
+      },
+      {
+        "display_name": "Robotics",
+        "level": 1,
+        "score": 0.87
+      }
+    ],
+    "authorships": [
+      {
+        "author": {
+          "id": "https://openalex.org/A130",
+          "display_name": "Leo Qiu"
+        },
+        "author_position": "first",
+        "institutions": [
+          {
+            "id": "https://openalex.org/I0000000",
+            "display_name": "Synthetic Institute of Technology",
+            "lineage": [
+              "https://openalex.org/I0000000"
+            ]
+          }
+        ],
+        "raw_affiliation_strings": [
+          "sbl.admin@synth.example Synthetic Brain Lab"
+        ]
+      },
+      {
+        "author": {
+          "id": "https://openalex.org/AXOlgaIvanova",
+          "display_name": "Olga Ivanova"
+        },
+        "author_position": "middle",
+        "institutions": [
+          {
+            "id": "https://openalex.org/I9999999",
+            "display_name": "Foreign Synthetic University",
+            "lineage": [
+              "https://openalex.org/I9999999"
+            ]
+          }
+        ],
+        "raw_affiliation_strings": [
+          "Foreign Synthetic University, USA"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "https://openalex.org/W31",
+    "title": "Synthetic study 31 on 计算机视觉",
+    "publication_year": 2023,
+    "doi": "https://doi.org/10.0000/synth.31",
+    "primary_location": {
+      "source": {
+        "display_name": "Journal of Synthetic Systems"
+      }
+    },
+    "concepts": [
+      {
+        "display_name": "Machine Learning",
+        "level": 1,
+        "score": 0.56
+      },
+      {
+        "display_name": "Robot Manipulation",
+        "level": 1,
+        "score": 0.97
+      }
+    ],
+    "authorships": [
+      {
+        "author": {
+          "id": "https://openalex.org/A400",
+          "display_name": "David Zhao"
+        },
+        "author_position": "first",
+        "institutions": [
+          {
+            "id": "https://openalex.org/I0000000",
+            "display_name": "Synthetic Institute of Technology",
+            "lineage": [
+              "https://openalex.org/I0000000"
+            ]
+          }
+        ],
+        "raw_affiliation_strings": [
+          "Brain Lab, Synthetic Institute of Technology, PRC"
+        ]
+      },
+      {
+        "author": {
+          "id": "https://openalex.org/AXNickBrown",
+          "display_name": "Nick Brown"
+        },
+        "author_position": "middle",
+        "institutions": [
+          {
+            "id": "https://openalex.org/I9999999",
+            "display_name": "Foreign Synthetic University",
+            "lineage": [
+              "https://openalex.org/I9999999"
+            ]
+          }
+        ],
+        "raw_affiliation_strings": [
+          "Foreign Synthetic University, USA"
+        ]
+      },
+      {
+        "author": {
+          "id": "https://openalex.org/AXPaulGarcia",
+          "display_name": "Paul Garcia"
+        },
+        "author_position": "middle",
+        "institutions": [
+          {
+            "id": "https://openalex.org/I9999999",
+            "display_name": "Foreign Synthetic University",
+            "lineage": [
+              "https://openalex.org/I9999999"
+            ]
+          }
+        ],
+        "raw_affiliation_strings": [
+          "Foreign Synthetic University, USA"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "https://openalex.org/W32",
+    "title": "Synthetic study 32 on 机器人学",
+    "publication_year": 2018,
+    "doi": "https://doi.org/10.0000/synth.32",
+    "primary_location": {
+      "source": {
+        "display_name": "Synthetic Transactions on Intelligence"
+      }
+    },
+    "concepts": [
+      {
+        "display_name": "Image Segmentation",
+        "level": 1,
+        "score": 0.82
+      }
+    ],
+    "authorships": [
+      {
+        "author": {
+          "id": "https://openalex.org/A200",
+          "display_name": "Bob Liu"
+        },
+        "author_position": "first",
+        "institutions": [
+          {
+            "id": "https://openalex.org/I0000000",
+            "display_name": "Synthetic Institute of Technology",
+            "lineage": [
+              "https://openalex.org/I0000000"
+            ]
+          }
+        ],
+        "raw_affiliation_strings": [
+          "Synth. Vision Lab (SVL), People's Republic of China"
+        ]
+      },
+      {
+        "author": {
+          "id": "https://openalex.org/A900",
+          "display_name": "Ivy Luo"
+        },
+        "author_position": "first",
+        "institutions": [
+          {
+            "id": "https://openalex.org/I0000000",
+            "display_name": "Synthetic Institute of Technology",
+            "lineage": [
+              "https://openalex.org/I0000000"
+            ]
+          }
+        ],
+        "raw_affiliation_strings": [
+          "Synthetics Brain Lab (SBL), Beijing, China"
+        ]
+      },
+      {
+        "author": {
+          "id": "https://openalex.org/A110",
+          "display_name": "Jack Deng"
+        },
+        "author_position": "first",
+        "institutions": [
+          {
+            "id": "https://openalex.org/I0000000",
+            "display_name": "Synthetic Institute of Technology",
+            "lineage": [
+              "https://openalex.org/I0000000"
+            ]
+          }
+        ],
+        "raw_affiliation_strings": [
+          "Synthetic Vision Lab, Beijing 100190, China"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "https://openalex.org/W33",
+    "title": "Synthetic study 33 on 计算机视觉",
+    "publication_year": 2023,
+    "doi": "https://doi.org/10.0000/synth.33",
+    "primary_location": {
+      "source": {
+        "display_name": "Proceedings of the Synthetic Society"
+      }
+    },
+    "concepts": [
+      {
+        "display_name": "Robot Manipulation",
+        "level": 1,
+        "score": 0.54
+      }
+    ],
+    "authorships": [
+      {
+        "author": {
+          "id": "https://openalex.org/A200",
+          "display_name": "Bob Liu"
+        },
+        "author_position": "first",
+        "institutions": [
+          {
+            "id": "https://openalex.org/I0000000",
+            "display_name": "Synthetic Institute of Technology",
+            "lineage": [
+              "https://openalex.org/I0000000"
+            ]
+          }
+        ],
+        "raw_affiliation_strings": [
+          "sbl.admin@synth.example Synthetic Brain Lab"
+        ]
+      },
+      {
+        "author": {
+          "id": "https://openalex.org/AXSamOkafor",
+          "display_name": "Sam Okafor"
+        },
+        "author_position": "middle",
+        "institutions": [
+          {
+            "id": "https://openalex.org/I9999999",
+            "display_name": "Foreign Synthetic University",
+            "lineage": [
+              "https://openalex.org/I9999999"
+            ]
+          }
+        ],
+        "raw_affiliation_strings": [
+          "Foreign Synthetic University, USA"
+        ]
+      },
+      {
+        "author": {
+          "id": "https://openalex.org/AXRitaSato",
+          "display_name": "Rita Sato"
+        },
+        "author_position": "middle",
+        "institutions": [
+          {
+            "id": "https://openalex.org/I9999999",
+            "display_name": "Foreign Synthetic University",
+            "lineage": [
+              "https://openalex.org/I9999999"
+            ]
+          }
+        ],
+        "raw_affiliation_strings": [
+          "Foreign Synthetic University, USA"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "https://openalex.org/W34",
+    "title": "Synthetic study 34 on 计算机视觉",
+    "publication_year": 2024,
+    "doi": "https://doi.org/10.0000/synth.34",
+    "primary_location": {
+      "source": {
+        "display_name": "Journal of Synthetic Systems"
+      }
+    },
+    "concepts": [
+      {
+        "display_name": "Computer Vision",
+        "level": 1,
+        "score": 0.89
+      },
+      {
+        "display_name": "Robot Manipulation",
+        "level": 1,
+        "score": 0.59
+      }
+    ],
+    "authorships": [
+      {
+        "author": {
+          "id": "https://openalex.org/A700",
+          "display_name": "Grace Hu"
+        },
+        "author_position": "first",
+        "institutions": [
+          {
+            "id": "https://openalex.org/I0000000",
+            "display_name": "Synthetic Institute of Technology",
+            "lineage": [
+              "https://openalex.org/I0000000"
+            ]
+          }
+        ],
+        "raw_affiliation_strings": [
+          "Synth. Vision Lab (SVL), People's Republic of China"
+        ]
+      },
+      {
+        "author": {
+          "id": "https://openalex.org/A130",
+          "display_name": "Leo Qiu"
+        },
+        "author_position": "first",
+        "institutions": [
+          {
+            "id": "https://openalex.org/I0000000",
+            "display_name": "Synthetic Institute of Technology",
+            "lineage": [
+              "https://openalex.org/I0000000"
+            ]
+          }
+        ],
+        "raw_affiliation_strings": [
+          "sbl.admin@synth.example Synthetic Brain Lab"
+        ]
+      },
+      {
+        "author": {
+          "id": "https://openalex.org/A100",
+          "display_name": "Alice Chen"
+        },
+        "author_position": "first",
+        "institutions": [
+          {
+            "id": "https://openalex.org/I0000000",
+            "display_name": "Synthetic Institute of Technology",
+            "lineage": [
+              "https://openalex.org/I0000000"
+            ]
+          }
+        ],
+        "raw_affiliation_strings": [
+          "Synthetic Vision Lab, Beijing 100190, China"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "https://openalex.org/W35",
+    "title": "Synthetic study 35 on 计算机视觉",
+    "publication_year": 2025,
+    "doi": "https://doi.org/10.0000/synth.35",
+    "primary_location": {
+      "source": {
+        "display_name": "Journal of Synthetic Systems"
+      }
+    },
+    "concepts": [
+      {
+        "display_name": "Computer Vision",
+        "level": 1,
+        "score": 0.64
+      }
+    ],
+    "authorships": [
+      {
+        "author": {
+          "id": "https://openalex.org/A600",
+          "display_name": "Frank Ma"
+        },
+        "author_position": "first",
+        "institutions": [
+          {
+            "id": "https://openalex.org/I0000000",
+            "display_name": "Synthetic Institute of Technology",
+            "lineage": [
+              "https://openalex.org/I0000000"
+            ]
+          }
+        ],
+        "raw_affiliation_strings": [
+          "Synth Robotics Lab (SRL), Beijing 100190, China"
+        ]
+      },
+      {
+        "author": {
+          "id": "https://openalex.org/AXTinaNovak",
+          "display_name": "Tina Novak"
+        },
+        "author_position": "middle",
+        "institutions": [
+          {
+            "id": "https://openalex.org/I9999999",
+            "display_name": "Foreign Synthetic University",
+            "lineage": [
+              "https://openalex.org/I9999999"
+            ]
+          }
+        ],
+        "raw_affiliation_strings": [
+          "Foreign Synthetic University, USA"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "https://openalex.org/W36",
+    "title": "Synthetic study 36 on 机器人学",
+    "publication_year": 2024,
+    "doi": "https://doi.org/10.0000/synth.36",
+    "primary_location": {
+      "source": {
+        "display_name": "Synthetic Transactions on Intelligence"
+      }
+    },
+    "concepts": [
+      {
+        "display_name": "Machine Learning",
+        "level": 1,
+        "score": 0.55
+      }
+    ],
+    "authorships": [
+      {
+        "author": {
+          "id": "https://openalex.org/A200",
+          "display_name": "Bob Liu"
+        },
+        "author_position": "first",
+        "institutions": [
+          {
+            "id": "https://openalex.org/I0000000",
+            "display_name": "Synthetic Institute of Technology",
+            "lineage": [
+              "https://openalex.org/I0000000"
+            ]
+          }
+        ],
+        "raw_affiliation_strings": [
+          "Robotics Group, Synthetic Institute of Technology, P.R. China"
+        ]
+      },
+      {
+        "author": {
+          "id": "https://openalex.org/AXOlgaIvanova",
+          "display_name": "Olga Ivanova"
+        },
+        "author_position": "middle",
+        "institutions": [
+          {
+            "id": "https://openalex.org/I9999999",
+            "display_name": "Foreign Synthetic University",
+            "lineage": [
+              "https://openalex.org/I9999999"
+            ]
+          }
+        ],
+        "raw_affiliation_strings": [
+          "Foreign Synthetic University, USA"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "https://openalex.org/W37",
+    "title": "Synthetic study 37 on 计算机视觉",
+    "publication_year": 2019,
+    "doi": "https://doi.org/10.0000/synth.37",
+    "primary_location": {
+      "source": {
+        "display_name": "Proceedings of the Synthetic Society"
+      }
+    },
+    "concepts": [
+      {
+        "display_name": "Neural Networks",
+        "level": 1,
+        "score": 0.95
+      },
+      {
+        "display_name": "Robot Manipulation",
+        "level": 1,
+        "score": 0.65
+      }
+    ],
+    "authorships": [
+      {
+        "author": {
+          "id": "https://openalex.org/A200",
+          "display_name": "Bob Liu"
+        },
+        "author_position": "first",
+        "institutions": [
+          {
+            "id": "https://openalex.org/I0000000",
+            "display_name": "Synthetic Institute of Technology",
+            "lineage": [
+              "https://openalex.org/I0000000"
+            ]
+          }
+        ],
+        "raw_affiliation_strings": [
+          "Brain Lab, Synthetic Institute of Technology, PRC"
+        ]
+      },
+      {
+        "author": {
+          "id": "https://openalex.org/A500",
+          "display_name": "Eve Sun"
+        },
+        "author_position": "first",
+        "institutions": [
+          {
+            "id": "https://openalex.org/I0000000",
+            "display_name": "Synthetic Institute of Technology",
+            "lineage": [
+              "https://openalex.org/I0000000"
+            ]
+          }
+        ],
+        "raw_affiliation_strings": [
+          "Synth Robotics Lab (SRL), Beijing 100190, China"
+        ]
+      },
+      {
+        "author": {
+          "id": "https://openalex.org/A101",
+          "display_name": "Alice Chen"
+        },
+        "author_position": "first",
+        "institutions": [
+          {
+            "id": "https://openalex.org/I0000000",
+            "display_name": "Synthetic Institute of Technology",
+            "lineage": [
+              "https://openalex.org/I0000000"
+            ]
+          }
+        ],
+        "raw_affiliation_strings": [
+          "sbl.admin@synth.example Synthetic Brain Lab"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "https://openalex.org/W38",
+    "title": "Synthetic study 38 on 机器人学",
+    "publication_year": 2019,
+    "doi": "https://doi.org/10.0000/synth.38",
+    "primary_location": {
+      "source": {
+        "display_name": "Synthetic Transactions on Intelligence"
+      }
+    },
+    "concepts": [],
+    "authorships": [
+      {
+        "author": {
+          "id": "https://openalex.org/A200",
+          "display_name": "Bob Liu"
+        },
+        "author_position": "first",
+        "institutions": [
+          {
+            "id": "https://openalex.org/I0000000",
+            "display_name": "Synthetic Institute of Technology",
+            "lineage": [
+              "https://openalex.org/I0000000"
+            ]
+          }
+        ],
+        "raw_affiliation_strings": [
+          "Synth. Vision Lab (SVL), People's Republic of China"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "https://openalex.org/W39",
+    "title": "Synthetic study 39 on 人工智能",
+    "publication_year": 2025,
+    "doi": "https://doi.org/10.0000/synth.39",
+    "primary_location": {
+      "source": {
+        "display_name": "Synthetic Transactions on Intelligence"
+      }
+    },
+    "concepts": [
+      {
+        "display_name": "Robot Manipulation",
+        "level": 1,
+        "score": 0.86
+      }
+    ],
+    "authorships": [
+      {
+        "author": {
+          "id": "https://openalex.org/A700",
+          "display_name": "Grace Hu"
+        },
+        "author_position": "first",
+        "institutions": [
+          {
+            "id": "https://openalex.org/I0000000",
+            "display_name": "Synthetic Institute of Technology",
+            "lineage": [
+              "https://openalex.org/I0000000"
+            ]
+          }
+        ],
+        "raw_affiliation_strings": [
+          "Vision Lab, Synthetic Institute of Technology"
+        ]
+      },
+      {
+        "author": {
+          "id": "https://openalex.org/A500",
+          "display_name": "Eve Sun"
+        },
+        "author_position": "first",
+        "institutions": [
+          {
+            "id": "https://openalex.org/I0000000",
+            "display_name": "Synthetic Institute of Technology",
+            "lineage": [
+              "https://openalex.org/I0000000"
+            ]
+          }
+        ],
+        "raw_affiliation_strings": [
+          "Synthetic Robotics Lab, Beijing, China"
+        ]
+      },
+      {
+        "author": {
+          "id": "https://openalex.org/A120",
+          "display_name": "Kelly Fang"
+        },
+        "author_position": "first",
+        "institutions": [
+          {
+            "id": "https://openalex.org/I0000000",
+            "display_name": "Synthetic Institute of Technology",
+            "lineage": [
+              "https://openalex.org/I0000000"
+            ]
+          }
+        ],
+        "raw_affiliation_strings": [
+          "Brain Lab, Synthetic Institute of Technology, PRC"
+        ]
+      },
+      {
+        "author": {
+          "id": "https://openalex.org/AXSamOkafor",
+          "display_name": "Sam Okafor"
+        },
+        "author_position": "middle",
+        "institutions": [
+          {
+            "id": "https://openalex.org/I9999999",
+            "display_name": "Foreign Synthetic University",
+            "lineage": [
+              "https://openalex.org/I9999999"
+            ]
+          }
+        ],
+        "raw_affiliation_strings": [
+          "Foreign Synthetic University, USA"
+        ]
+      },
+      {
+        "author": {
+          "id": "https://openalex.org/AXQuinnMiller",
+          "display_name": "Quinn Miller"
+        },
+        "author_position": "middle",
+        "institutions": [
+          {
+            "id": "https://openalex.org/I9999999",
+            "display_name": "Foreign Synthetic University",
+            "lineage": [
+              "https://openalex.org/I9999999"
+            ]
+          }
+        ],
+        "raw_affiliation_strings": [
+          "Foreign Synthetic University, USA"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "https://openalex.org/W40",
+    "title": "Synthetic study 40 on 人工智能",
+    "publication_year": 2024,
+    "doi": "https://doi.org/10.0000/synth.40",
+    "primary_location": {
+      "source": {
+        "display_name": "Journal of Synthetic Systems"
+      }
+    },
+    "concepts": [
+      {
+        "display_name": "Deep Learning",
+        "level": 1,
+        "score": 0.91
+      }
+    ],
+    "authorships": [
+      {
+        "author": {
+          "id": "https://openalex.org/A600",
+          "display_name": "Frank Ma"
+        },
+        "author_position": "first",
+        "institutions": [
+          {
+            "id": "https://openalex.org/I0000000",
+            "display_name": "Synthetic Institute of Technology",
+            "lineage": [
+              "https://openalex.org/I0000000"
+            ]
+          }
+        ],
+        "raw_affiliation_strings": [
+          "Synthetic Vision Lab, Beijing 100190, China"
+        ]
+      },
+      {
+        "author": {
+          "id": "https://openalex.org/A800",
+          "display_name": "Henry Xu"
+        },
+        "author_position": "first",
+        "institutions": [
+          {
+            "id": "https://openalex.org/I0000000",
+            "display_name": "Synthetic Institute of Technology",
+            "lineage": [
+              "https://openalex.org/I0000000"
+            ]
+          }
+        ],
+        "raw_affiliation_strings": [
+          "Synthetic Robotics Lab, Beijing, China"
+        ]
+      },
+      {
+        "author": {
+          "id": "https://openalex.org/A100",
+          "display_name": "Alice Chen"
+        },
+        "author_position": "first",
+        "institutions": [
+          {
+            "id": "https://openalex.org/I0000000",
+            "display_name": "Synthetic Institute of Technology",
+            "lineage": [
+              "https://openalex.org/I0000000"
+            ]
+          }
+        ],
+        "raw_affiliation_strings": [
+          "Synthetic Robotics Lab, Beijing, China"
+        ]
+      },
+      {
+        "author": {
+          "id": "https://openalex.org/AXRitaSato",
+          "display_name": "Rita Sato"
+        },
+        "author_position": "middle",
+        "institutions": [
+          {
+            "id": "https://openalex.org/I9999999",
+            "display_name": "Foreign Synthetic University",
+            "lineage": [
+              "https://openalex.org/I9999999"
+            ]
+          }
+        ],
+        "raw_affiliation_strings": [
+          "Foreign Synthetic University, USA"
+        ]
+      },
+      {
+        "author": {
+          "id": "https://openalex.org/AXPaulGarcia",
+          "display_name": "Paul Garcia"
+        },
+        "author_position": "middle",
+        "institutions": [
+          {
+            "id": "https://openalex.org/I9999999",
+            "display_name": "Foreign Synthetic University",
+            "lineage": [
+              "https://openalex.org/I9999999"
+            ]
+          }
+        ],
+        "raw_affiliation_strings": [
+          "Foreign Synthetic University, USA"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "https://openalex.org/W41",
+    "title": "Synthetic study 41 on 计算机视觉",
+    "publication_year": 2020,
+    "doi": "https://doi.org/10.0000/synth.41",
+    "primary_location": {
+      "source": {
+        "display_name": "Synthetic Transactions on Intelligence"
+      }
+    },
+    "concepts": [
+      {
+        "display_name": "Computer Vision",
+        "level": 1,
+        "score": 0.71
+      }
+    ],
+    "authorships": [
+      {
+        "author": {
+          "id": "https://openalex.org/A200",
+          "display_name": "Bob Liu"
+        },
+        "author_position": "first",
+        "institutions": [
+          {
+            "id": "https://openalex.org/I0000000",
+            "display_name": "Synthetic Institute of Technology",
+            "lineage": [
+              "https://openalex.org/I0000000"
+            ]
+          }
+        ],
+        "raw_affiliation_strings": [
+          "sbl.admin@synth.example Synthetic Brain Lab"
+        ]
+      },
+      {
+        "author": {
+          "id": "https://openalex.org/A110",
+          "display_name": "Jack Deng"
+        },
+        "author_position": "first",
+        "institutions": [
+          {
+            "id": "https://openalex.org/I0000000",
+            "display_name": "Synthetic Institute of Technology",
+            "lineage": [
+              "https://openalex.org/I0000000"
+            ]
+          }
+        ],
+        "raw_affiliation_strings": [
+          "Synthetic Robotics Lab, Beijing, China"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "https://openalex.org/W42",
+    "title": "Synthetic study 42 on 人工智能",
+    "publication_year": 2025,
+    "doi": "https://doi.org/10.0000/synth.42",
+    "primary_location": {
+      "source": {
+        "display_name": "Journal of Synthetic Systems"
+      }
+    },
+    "concepts": [
+      {
+        "display_name": "Machine Learning",
+        "level": 1,
+        "score": 0.71
+      }
+    ],
+    "authorships": [
+      {
+        "author": {
+          "id": "https://openalex.org/A120",
+          "display_name": "Kelly Fang"
+        },
+        "author_position": "first",
+        "institutions": [
+          {
+            "id": "https://openalex.org/I0000000",
+            "display_name": "Synthetic Institute of Technology",
+            "lineage": [
+              "https://openalex.org/I0000000"
+            ]
+          }
+        ],
+        "raw_affiliation_strings": [
+          "Synthetics Brain Lab (SBL), Beijing, China"
+        ]
+      },
+      {
+        "author": {
+          "id": "https://openalex.org/A700",
+          "display_name": "Grace Hu"
+        },
+        "author_position": "first",
+        "institutions": [
+          {
+            "id": "https://openalex.org/I0000000",
+            "display_name": "Synthetic Institute of Technology",
+            "lineage": [
+              "https://openalex.org/I0000000"
+            ]
+          }
+        ],
+        "raw_affiliation_strings": [
+          "Synthetic Robotics Lab, Beijing, China"
+        ]
+      },
+      {
+        "author": {
+          "id": "https://openalex.org/AXPaulGarcia",
+          "display_name": "Paul Garcia"
+        },
+        "author_position": "middle",
+        "institutions": [
+          {
+            "id": "https://openalex.org/I9999999",
+            "display_name": "Foreign Synthetic University",
+            "lineage": [
+              "https://openalex.org/I9999999"
+            ]
+          }
+        ],
+        "raw_affiliation_strings": [
+          "Foreign Synthetic University, USA"
+        ]
+      },
+      {
+        "author": {
+          "id": "https://openalex.org/AXNickBrown",
+          "display_name": "Nick Brown"
+        },
+        "author_position": "middle",
+        "institutions": [
+          {
+            "id": "https://openalex.org/I9999999",
+            "display_name": "Foreign Synthetic University",
+            "lineage": [
+              "https://openalex.org/I9999999"
+            ]
+          }
+        ],
+        "raw_affiliation_strings": [
+          "Foreign Synthetic University, USA"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "https://openalex.org/W43",
+    "title": "Synthetic study 43 on 计算机视觉",
+    "publication_year": 2025,
+    "doi": "https://doi.org/10.0000/synth.43",
+    "primary_location": {
+      "source": {
+        "display_name": "Journal of Synthetic Systems"
+      }
+    },
+    "concepts": [
+      {
+        "display_name": "Neural Networks",
+        "level": 1,
+        "score": 0.87
+      }
+    ],
+    "authorships": [
+      {
+        "author": {
+          "id": "https://openalex.org/A100",
+          "display_name": "Alice Chen"
+        },
+        "author_position": "first",
+        "institutions": [
+          {
+            "id": "https://openalex.org/I0000000",
+            "display_name": "Synthetic Institute of Technology",
+            "lineage": [
+              "https://openalex.org/I0000000"
+            ]
+          }
+        ],
+        "raw_affiliation_strings": [
+          "Synthetics Brain Lab (SBL), Beijing, China"
+        ]
+      },
+      {
+        "author": {
+          "id": "https://openalex.org/A700",
+          "display_name": "Grace Hu"
+        },
+        "author_position": "first",
+        "institutions": [
+          {
+            "id": "https://openalex.org/I0000000",
+            "display_name": "Synthetic Institute of Technology",
+            "lineage": [
+              "https://openalex.org/I0000000"
+            ]
+          }
+        ],
+        "raw_affiliation_strings": [
+          "Vision Lab, Synthetic Institute of Technology"
+        ]
+      },
+      {
+        "author": {
+          "id": "https://openalex.org/A130",
+          "display_name": "Leo Qiu"
+        },
+        "author_position": "first",
+        "institutions": [
+          {
+            "id": "https://openalex.org/I0000000",
+            "display_name": "Synthetic Institute of Technology",
+            "lineage": [
+              "https://openalex.org/I0000000"
+            ]
+          }
+        ],
+        "raw_affiliation_strings": [
+          "Synthetic Robotics Lab, Beijing, China"
+        ]
+      },
+      {
+        "author": {
+          "id": "https://openalex.org/AXQuinnMiller",
+          "display_name": "Quinn Miller"
+        },
+        "author_position": "middle",
+        "institutions": [
+          {
+            "id": "https://openalex.org/I9999999",
+            "display_name": "Foreign Synthetic University",
+            "lineage": [
+              "https://openalex.org/I9999999"
+            ]
+          }
+        ],
+        "raw_affiliation_strings": [
+          "Foreign Synthetic University, USA"
+        ]
+      },
+      {
+        "author": {
+          "id": "https://openalex.org/AXTinaNovak",
+          "display_name": "Tina Novak"
+        },
+        "author_position": "middle",
+        "institutions": [
+          {
+            "id": "https://openalex.org/I9999999",
+            "display_name": "Foreign Synthetic University",
+            "lineage": [
+              "https://openalex.org/I9999999"
+            ]
+          }
+        ],
+        "raw_affiliation_strings": [
+          "Foreign Synthetic University, USA"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "https://openalex.org/W44",
+    "title": "Synthetic study 44 on 机器人学",
+    "publication_year": 2021,
+    "doi": "https://doi.org/10.0000/synth.44",
+    "primary_location": {
+      "source": {
+        "display_name": "Proceedings of the Synthetic Society"
+      }
+    },
+    "concepts": [
+      {
+        "display_name": "Deep Learning",
+        "level": 1,
+        "score": 0.58
+      },
+      {
+        "display_name": "Computer Vision",
+        "level": 1,
+        "score": 0.57
+      }
+    ],
+    "authorships": [
+      {
+        "author": {
+          "id": "https://openalex.org/A900",
+          "display_name": "Ivy Luo"
+        },
+        "author_position": "first",
+        "institutions": [
+          {
+            "id": "https://openalex.org/I0000000",
+            "display_name": "Synthetic Institute of Technology",
+            "lineage": [
+              "https://openalex.org/I0000000"
+            ]
+          }
+        ],
+        "raw_affiliation_strings": [
+          "Robotics Group, Synthetic Institute of Technology, P.R. China"
+        ]
+      },
+      {
+        "author": {
+          "id": "https://openalex.org/A120",
+          "display_name": "Kelly Fang"
+        },
+        "author_position": "first",
+        "institutions": [
+          {
+            "id": "https://openalex.org/I0000000",
+            "display_name": "Synthetic Institute of Technology",
+            "lineage": [
+              "https://openalex.org/I0000000"
+            ]
+          }
+        ],
+        "raw_affiliation_strings": [
+          "Synth. Vision Lab (SVL), People's Republic of China"
+        ]
+      },
+      {
+        "author": {
+          "id": "https://openalex.org/A130",
+          "display_name": "Leo Qiu"
+        },
+        "author_position": "first",
+        "institutions": [
+          {
+            "id": "https://openalex.org/I0000000",
+            "display_name": "Synthetic Institute of Technology",
+            "lineage": [
+              "https://openalex.org/I0000000"
+            ]
+          }
+        ],
+        "raw_affiliation_strings": [
+          "Synthetic Robotics Lab, Beijing, China"
+        ]
+      },
+      {
+        "author": {
+          "id": "https://openalex.org/AXRitaSato",
+          "display_name": "Rita Sato"
+        },
+        "author_position": "middle",
+        "institutions": [
+          {
+            "id": "https://openalex.org/I9999999",
+            "display_name": "Foreign Synthetic University",
+            "lineage": [
+              "https://openalex.org/I9999999"
+            ]
+          }
+        ],
+        "raw_affiliation_strings": [
+          "Foreign Synthetic University, USA"
+        ]
+      },
+      {
+        "author": {
+          "id": "https://openalex.org/AXOlgaIvanova",
+          "display_name": "Olga Ivanova"
+        },
+        "author_position": "middle",
+        "institutions": [
+          {
+            "id": "https://openalex.org/I9999999",
+            "display_name": "Foreign Synthetic University",
+            "lineage": [
+              "https://openalex.org/I9999999"
+            ]
+          }
+        ],
+        "raw_affiliation_strings": [
+          "Foreign Synthetic University, USA"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "https://openalex.org/W45",
+    "title": "Synthetic study 45 on 机器人学",
+    "publication_year": 2023,
+    "doi": "https://doi.org/10.0000/synth.45",
+    "primary_location": {
+      "source": {
+        "display_name": "Journal of Synthetic Systems"
+      }
+    },
+    "concepts": [
+      {
+        "display_name": "Computer Vision",
+        "level": 1,
+        "score": 0.76
+      },
+      {
+        "display_name": "Robotics",
+        "level": 1,
+        "score": 0.6
+      }
+    ],
+    "authorships": [
+      {
+        "author": {
+          "id": "https://openalex.org/A400",
+          "display_name": "David Zhao"
+        },
+        "author_position": "first",
+        "institutions": [
+          {
+            "id": "https://openalex.org/I0000000",
+            "display_name": "Synthetic Institute of Technology",
+            "lineage": [
+              "https://openalex.org/I0000000"
+            ]
+          }
+        ],
+        "raw_affiliation_strings": [
+          "Synthetic Brain Lab, Beijing 100190, China"
+        ]
+      },
+      {
+        "author": {
+          "id": "https://openalex.org/A800",
+          "display_name": "Henry Xu"
+        },
+        "author_position": "first",
+        "institutions": [
+          {
+            "id": "https://openalex.org/I0000000",
+            "display_name": "Synthetic Institute of Technology",
+            "lineage": [
+              "https://openalex.org/I0000000"
+            ]
+          }
+        ],
+        "raw_affiliation_strings": [
+          "Synth Robotics Lab (SRL), Beijing 100190, China"
+        ]
+      },
+      {
+        "author": {
+          "id": "https://openalex.org/AXRitaSato",
+          "display_name": "Rita Sato"
+        },
+        "author_position": "middle",
+        "institutions": [
+          {
+            "id": "https://openalex.org/I9999999",
+            "display_name": "Foreign Synthetic University",
+            "lineage": [
+              "https://openalex.org/I9999999"
+            ]
+          }
+        ],
+        "raw_affiliation_strings": [
+          "Foreign Synthetic University, USA"
+        ]
+      },
+      {
+        "author": {
+          "id": "https://openalex.org/AXQuinnMiller",
+          "display_name": "Quinn Miller"
+        },
+        "author_position": "middle",
+        "institutions": [
+          {
+            "id": "https://openalex.org/I9999999",
+            "display_name": "Foreign Synthetic University",
+            "lineage": [
+              "https://openalex.org/I9999999"
+            ]
+          }
+        ],
+        "raw_affiliation_strings": [
+          "Foreign Synthetic University, USA"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "https://openalex.org/W46",
+    "title": "Synthetic study 46 on 计算机视觉",
+    "publication_year": 2018,
+    "doi": "https://doi.org/10.0000/synth.46",
+    "primary_location": {
+      "source": {
+        "display_name": "Synthetic Transactions on Intelligence"
+      }
+    },
+    "concepts": [
+      {
+        "display_name": "Machine Learning",
+        "level": 1,
+        "score": 0.93
+      },
+      {
+        "display_name": "Image Segmentation",
+        "level": 1,
+        "score": 0.96
+      },
+      {
+        "display_name": "Robot Manipulation",
+        "level": 1,
+        "score": 0.74
+      }
+    ],
+    "authorships": [
+      {
+        "author": {
+          "id": "https://openalex.org/A120",
+          "display_name": "Kelly Fang"
+        },
+        "author_position": "first",
+        "institutions": [
+          {
+            "id": "https://openalex.org/I0000000",
+            "display_name": "Synthetic Institute of Technology",
+            "lineage": [
+              "https://openalex.org/I0000000"
+            ]
+          }
+        ],
+        "raw_affiliation_strings": [
+          "Synth Robotics Lab (SRL), Beijing 100190, China"
+        ]
+      },
+      {
+        "author": {
+          "id": "https://openalex.org/AXSamOkafor",
+          "display_name": "Sam Okafor"
+        },
+        "author_position": "middle",
+        "institutions": [
+          {
+            "id": "https://openalex.org/I9999999",
+            "display_name": "Foreign Synthetic University",
+            "lineage": [
+              "https://openalex.org/I9999999"
+            ]
+          }
+        ],
+        "raw_affiliation_strings": [
+          "Foreign Synthetic University, USA"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "https://openalex.org/W47",
+    "title": "Synthetic study 47 on 计算机视觉",
+    "publication_year": 2018,
+    "doi": "https://doi.org/10.0000/synth.47",
+    "primary_location": {
+      "source": {
+        "display_name": "Journal of Synthetic Systems"
+      }
+    },
+    "concepts": [
+      {
+        "display_name": "Deep Learning",
+        "level": 1,
+        "score": 0.9
+      }
+    ],
+    "authorships": [
+      {
+        "author": {
+          "id": "https://openalex.org/A800",
+          "display_name": "Henry Xu"
+        },
+        "author_position": "first",
+        "institutions": [
+          {
+            "id": "https://openalex.org/I0000000",
+            "display_name": "Synthetic Institute of Technology",
+            "lineage": [
+              "https://openalex.org/I0000000"
+            ]
+          }
+        ],
+        "raw_affiliation_strings": [
+          "Synthetics Brain Lab (SBL), Beijing, China"
+        ]
+      },
+      {
+        "author": {
+          "id": "https://openalex.org/A200",
+          "display_name": "Bob Liu"
+        },
+        "author_position": "first",
+        "institutions": [
+          {
+            "id": "https://openalex.org/I0000000",
+            "display_name": "Synthetic Institute of Technology",
+            "lineage": [
+              "https://openalex.org/I0000000"
+            ]
+          }
+        ],
+        "raw_affiliation_strings": [
+          "Brain Lab, Synthetic Institute of Technology, PRC"
+        ]
+      },
+      {
+        "author": {
+          "id": "https://openalex.org/AXPaulGarcia",
+          "display_name": "Paul Garcia"
+        },
+        "author_position": "middle",
+        "institutions": [
+          {
+            "id": "https://openalex.org/I9999999",
+            "display_name": "Foreign Synthetic University",
+            "lineage": [
+              "https://openalex.org/I9999999"
+            ]
+          }
+        ],
+        "raw_affiliation_strings": [
+          "Foreign Synthetic University, USA"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "https://openalex.org/W48",
+    "title": "Synthetic study 48 on 机器人学",
+    "publication_year": 2022,
+    "doi": "https://doi.org/10.0000/synth.48",
+    "primary_location": {
+      "source": {
+        "display_name": "Synthetic Transactions on Intelligence"
+      }
+    },
+    "concepts": [
+      {
+        "display_name": "Image Segmentation",
+        "level": 1,
+        "score": 0.8
+      }
+    ],
+    "authorships": [
+      {
+        "author": {
+          "id": "https://openalex.org/A400",
+          "display_name": "David Zhao"
+        },
+        "author_position": "first",
+        "institutions": [
+          {
+            "id": "https://openalex.org/I0000000",
+            "display_name": "Synthetic Institute of Technology",
+            "lineage": [
+              "https://openalex.org/I0000000"
+            ]
+          }
+        ],
+        "raw_affiliation_strings": [
+          "sbl.admin@synth.example Synthetic Brain Lab"
+        ]
+      },
+      {
+        "author": {
+          "id": "https://openalex.org/AXRitaSato",
+          "display_name": "Rita Sato"
+        },
+        "author_position": "middle",
+        "institutions": [
+          {
+            "id": "https://openalex.org/I9999999",
+            "display_name": "Foreign Synthetic University",
+            "lineage": [
+              "https://openalex.org/I9999999"
+            ]
+          }
+        ],
+        "raw_affiliation_strings": [
+          "Foreign Synthetic University, USA"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "https://openalex.org/W49",
+    "title": "Synthetic study 49 on 人工智能",
+    "publication_year": 2024,
+    "doi": "https://doi.org/10.0000/synth.49",
+    "primary_location": {
+      "source": {
+        "display_name": "Proceedings of the Synthetic Society"
+      }
+    },
+    "concepts": [
+      {
+        "display_name": "Robot Manipulation",
+        "level": 1,
+        "score": 0.92
+      }
+    ],
+    "authorships": [
+      {
+        "author": {
+          "id": "https://openalex.org/A800",
+          "display_name": "Henry Xu"
+        },
+        "author_position": "first",
+        "institutions": [
+          {
+            "id": "https://openalex.org/I0000000",
+            "display_name": "Synthetic Institute of Technology",
+            "lineage": [
+              "https://openalex.org/I0000000"
+            ]
+          }
+        ],
+        "raw_affiliation_strings": [
+          "Synthetic Vision Lab, Beijing 100190, China"
+        ]
+      },
+      {
+        "author": {
+          "id": "https://openalex.org/A900",
+          "display_name": "Ivy Luo"
+        },
+        "author_position": "first",
+        "institutions": [
+          {
+            "id": "https://openalex.org/I0000000",
+            "display_name": "Synthetic Institute of Technology",
+            "lineage": [
+              "https://openalex.org/I0000000"
+            ]
+          }
+        ],
+        "raw_affiliation_strings": [
+          "Synthetics Brain Lab (SBL), Beijing, China"
+        ]
+      },
+      {
+        "author": {
+          "id": "https://openalex.org/A500",
+          "display_name": "Eve Sun"
+        },
+        "author_position": "first",
+        "institutions": [
+          {
+            "id": "https://openalex.org/I0000000",
+            "display_name": "Synthetic Institute of Technology",
+            "lineage": [
+              "https://openalex.org/I0000000"
+            ]
+          }
+        ],
+        "raw_affiliation_strings": [
+          "Synthetic Robotics Lab, Beijing, China"
+        ]
+      },
+      {
+        "author": {
+          "id": "https://openalex.org/AXPaulGarcia",
+          "display_name": "Paul Garcia"
+        },
+        "author_position": "middle",
+        "institutions": [
+          {
+            "id": "https://openalex.org/I9999999",
+            "display_name": "Foreign Synthetic University",
+            "lineage": [
+              "https://openalex.org/I9999999"
+            ]
+          }
+        ],
+        "raw_affiliation_strings": [
+          "Foreign Synthetic University, USA"
+        ]
+      },
+      {
+        "author": {
+          "id": "https://openalex.org/AXOlgaIvanova",
+          "display_name": "Olga Ivanova"
+        },
+        "author_position": "middle",
+        "institutions": [
+          {
+            "id": "https://openalex.org/I9999999",
+            "display_name": "Foreign Synthetic University",
+            "lineage": [
+              "https://openalex.org/I9999999"
+            ]
+          }
+        ],
+        "raw_affiliation_strings": [
+          "Foreign Synthetic University, USA"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "https://openalex.org/W50",
+    "title": "Synthetic study 50 on 人工智能",
+    "publication_year": 2023,
+    "doi": "https://doi.org/10.0000/synth.50",
+    "primary_location": {
+      "source": {
+        "display_name": "Proceedings of the Synthetic Society"
+      }
+    },
+    "concepts": [
+      {
+        "display_name": "Robot Manipulation",
+        "level": 1,
+        "score": 0.83
+      }
+    ],
+    "authorships": [
+      {
+        "author": {
+          "id": "https://openalex.org/A130",
+          "display_name": "Leo Qiu"
+        },
+        "author_position": "first",
+        "institutions": [
+          {
+            "id": "https://openalex.org/I0000000",
+            "display_name": "Synthetic Institute of Technology",
+            "lineage": [
+              "https://openalex.org/I0000000"
+            ]
+          }
+        ],
+        "raw_affiliation_strings": [
+          "Vision Lab, Synthetic Institute of Technology"
+        ]
+      },
+      {
+        "author": {
+          "id": "https://openalex.org/A110",
+          "display_name": "Jack Deng"
+        },
+        "author_position": "first",
+        "institutions": [
+          {
+            "id": "https://openalex.org/I0000000",
+            "display_name": "Synthetic Institute of Technology",
+            "lineage": [
+              "https://openalex.org/I0000000"
+            ]
+          }
+        ],
+        "raw_affiliation_strings": [
+          "Synthetic Robotics Lab, Beijing, China"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "https://openalex.org/W51",
+    "title": "Synthetic study 51 on 机器人学",
+    "publication_year": 2021,
+    "doi": "https://doi.org/10.0000/synth.51",
+    "primary_location": {
+      "source": {
+        "display_name": "Journal of Synthetic Systems"
+      }
+    },
+    "concepts": [
+      {
+        "display_name": "Deep Learning",
+        "level": 1,
+        "score": 0.75
+      },
+      {
+        "display_name": "Computer Vision",
+        "level": 1,
+        "score": 0.88
+      }
+    ],
+    "authorships": [
+      {
+        "author": {
+          "id": "https://openalex.org/A110",
+          "display_name": "Jack Deng"
+        },
+        "author_position": "first",
+        "institutions": [
+          {
+            "id": "https://openalex.org/I0000000",
+            "display_name": "Synthetic Institute of Technology",
+            "lineage": [
+              "https://openalex.org/I0000000"
+            ]
+          }
+        ],
+        "raw_affiliation_strings": [
+          "sbl.admin@synth.example Synthetic Brain Lab"
+        ]
+      },
+      {
+        "author": {
+          "id": "https://openalex.org/A300",
+          "display_name": "Carol Wang"
+        },
+        "author_position": "first",
+        "institutions": [
+          {
+            "id": "https://openalex.org/I0000000",
+            "display_name": "Synthetic Institute of Technology",
+            "lineage": [
+              "https://openalex.org/I0000000"
+            ]
+          }
+        ],
+        "raw_affiliation_strings": [
+          "Synthetic Vision Lab, Beijing 100190, China"
+        ]
+      },
+      {
+        "author": {
+          "id": "https://openalex.org/AXSamOkafor",
+          "display_name": "Sam Okafor"
+        },
+        "author_position": "middle",
+        "institutions": [
+          {
+            "id": "https://openalex.org/I9999999",
+            "display_name": "Foreign Synthetic University",
+            "lineage": [
+              "https://openalex.org/I9999999"
+            ]
+          }
+        ],
+        "raw_affiliation_strings": [
+          "Foreign Synthetic University, USA"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "https://openalex.org/W52",
+    "title": "Synthetic study 52 on 机器人学",
+    "publication_year": 2025,
+    "doi": "https://doi.org/10.0000/synth.52",
+    "primary_location": {
+      "source": {
+        "display_name": "Proceedings of the Synthetic Society"
+      }
+    },
+    "concepts": [
+      {
+        "display_name": "Computer Vision",
+        "level": 1,
+        "score": 0.77
+      },
+      {
+        "display_name": "Robot Manipulation",
+        "level": 1,
+        "score": 0.9
+      }
+    ],
+    "authorships": [
+      {
+        "author": {
+          "id": "https://openalex.org/A400",
+          "display_name": "David Zhao"
+        },
+        "author_position": "first",
+        "institutions": [
+          {
+            "id": "https://openalex.org/I0000000",
+            "display_name": "Synthetic Institute of Technology",
+            "lineage": [
+              "https://openalex.org/I0000000"
+            ]
+          }
+        ],
+        "raw_affiliation_strings": [
+          "Robotics Group, Synthetic Institute of Technology, P.R. China"
+        ]
+      },
+      {
+        "author": {
+          "id": "https://openalex.org/A700",
+          "display_name": "Grace Hu"
+        },
+        "author_position": "first",
+        "institutions": [
+          {
+            "id": "https://openalex.org/I0000000",
+            "display_name": "Synthetic Institute of Technology",
+            "lineage": [
+              "https://openalex.org/I0000000"
+            ]
+          }
+        ],
+        "raw_affiliation_strings": [
+          "Vision Lab, Synthetic Institute of Technology"
+        ]
+      },
+      {
+        "author": {
+          "id": "https://openalex.org/A600",
+          "display_name": "Frank Ma"
+        },
+        "author_position": "first",
+        "institutions": [
+          {
+            "id": "https://openalex.org/I0000000",
+            "display_name": "Synthetic Institute of Technology",
+            "lineage": [
+              "https://openalex.org/I0000000"
+            ]
+          }
+        ],
+        "raw_affiliation_strings": [
+          "Brain Lab, Synthetic Institute of Technology, PRC"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "https://openalex.org/W53",
+    "title": "Synthetic study 53 on 人工智能",
+    "publication_year": 2022,
+    "doi": "https://doi.org/10.0000/synth.53",
+    "primary_location": {
+      "source": {
+        "display_name": "Synthetic Transactions on Intelligence"
+      }
+    },
+    "concepts": [
+      {
+        "display_name": "Neural Networks",
+        "level": 1,
+        "score": 0.87
+      },
+      {
+        "display_name": "Image Segmentation",
+        "level": 1,
+        "score": 0.83
+      }
+    ],
+    "authorships": [
+      {
+        "author": {
+          "id": "https://openalex.org/A200",
+          "display_name": "Bob Liu"
+        },
+        "author_position": "first",
+        "institutions": [
+          {
+            "id": "https://openalex.org/I0000000",
+            "display_name": "Synthetic Institute of Technology",
+            "lineage": [
+              "https://openalex.org/I0000000"
+            ]
+          }
+        ],
+        "raw_affiliation_strings": [
+          "Synthetics Brain Lab (SBL), Beijing, China"
+        ]
+      },
+      {
+        "author": {
+          "id": "https://openalex.org/A500",
+          "display_name": "Eve Sun"
+        },
+        "author_position": "first",
+        "institutions": [
+          {
+            "id": "https://openalex.org/I0000000",
+            "display_name": "Synthetic Institute of Technology",
+            "lineage": [
+              "https://openalex.org/I0000000"
+            ]
+          }
+        ],
+        "raw_affiliation_strings": [
+          "Synth. Vision Lab (SVL), People's Republic of China"
+        ]
+      },
+      {
+        "author": {
+          "id": "https://openalex.org/AXMonaPatel",
+          "display_name": "Mona Patel"
+        },
+        "author_position": "middle",
+        "institutions": [
+          {
+            "id": "https://openalex.org/I9999999",
+            "display_name": "Foreign Synthetic University",
+            "lineage": [
+              "https://openalex.org/I9999999"
+            ]
+          }
+        ],
+        "raw_affiliation_strings": [
+          "Foreign Synthetic University, USA"
+        ]
+      },
+      {
+        "author": {
+          "id": "https://openalex.org/AXNickBrown",
+          "display_name": "Nick Brown"
+        },
+        "author_position": "middle",
+        "institutions": [
+          {
+            "id": "https://openalex.org/I9999999",
+            "display_name": "Foreign Synthetic University",
+            "lineage": [
+              "https://openalex.org/I9999999"
+            ]
+          }
+        ],
+        "raw_affiliation_strings": [
+          "Foreign Synthetic University, USA"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "https://openalex.org/W54",
+    "title": "Synthetic study 54 on 机器人学",
+    "publication_year": 2024,
+    "doi": "https://doi.org/10.0000/synth.54",
+    "primary_location": {
+      "source": {
+        "display_name": "Journal of Synthetic Systems"
+      }
+    },
+    "concepts": [
+      {
+        "display_name": "Deep Learning",
+        "level": 1,
+        "score": 0.51
+      },
+      {
+        "display_name": "Robotics",
+        "level": 1,
+        "score": 0.67
+      }
+    ],
+    "authorships": [
+      {
+        "author": {
+          "id": "https://openalex.org/A500",
+          "display_name": "Eve Sun"
+        },
+        "author_position": "first",
+        "institutions": [
+          {
+            "id": "https://openalex.org/I0000000",
+            "display_name": "Synthetic Institute of Technology",
+            "lineage": [
+              "https://openalex.org/I0000000"
+            ]
+          }
+        ],
+        "raw_affiliation_strings": [
+          "Robotics Group, Synthetic Institute of Technology, P.R. China"
+        ]
+      },
+      {
+        "author": {
+          "id": "https://openalex.org/A100",
+          "display_name": "Alice Chen"
+        },
+        "author_position": "first",
+        "institutions": [
+          {
+            "id": "https://openalex.org/I0000000",
+            "display_name": "Synthetic Institute of Technology",
+            "lineage": [
+              "https://openalex.org/I0000000"
+            ]
+          }
+        ],
+        "raw_affiliation_strings": [
+          "Synth Robotics Lab (SRL), Beijing 100190, China"
+        ]
+      },
+      {
+        "author": {
+          "id": "https://openalex.org/A600",
+          "display_name": "Frank Ma"
+        },
+        "author_position": "first",
+        "institutions": [
+          {
+            "id": "https://openalex.org/I0000000",
+            "display_name": "Synthetic Institute of Technology",
+            "lineage": [
+              "https://openalex.org/I0000000"
+            ]
+          }
+        ],
+        "raw_affiliation_strings": [
+          "Synthetic Brain Lab, Beijing 100190, China"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "https://openalex.org/W55",
+    "title": "Synthetic study 55 on 计算机视觉",
+    "publication_year": 2024,
+    "doi": "https://doi.org/10.0000/synth.55",
+    "primary_location": {
+      "source": {
+        "display_name": "Journal of Synthetic Systems"
+      }
+    },
+    "concepts": [],
+    "authorships": [
+      {
+        "author": {
+          "id": "https://openalex.org/A700",
+          "display_name": "Grace Hu"
+        },
+        "author_position": "first",
+        "institutions": [
+          {
+            "id": "https://openalex.org/I0000000",
+            "display_name": "Synthetic Institute of Technology",
+            "lineage": [
+              "https://openalex.org/I0000000"
+            ]
+          }
+        ],
+        "raw_affiliation_strings": [
+          "sbl.admin@synth.example Synthetic Brain Lab"
+        ]
+      },
+      {
+        "author": {
+          "id": "https://openalex.org/AXOlgaIvanova",
+          "display_name": "Olga Ivanova"
+        },
+        "author_position": "middle",
+        "institutions": [
+          {
+            "id": "https://openalex.org/I9999999",
+            "display_name": "Foreign Synthetic University",
+            "lineage": [
+              "https://openalex.org/I9999999"
+            ]
+          }
+        ],
+        "raw_affiliation_strings": [
+          "Foreign Synthetic University, USA"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "https://openalex.org/W56",
+    "title": "Synthetic study 56 on 机器人学",
+    "publication_year": 2020,
+    "doi": "https://doi.org/10.0000/synth.56",
+    "primary_location": {
+      "source": {
+        "display_name": "Journal of Synthetic Systems"
+      }
+    },
+    "concepts": [
+      {
+        "display_name": "Neural Networks",
+        "level": 1,
+        "score": 0.57
+      }
+    ],
+    "authorships": [
+      {
+        "author": {
+          "id": "https://openalex.org/A900",
+          "display_name": "Ivy Luo"
+        },
+        "author_position": "first",
+        "institutions": [
+          {
+            "id": "https://openalex.org/I0000000",
+            "display_name": "Synthetic Institute of Technology",
+            "lineage": [
+              "https://openalex.org/I0000000"
+            ]
+          }
+        ],
+        "raw_affiliation_strings": [
+          "Synthetic Robotics Lab, Beijing, China"
+        ]
+      },
+      {
+        "author": {
+          "id": "https://openalex.org/A130",
+          "display_name": "Leo Qiu"
+        },
+        "author_position": "first",
+        "institutions": [
+          {
+            "id": "https://openalex.org/I0000000",
+            "display_name": "Synthetic Institute of Technology",
+            "lineage": [
+              "https://openalex.org/I0000000"
+            ]
+          }
+        ],
+        "raw_affiliation_strings": [
+          "Synth Robotics Lab (SRL), Beijing 100190, China"
+        ]
+      },
+      {
+        "author": {
+          "id": "https://openalex.org/AXSamOkafor",
+          "display_name": "Sam Okafor"
+        },
+        "author_position": "middle",
+        "institutions": [
+          {
+            "id": "https://openalex.org/I9999999",
+            "display_name": "Foreign Synthetic University",
+            "lineage": [
+              "https://openalex.org/I9999999"
+            ]
+          }
+        ],
+        "raw_affiliation_strings": [
+          "Foreign Synthetic University, USA"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "https://openalex.org/W57",
+    "title": "Synthetic study 57 on 计算机视觉",
+    "publication_year": 2020,
+    "doi": "https://doi.org/10.0000/synth.57",
+    "primary_location": {
+      "source": {
+        "display_name": "Proceedings of the Synthetic Society"
+      }
+    },
+    "concepts": [],
+    "authorships": [
+      {
+        "author": {
+          "id": "https://openalex.org/A300",
+          "display_name": "Carol Wang"
+        },
+        "author_position": "first",
+        "institutions": [
+          {
+            "id": "https://openalex.org/I0000000",
+            "display_name": "Synthetic Institute of Technology",
+            "lineage": [
+              "https://openalex.org/I0000000"
+            ]
+          }
+        ],
+        "raw_affiliation_strings": [
+          "Synthetics Brain Lab (SBL), Beijing, China"
+        ]
+      },
+      {
+        "author": {
+          "id": "https://openalex.org/A400",
+          "display_name": "David Zhao"
+        },
+        "author_position": "first",
+        "institutions": [
+          {
+            "id": "https://openalex.org/I0000000",
+            "display_name": "Synthetic Institute of Technology",
+            "lineage": [
+              "https://openalex.org/I0000000"
+            ]
+          }
+        ],
+        "raw_affiliation_strings": [
+          "Synth Robotics Lab (SRL), Beijing 100190, China"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "https://openalex.org/W58",
+    "title": "Synthetic study 58 on 人工智能",
+    "publication_year": 2022,
+    "doi": "https://doi.org/10.0000/synth.58",
+    "primary_location": {
+      "source": {
+        "display_name": "Proceedings of the Synthetic Society"
+      }
+    },
+    "concepts": [
+      {
+        "display_name": "Machine Learning",
+        "level": 1,
+        "score": 0.58
+      },
+      {
+        "display_name": "Robot Manipulation",
+        "level": 1,
+        "score": 0.96
+      }
+    ],
+    "authorships": [
+      {
+        "author": {
+          "id": "https://openalex.org/A500",
+          "display_name": "Eve Sun"
+        },
+        "author_position": "first",
+        "institutions": [
+          {
+            "id": "https://openalex.org/I0000000",
+            "display_name": "Synthetic Institute of Technology",
+            "lineage": [
+              "https://openalex.org/I0000000"
+            ]
+          }
+        ],
+        "raw_affiliation_strings": [
+          "Brain Lab, Synthetic Institute of Technology, PRC"
+        ]
+      },
+      {
+        "author": {
+          "id": "https://openalex.org/A600",
+          "display_name": "Frank Ma"
+        },
+        "author_position": "first",
+        "institutions": [
+          {
+            "id": "https://openalex.org/I0000000",
+            "display_name": "Synthetic Institute of Technology",
+            "lineage": [
+              "https://openalex.org/I0000000"
+            ]
+          }
+        ],
+        "raw_affiliation_strings": [
+          "sbl.admin@synth.example Synthetic Brain Lab"
+        ]
+      },
+      {
+        "author": {
+          "id": "https://openalex.org/A700",
+          "display_name": "Grace Hu"
+        },
+        "author_position": "first",
+        "institutions": [
+          {
+            "id": "https://openalex.org/I0000000",
+            "display_name": "Synthetic Institute of Technology",
+            "lineage": [
+              "https://openalex.org/I0000000"
+            ]
+          }
+        ],
+        "raw_affiliation_strings": [
+          "Synth Robotics Lab (SRL), Beijing 100190, China"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "https://openalex.org/W59",
+    "title": "Synthetic study 59 on 人工智能",
+    "publication_year": 2023,
+    "doi": "https://doi.org/10.0000/synth.59",
+    "primary_location": {
+      "source": {
+        "display_name": "Synthetic Transactions on Intelligence"
+      }
+    },
+    "concepts": [
+      {
+        "display_name": "Deep Learning",
+        "level": 1,
+        "score": 0.51
+      },
+      {
+        "display_name": "Robot Manipulation",
+        "level": 1,
+        "score": 0.99
+      }
+    ],
+    "authorships": [
+      {
+        "author": {
+          "id": "https://openalex.org/A800",
+          "display_name": "Henry Xu"
+        },
+        "author_position": "first",
+        "institutions": [
+          {
+            "id": "https://openalex.org/I0000000",
+            "display_name": "Synthetic Institute of Technology",
+            "lineage": [
+              "https://openalex.org/I0000000"
+            ]
+          }
+        ],
+        "raw_affiliation_strings": [
+          "Robotics Group, Synthetic Institute of Technology, P.R. China"
+        ]
+      },
+      {
+        "author": {
+          "id": "https://openalex.org/A101",
+          "display_name": "Alice Chen"
+        },
+        "author_position": "first",
+        "institutions": [
+          {
+            "id": "https://openalex.org/I0000000",
+            "display_name": "Synthetic Institute of Technology",
+            "lineage": [
+              "https://openalex.org/I0000000"
+            ]
+          }
+        ],
+        "raw_affiliation_strings": [
+          "Brain Lab, Synthetic Institute of Technology, PRC"
+        ]
+      },
+      {
+        "author": {
+          "id": "https://openalex.org/AXNickBrown",
+          "display_name": "Nick Brown"
+        },
+        "author_position": "middle",
+        "institutions": [
+          {
+            "id": "https://openalex.org/I9999999",
+            "display_name": "Foreign Synthetic University",
+            "lineage": [
+              "https://openalex.org/I9999999"
+            ]
+          }
+        ],
+        "raw_affiliation_strings": [
+          "Foreign Synthetic University, USA"
+        ]
+      },
+      {
+        "author": {
+          "id": "https://openalex.org/AXPaulGarcia",
+          "display_name": "Paul Garcia"
+        },
+        "author_position": "middle",
+        "institutions": [
+          {
+            "id": "https://openalex.org/I9999999",
+            "display_name": "Foreign Synthetic University",
+            "lineage": [
+              "https://openalex.org/I9999999"
+            ]
+          }
+        ],
+        "raw_affiliation_strings": [
+          "Foreign Synthetic University, USA"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "https://openalex.org/W60",
+    "title": "Synthetic study 60 on 人工智能",
+    "publication_year": 2020,
+    "doi": "https://doi.org/10.0000/synth.60",
+    "primary_location": {
+      "source": {
+        "display_name": "Synthetic Transactions on Intelligence"
+      }
+    },
+    "concepts": [
+      {
+        "display_name": "Robotics",
+        "level": 1,
+        "score": 0.79
+      }
+    ],
+    "authorships": [
+      {
+        "author": {
+          "id": "https://openalex.org/A200",
+          "display_name": "Bob Liu"
+        },
+        "author_position": "first",
+        "institutions": [
+          {
+            "id": "https://openalex.org/I0000000",
+            "display_name": "Synthetic Institute of Technology",
+            "lineage": [
+              "https://openalex.org/I0000000"
+            ]
+          }
+        ],
+        "raw_affiliation_strings": [
+          "Vision Lab, Synthetic Institute of Technology"
+        ]
+      },
+      {
+        "author": {
+          "id": "https://openalex.org/A110",
+          "display_name": "Jack Deng"
+        },
+        "author_position": "first",
+        "institutions": [
+          {
+            "id": "https://openalex.org/I0000000",
+            "display_name": "Synthetic Institute of Technology",
+            "lineage": [
+              "https://openalex.org/I0000000"
+            ]
+          }
+        ],
+        "raw_affiliation_strings": [
+          "Synthetic Robotics Lab, Beijing, China"
+        ]
+      }
+    ]
+  }
+]

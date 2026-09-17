@@ -26,6 +26,7 @@ def ensure_config():
         if not os.path.exists(example_path):
             print("❌ 致命错误: config.example.yaml 也丢失了！请重新克隆项目。")
             sys.exit(1)
+        os.makedirs(os.path.dirname(config_path), exist_ok=True)
         shutil.copy(example_path, config_path)
         logging.info("📋 首次运行: 已从 config.example.yaml 生成 config/config.yaml")
         logging.info("   请编辑 config/config.yaml 填入你的机构 ID、邮箱和数据库密码。")

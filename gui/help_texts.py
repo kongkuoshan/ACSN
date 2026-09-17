@@ -41,7 +41,7 @@ HELP = {
         "每行一个关键词，不区分大小写。\n\n"
         "示例:\n"
         "  清华大学 → Tsinghua, THU, 清华\n"
-        "  某研究所 → institute, automation, lab"
+        "  某研究所 → institute, lab"
     ),
     "institution.golden_keys": (
         "金钥匙映射表\n\n"

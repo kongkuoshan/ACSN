@@ -6,9 +6,11 @@
 [![OpenAlex](https://img.shields.io/badge/Data_Source-OpenAlex-ff69b4.svg)](https://openalex.org/)
 [![PySide6](https://img.shields.io/badge/GUI-PySide6-darkgreen.svg)](https://doc.qt.io/qtforpython-6/)
 
-**中文** | 面向科研机构的学术情报分析平台：从 OpenAlex 抓取、语义聚类清洗、LLM 辅助标注、Neo4j 入库，到 ECharts 交互式大屏——一条龙自动化。
+**中文** | 面向科研机构的学术情报分析平台：从 OpenAlex 抓取、语义聚类清洗、LLM 辅助标注、Neo4j 入库，到 ECharts 交互式大屏——端到端自动化。
 
 **English** | An end-to-end academic intelligence platform: crawls publication data from OpenAlex, cleans and clusters noisy affiliation strings, optionally labels entities with LLM assistance, imports the result into Neo4j, and serves interactive ECharts dashboards — via both CLI and a desktop GUI.
+
+> **命名说明 · Naming**: 本仓库名为 **`ACSN`**（Academic Search Network）；**`MKIV`** 是引擎的内部代号，源码、EXE、Docker 容器名与界面标题中的 MKIV 都指同一个项目。
 
 ---
 
@@ -35,7 +37,7 @@ MKIV 用 **「SBERT 语义聚类 → 排头兵坍缩 → 人工/LLM 复核」** 
 | **双视角大屏** Dual Dashboard | 关系星图 + 情报分析，网页端双向切换 |
 | **一键 Docker** One-Click Deploy | GUI 内置 Neo4j 容器生命周期管理 |
 | **桌面 GUI** Desktop App | PySide6 深色主题：参数面板 + 内嵌大屏 + 实时日志 + 首次运行向导 |
-| **多入口** Multi-Entry | CLI / GUI / PyInstaller EXE |
+| **多入口** Multi-Entry | 源码运行 / CLI→GUI / CLI 流水线 / PyInstaller EXE |
 
 ---
 
@@ -49,11 +51,13 @@ MKIV 用 **「SBERT 语义聚类 → 排头兵坍缩 → 人工/LLM 复核」** 
 ### 2. 安装
 
 ```bash
-git clone https://github.com/<your-username>/MKIV-Academic-Graph.git
-cd MKIV-Academic-Graph
+git clone https://github.com/kongkuoshan/ACSN.git
+cd ACSN
+
+# 核心依赖（CLI + GUI 开箱即用）：
 pip install -r requirements.txt
 
-# NLP 聚类需要（约 2GB，含 sentence-transformers / scikit-learn）：
+# 可选 —— 仅在需要跑 Step 3 语义聚类时安装（约 2GB，含 sentence-transformers / scikit-learn）：
 pip install -r requirements-ml.txt
 ```
 
@@ -66,7 +70,7 @@ institution:
   email: "your@email.com"                  # 你的邮箱（OpenAlex 礼貌池需要）
   target_id: "https://openalex.org/IXXXX"  # 目标机构 OpenAlex ID
   start_year: 2021                          # 抓取起始年份
-  fallback_keywords: ["Tsinghua", "THU"]   # 内部作者兜底关键词
+  fallback_keywords: ["university", "institute"]  # 内部作者兜底关键词（示例，请按你的机构替换）
 
 database:
   uri: "bolt://localhost:7688"
@@ -126,12 +130,46 @@ HF_ENDPOINT=https://hf-mirror.com huggingface-cli download \
 
 ### 6. 启动
 
+项目提供四种入口，任选其一：
+
 ```bash
-python gui_main.py     # GUI（推荐，日常使用）
-python main.py         # CLI（服务器 / 无头环境）
+python gui_main.py       # ① 直接启动 GUI（推荐，日常使用）
+python main.py --gui     # ② 通过 CLI 入口启动 GUI（等价）
+python main.py           # ③ CLI 运行流水线（默认只执行 Step 6 启动大屏服务）
 ```
 
-Windows 下也可直接双击 PyInstaller 打包出的 `MKIV_Academic_Graph.exe`。
+- **④ 源码手动运行**：也可在 IDE（PyCharm / VS Code）中直接 Run `gui_main.py` 或 `main.py`。路径解析基于文件位置、不依赖工作目录，无需额外配置。
+- **EXE**：Windows 下双击 PyInstaller 打包出的 `MKIV_Academic_Graph.exe` 即走入口 ①。
+
+> `python main.py` 默认只执行 `run_dashboard_stage()`（启动大屏，要求数据已入库）。要跑完整流水线，请编辑 `main.py` 取消注释对应的前置阶段，或在 GUI 中按阶段执行。
+
+---
+
+## 运行测试 · Running Tests
+
+无需真实数据、无需联网：
+
+```bash
+pip install -r requirements.txt -r requirements-dev.txt
+python -m pytest tests/ -v
+```
+
+测试全程离线：不访问 OpenAlex、不连 Neo4j、不加载 SBERT 模型（编码器用假模型替换），
+落盘操作全部走 pytest 的临时目录，不会污染 `data/`。
+
+### 合成演示数据 · Synthetic Demo Dataset
+
+`data/sample/` 里是一份**程序合成的匿名数据**（不对应任何真实机构/学者/论文），
+用于徒手复现整条流水线而不接触真实机构数据：
+
+```bash
+python scripts/generate_sample_data.py    # 用固定随机种子重新生成演示数据
+python scripts/run_sample_pipeline.py     # 一条命令跑通 Step 1 → Step 5（离线）
+```
+
+演示流程会跳过 Step 3 的 SBERT 语义聚类（样本量太小）与 Step 5 的 Neo4j 装载，
+改用恒等映射 + 预填好的映射表，因此**不需要下载模型、不需要数据库**。
+详见 [`data/sample/README.md`](data/sample/README.md)。
 
 ---
 
@@ -143,17 +181,19 @@ Windows 下也可直接双击 PyInstaller 打包出的 `MKIV_Academic_Graph.exe`
 
 爬取目标机构文献 → 标记内部/外部作者 → 清洗噪音。无需人工。
 
+如果你把**导师名单**（Excel，列名默认 `导师姓名`）放进 `data/input/0_原始导师名单.xlsx`，Step 0 会额外做一次**作者画像匹配**，输出 `data/output/0_作者匹配画像表.xlsx`：把名单上的名字对到 OpenAlex 作者 ID，并区分**主号 / 历史分身**（同一个人被 OpenAlex 拆成多个 ID 的情况）。中文名会自动转拼音再匹配。不放名单也能跑完流水线，但图谱里就没有「导师」这一角色。详见下方「作者锚定与微观结构」。
+
 ### ② 填映射表（Step 3 → 人工/LLM → Step 4）← 唯一需要你介入的环节
 
-**为什么**：系统把数千个机构变体聚类成约 30 个「排头兵」（每簇选一个代表），把领域概念列成约 179 条，生成两张 Excel 模板，等你把它们翻译成规范中文名。
+**为什么**：系统把数千个机构变体聚类成约 30 个「排头兵」（每簇选一个代表），把领域概念列成上百条，生成两张 Excel 模板，等你把它们翻译成规范中文名。
 
 **两种方式，二选一**：
 
 **A. 人工填写**（不依赖 LLM）：
 
 1. 跑完 Step 3 后，打开 `data/input/` 下的两张表：
-   - `1_机构映射表.xlsx` —— 在「填写标准名称」列，给 30 个排头兵填中文实验室名（如「模式识别国家重点实验室」）
-   - `2_研究领域映射表.xlsx` —— 在「填写标准大类」列，给 179 个领域填中文大类（人工智能 / 计算机视觉 / 生物与医学 …）
+   - `1_机构映射表.xlsx` —— 在「填写标准名称」列，给每个排头兵填中文实验室名（如「某某重点实验室」）
+   - `2_研究领域映射表.xlsx` —— 在「填写标准大类」列，给每个领域填中文大类（人工智能 / 计算机视觉 / 生物与医学 …）
 2. 保存，然后跑 Step 4。
 
 **B. LLM 自动预填**（可选）：
@@ -177,12 +217,46 @@ Windows 下也可直接双击 PyInstaller 打包出的 `MKIV_Academic_Graph.exe`
 | 0 | 数据采集 | OpenAlex API → `U1.json` | 爬取 + 作者画像匹配 |
 | 1 | 靶向过滤 | `U1.json` → `U1.5.json` | 内部/外部作者打标 |
 | 2 | 硬规则清洗 | `U1.5.json` → `U2.json` + `unique.json` | 去噪 + 提取机构/领域实体 |
-| 3 | NLP 聚类 | `unique.json` → `U2.5.json` + 映射表 | SBERT 聚类 → 排头兵 + 空模板 |
+| 3 | NLP 聚类 | `unique.json` → `U2_5.json` + 映射表 | SBERT 聚类 → 排头兵 + 空模板 |
 | 3.5 | LLM 预填（可选） | 映射表 → `_AI预填版.xlsx` | LLM 批量预填 + 去重 |
-| 4 | 终极组装 | `U2.5.json` + 映射表 → `U3.json` | 严格过滤 + 应用人工/LLM 映射 |
+| 4 | 终极组装 | `U2_5.json` + 映射表 → `U3.json` | 严格过滤 + 应用人工/LLM 映射 |
 | 4.5 | 情报分析 | `U3.json` → trends / radar / sunburst | 概念降维 + 演化/雷达/旭日图 |
 | 5 | 数据库导入 | `U3.json` → Neo4j | CSV 导出 + Cypher LOAD |
 | 6 | 大屏 | Neo4j → Web :8001 | FastAPI + ECharts |
+
+### 各阶段详解 · Stage Details
+
+- **Step 0 数据采集** — `crawler.py` 按机构 ID + 年份区间抓取 OpenAlex works：游标分页、逐页限速、本地缓存、429/5xx 重试，产出 `U1.json`。若提供了导师名单，`author_matcher.py` 同时建立本地作者画像库并匹配：按**姓名指纹**（小写、去 `-` / `.` / 空格）聚合内部作者，同一个人可对应多个 OpenAlex ID，逐 ID 记录发文量、高频挂靠机构、高频概念、合作者集合；输出画像表时按发文量排序，最高者为**主号**，其余标记为**历史分身**，名单上有而库里没有的记「查无此人」。中文名先在 `name_processor.py` 转拼音，两段式姓名额外做倒序探测。
+- **Step 1 靶向过滤** — `cleaner.tag_internal_nodes()` 按机构 lineage（上级机构树）判定作者是否属于本机构；官方没认出来的记录，用 `institution.fallback_keywords` 做不区分大小写的正则兜底。产出 `U1.5.json`。
+- **Step 2 硬规则清洗** — `cleaner.extract_and_clean_entities()` 剔除邮箱、5–7 位邮编、`cleaning.stop_words` 中的国家/城市名；概念只保留 `level ≤ nlp.level_threshold` 且 `score > nlp.score_threshold` 的。同时抽出两个待聚类的唯一实体集合，产出 `U2.json` + `unique.json`。
+- **Step 3 NLP 聚类** — `analyzer.build_cluster_mappings()` 用 `paraphrase-multilingual-MiniLM-L12-v2` 编码机构变体，默认 Ward 层次聚类；变体数超过 `kmeans_switch_threshold`（默认 3000）自动切 KMeans，避免 O(n²) 内存。每簇取**最短串**为「排头兵」（`vanguard_strategy` 可改为 longest），生成两张 Excel 模板 + 变体→排头兵映射字典，并立即把 U2 坍缩成 `U2_5.json`。**坍缩发生在你填表之前**，所以修订映射表只需重跑 Step 4，不必重跑聚类。
+- **Step 3.5 LLM 预填（可选）** — `llm_labeler.py` 调 OpenAI 兼容接口批量标注。结果写到**另一份** `*_AI预填版.xlsx`，绝不覆盖人工版。模型产生的重名做两轮合并：先精确同名合并，再用 difflib 按 `similarity_threshold`（默认 0.85）模糊合并跨批次命名不一致。
+- **Step 4 终极组装** — `assembler.py` 解析映射表。概念**严格过滤**：表里没有的直接剔除，但原始名保留在 `original_name` 上，供旭日图做二层展开。机构三级解析：映射表精确名 → `institution.golden_keys` 子串兜底（不区分大小写）→ `labels.other_dept` 兜底。读哪份表由 `mapping.source` 决定（`auto` 优先 AI 预填版、否则人工版；`ai` / `manual` 强制指定）。产出 `U3.json`。
+- **Step 4.5 情报分析** — `trend_analyzer.py` 对标准名概念再做一次聚类降维（`analytics.concept_clusters`，可选 LLM 命名）；若概念数已不超目标簇数，**直接返回恒等映射**，跳过聚类。产出 `trends.json`（演化河流）、`lab_radar.json`（实验室倾向）、`topic_sunburst.json`（两层旭日：标准大类 → 原始概念）。
+- **Step 5 数据库导入** — `db_importer.py` 先把画像表的主号/分身合并成别名表，**分身 ID 一律归并到主号**，同一人的合作记录不会被拆成两个节点；名单命中者 `role=导师`，其余内部作者 `role=研究员/学生`。**每条**机构串都建一条 `BELONGS_TO` 边（不只第一条），双聘因此保留；`CO_WORK.weight` = 两人共著论文数。导出 CSV 后用 Cypher `LOAD CSV` 入库。
+- **Step 6 大屏** — `visualizer.py` 起 FastAPI：`/` 是力导向关系星图，可切「实验室视角 / 研究主题视角」——**同一张图按两个维度重切**（按 `BELONGS_TO` 分组，或按 `WROTE→MAPPED_TO` 分组）；`/analytics` 是演化河流 + 实验室雷达 + 主题旭日。
+
+---
+
+## 作者锚定与微观结构 · Roster Anchoring & Micro-Structure
+
+**为什么需要导师名单**：OpenAlex 的作者 ID 是算法推断的，会出两种错——一个人被拆成多个 ID（同一姓名多种写法），或者不同的人被并进一个 ID（同名）。而且它只记录「挂靠机构」，从不记录「谁带谁」。导师名单是唯一持有这层内部知识的输入，也是本工具区别于通用计量工具的地方。
+
+**怎么给**：Excel 放到 `data/input/0_原始导师名单.xlsx`，姓名列默认叫 `导师姓名`（可改 `author_matcher.name_column`）。中文名会自动转拼音。跑完 Step 0 得到 `data/output/0_作者匹配画像表.xlsx`，每行给出：OpenAlex_ID、数据库真实姓名、匹配状态、ID 归属状态（主号 / 历史分身 N）、发文量、高频挂靠实验室、近 5 年主攻领域、合作者规模。
+
+**名单如何进入图谱**：
+
+1. **修身份** — 主号与历史分身的所有论文都归到主号名下，合作记录不再被拆散。
+2. **定角色** — 命中名单的节点标记为「导师」，其余内部作者标记为「研究员/学生」。
+3. **进可视化** — 大屏里导师是大的红色菱形并常显姓名，非导师是小圆点、不显名。
+
+**怎么读微观结构**：
+
+- **导师的邻居就是他的合作名单**——点开导师节点，右侧栏直接列出其论文。
+- **只跟一位导师共著的非名单作者**，大概率是该导师的**学生**。
+- **同时跟多位导师共著的非名单作者**，大概率是共享的**工程/研究支撑人员**（或跨组合作者）；若其 `BELONGS_TO` 边同时挂在多个组上，则是**双聘**。
+
+> ⚠️ 上述判断是**你从图里读出来的**，不是程序打的标签。程序只保证角色、权重与归属边正确，每条结论都能回溯到一条带权重的边和一个实名的作者。按「与几位导师共著」自动推断子角色（疑似学生 / 疑似支撑人员）属于**计划中的扩展，当前版本未实现**。
 
 ---
 
@@ -203,6 +277,12 @@ A：爬虫已逐页重试、只缓存完整结果。若频繁超时，建议用�
 **Q：Step 5 报「权限不够」？**
 A：导入目录权限问题已在代码里修复（挂载到 `/import`）。若仍遇到，`sudo chown -R $USER data/import`。
 
+**Q：画像表里某位导师显示「查无此人」？**
+A：说明在抓取年份区间内、这个（拼音）写法没有内部文献命中。依次检查：姓名列是否填了拼音/英文写法、`institution.start_year` 是否设得太晚、`institution.fallback_keywords` 是否覆盖该机构的常见写法。
+
+**Q：大屏里为什么很多节点是小圆点而且不显示名字？**
+A：只有命中导师名单的作者才是导师（红色菱形 + 常显姓名），其余内部作者统一按 `labels.staff_role`（默认「研究员/学生」）渲染成小圆点。想让更多人被识别为导师，就往 `0_原始导师名单.xlsx` 里加名字后重跑 Step 0。
+
 ---
 
 ## 系统架构 · Architecture
@@ -218,7 +298,7 @@ A：导入目录权限问题已在代码里修复（挂载到 `/import`）。若
                  │  U1 ─► U1.5 ─► U2 ─► 聚类映射表      │
                  │       │            │    （人工/LLM 填）│
                  │       ▼            ▼         │       │
-                 │     U2.5 ────► U3 组装 ◄─────┘       │
+                 │     U2_5 ────► U3 组装 ◄─────┘       │
                  │                    │                 │
                  │   Step 4.5 分析 ◄──┘                 │
                  │   Step 5 入库 / Step 6 大屏          │
@@ -236,11 +316,14 @@ A：导入目录权限问题已在代码里修复（挂载到 `/import`）。若
 ## 文件结构 · Project Structure
 
 ```
-MKIV-Academic-Graph/
+ACSN/
 ├── main.py                          # CLI 入口
 ├── gui_main.py                      # GUI 入口（PyInstaller 打包目标）
 ├── requirements.txt                 # 核心依赖
 ├── requirements-ml.txt              # 可选 NLP/ML 依赖（~2GB）
+├── requirements-dev.txt             # 开发/测试依赖（pytest 等）
+├── pytest.ini                       # pytest 配置
+├── .gitignore
 ├── mkiv-gui.spec                    # PyInstaller 打包配置
 │
 ├── config/
@@ -280,11 +363,24 @@ MKIV-Academic-Graph/
 │   ├── model_loader.py              # 模型本地优先加载器
 │   └── project_paths.py             # 路径解析（单一真相来源）
 │
-├── models/                          # 本地 NLP 模型（gitignored，运行时下载）
+├── tests/                           # 离线测试套件（不联网 / 不连 Neo4j / 不加载模型）
+├── scripts/                         # 合成演示数据与离线复现脚本
+│   ├── generate_sample_data.py      # 用固定随机种子生成 data/sample/ 匿名数据
+│   └── run_sample_pipeline.py       # 一条命令离线跑通 Step 1 → 5
+│
+├── models/                          # 本地 NLP 模型（gitignored，运行时下载或手动放置）
 ├── data/                            # 运行时数据（gitignored）
-├── .github/workflows/build.yml      # CI/CD：Windows/Linux 打包发布
+│   ├── input/                       # ★ 放置你的导师名单等输入 xlsx
+│   ├── 01_raw/ … 03_cleaned/        # 流水线中间件（U1 → U2_5）
+│   ├── output/                      # 最终结果与图表数据
+│   ├── import/                      # Neo4j LOAD CSV 导入目录
+│   └── sample/                      # 合成演示数据（提交到 Git，供离线复现）
+├── .github/workflows/
+│   ├── build.yml                    # CI/CD：Windows/Linux 打包发布
+│   └── tests.yml                    # 测试：push / PR 触发（py3.10 / 3.11）
 ├── README.md
 ├── paper.md                         # JOSS 论文投稿
+├── paper.bib                        # 论文参考文献
 └── LICENSE                          # MIT
 ```
 

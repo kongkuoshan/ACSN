@@ -16,13 +16,14 @@ MKIV-Academic-Graph/
 ├── mkiv-gui.spec                    # PyInstaller 打包配置 · PyInstaller spec
 ├── README.md                        # 项目说明 (中英双语) · Project README (bilingual)
 ├── paper.md                         # JOSS 论文投稿 · JOSS submission
+├── paper.bib                        # 论文参考文献 · BibTeX references
 ├── LICENSE                          # MIT 许可证 · MIT license
 │
 ├── config/
 │   ├── config.example.yaml          # 配置模板 (提交到 Git) · Config template (committed)
 │   └── config.yaml                  # 用户配置 (gitignored，首次运行自动生成) · User config (gitignored, auto-generated)
 │
-├── core/                            # 引擎核心 (10 个模块) · Engine core (10 modules)
+├── core/                            # 引擎核心 (11 个模块) · Engine core (11 modules)
 │   ├── crawler.py                   # Step 0: OpenAlex REST 爬虫 (带缓存/重试) · REST crawler (cache/retry)
 │   ├── author_matcher.py            # Step 0: 导师画像本地匹配 · Author profile local matching
 │   ├── cleaner.py                   # Step 1-2: 内部节点打标 + 硬规则清洗 · Node tagging + rule cleaning
@@ -32,7 +33,8 @@ MKIV-Academic-Graph/
 │   ├── trend_analyzer.py            # Step 4.5: 概念降维 + 演化/雷达/旭日图 · Concept reduction + evolution/radar/sunburst
 │   ├── db_importer.py               # Step 5: CSV 导出 + Neo4j LOAD · CSV export + Neo4j LOAD
 │   ├── visualizer.py                # Step 6: FastAPI + ECharts 大屏 · FastAPI + ECharts dashboard
-│   └── name_processor.py            # 中文名 → 拼音转换 · Chinese → Pinyin conversion
+│   ├── name_processor.py            # 中文名 → 拼音转换 · Chinese → Pinyin conversion
+│   └── constants.py                 # 大屏主机/端口等常量 · Dashboard host/port constants
 │
 ├── pipelines/                       # 流水线编排层 · Pipeline orchestration
 │   ├── data_pipeline.py             # AcademicPipeline (9 阶段编排) · 9-stage orchestration
@@ -50,14 +52,15 @@ MKIV-Academic-Graph/
 │   ├── log_handler.py               # logging → Qt Signal 转发 · logging → Qt Signal relay
 │   ├── widgets.py                   # 可复用控件工厂 · Reusable widget factories
 │   ├── __init__.py                  # 包标记 · Package marker
-│   └── resources/.gitkeep           # 资源目录占位 · Resources placeholder
+│   └── resources/                   # 资源目录 (app.ico / app.png / .gitkeep) · Resources
 │
 ├── utils/                           # 通用工具层 · Utilities
 │   ├── project_paths.py             # 路径解析 (单一真相来源) · Path resolution (single source of truth)
-│   └── file_handler.py              # JSON/Excel 读写 · JSON/Excel I/O
+│   ├── file_handler.py              # JSON/Excel 读写 · JSON/Excel I/O
+│   └── model_loader.py              # SBERT 模型本地优先加载 · Local-first model loader
 │
 ├── data/                            # 运行时数据 (gitignored) · Runtime data (gitignored)
-│   └── 01_raw/U1.json               # 中间件示例 · Intermediate artifact example
+│   └── input/                       # 用户放置输入 xlsx 的目录 · User input folder
 │
 └── .github/workflows/build.yml      # CI/CD: Windows + Linux 打包发布 · CI/CD builds & releases
 ```
@@ -83,7 +86,7 @@ The code is organized into 5 layers bottom-up; **upper layers may import lower l
 └───────────────┬─────────────────────────────────────────────────┘
                 │ 调用 (from core.* import ...)
 ┌───────────────▼─────────────────────────────────────────────────┐
-│  引擎层 Core (10 模块，按流水线阶段串联)                             │
+│  引擎层 Core (11 模块，按流水线阶段串联)                             │
 │  crawler ─► author_matcher ─► cleaner ─► analyzer                  │
 │       ─► llm_labeler ─► assembler ─► trend_analyzer                │
 │       ─► db_importer ─► visualizer   (+ name_processor)            │
@@ -113,13 +116,14 @@ GUI 层 (PySide6) 横向引用 · GUI layer lateral references:
 | `core/crawler.py` | `utils.file_handler` | requests, urllib3 |
 | `core/author_matcher.py` | — | pandas |
 | `core/cleaner.py` | — | re, tqdm |
-| `core/analyzer.py` | — | sentence_transformers, sklearn |
+| `core/analyzer.py` | — | (函数内懒加载 sentence_transformers/sklearn) |
 | `core/llm_labeler.py` | — | requests, pandas |
 | `core/assembler.py` | — | pandas, tqdm |
 | `core/trend_analyzer.py` | (函数内懒加载 SBERT/sklearn) | tqdm |
 | `core/db_importer.py` | — | neo4j, pandas |
 | `core/visualizer.py` | `utils.project_paths` | fastapi, neo4j, uvicorn |
 | `core/name_processor.py` | — | pypinyin, pandas |
+| `core/constants.py` | — | (纯常量 / pure constants) |
 | `utils/project_paths.py` | — | os, sys |
 | `utils/file_handler.py` | — | pandas, json |
 | `gui/main_window.py` | `gui.{parameter_panel,dashboard_panel,pipeline_runner,neo4j_manager,log_handler,dark_theme,startup_wizard}`、`utils.project_paths` | PySide6 |
@@ -156,13 +160,13 @@ GUI 层 (PySide6) 横向引用 · GUI layer lateral references:
 | 文件 File | 阶段 Stage | 作用 Role |
 |-----------|-----------|-----------|
 | `crawler.py` | Step 0 | `run_openalex_crawler()`：带缓存、重试、限速的 OpenAlex REST 爬虫，产出 U1.json。Cached/retried/rate-limited crawler → U1.json. |
-| `author_matcher.py` | Step 0 | `build_local_database()` / `match_names_locally()`：用已爬取文献建立本地作者库，匹配导师名单。Builds a local author DB to match mentor lists. |
+| `author_matcher.py` | Step 0 | **导师名单锚定（本项目的核心入口）**。`build_local_database()` 用已爬取文献建立本地作者画像库：内部作者按**姓名指纹**（小写、去 `-`/`.`/空格）聚合，同一个人可对应多个 OpenAlex ID，逐 ID 记录发文量、高频挂靠机构、高频概念与合作者集合；`match_names_locally()` 拿输入名单去匹配，按发文量排序输出 **主号 / 历史分身**，名单里没有的记「查无此人」。中文名先在 `name_processor.py` 转拼音，两段式姓名额外做倒序探测。**Roster anchoring (the project's core entry point)**: `build_local_database()` groups internal authorships by a normalised name fingerprint, keeping a per-OpenAlex-ID record (publication count, top raw affiliation, top concepts, collaborator set); `match_names_locally()` matches the input roster against it and ranks each name's candidate IDs as primary / historical duplicates, or "not found". Chinese names are transliterated first; two-token names are also probed reversed. |
 | `cleaner.py` | Step 1-2 | `tag_internal_nodes()`（内部/外部作者打标）、`extract_and_clean_entities()`（去噪 + 提取机构/领域实体）。Tagging + noise removal + entity extraction. |
-| `analyzer.py` | Step 3 | `build_cluster_mappings()`（SBERT 语义聚类出"排头兵"）、`apply_vanguard_mapping()`（变体坍缩为标准名）。SBERT clustering → vanguards → collapse variants. |
+| `analyzer.py` | Step 3 | `build_cluster_mappings()`（SBERT 语义聚类出"排头兵"：默认 Ward 层次聚类，变体数超过 `kmeans_switch_threshold` 时切 KMeans 控内存；每簇取最短串为排头兵，生成 Excel 模板）、`apply_vanguard_mapping()`（把变体坍缩为标准名，产出 U2.5）。**坍缩发生在人工复核之前**，所以映射表被修订后只需重放，不必重跑聚类。SBERT clustering → vanguards → collapse; collapse precedes human review, so a revised mapping is re-applied rather than re-derived. |
 | `llm_labeler.py` | Step 3.5 | `ask_llm()` / `auto_label_concepts()` / `auto_label_affiliations_batch()` / `deduplicate_standard_names()`：调用 OpenAI 兼容 API 预填映射表并去重。LLM pre-fill via OpenAI-compatible API + dedup. |
-| `assembler.py` | Step 4 | `parse_mapping_rules()` / `generate_final_u3()`：读取人工复核后的 Excel 映射，严格过滤 + 金钥匙兜底，产出 U3 黄金数据。Strict filtering + golden-key fallback → U3 gold data. |
-| `trend_analyzer.py` | Step 4.5 | `reduce_concept_dimensions()`、`generate_evolution_data()`、`generate_lab_radar_data()`、`generate_topic_distribution()`、`generate_scholar_profile()`：概念降维 + 演化/雷达/旭日图数据。Concept reduction + evolution/radar/sunburst data. |
-| `db_importer.py` | Step 5 | `extract_graph_to_csv()`（U3 → CSV）、`Neo4jImporter.execute_load()`（Cypher LOAD 入 Neo4j）。CSV export + Cypher LOAD. |
+| `assembler.py` | Step 4 | `parse_mapping_rules()` / `generate_final_u3()`：读取复核后的 Excel 映射，**严格过滤**——不在表中的概念直接剔除（但保留 `original_name` 以支撑两层旭日图），机构按 映射表 → `golden_keys` 子串兜底 → `(其他部门)` 三级解析，产出 U3 黄金数据。映射表来源由 `mapping.source` 决定（auto / ai / manual），因此人工版与 LLM 预填版可以互相**对账**。Strict filtering + golden-key fallback → U3; `mapping.source` makes human and LLM mappings diffable. |
+| `trend_analyzer.py` | Step 4.5 | `reduce_concept_dimensions()`、`generate_evolution_data()`、`generate_lab_radar_data()`、`generate_topic_distribution()`、`generate_scholar_profile()`：概念降维 + 演化/雷达/旭日图数据。概念数 ≤ `analytics.concept_clusters` 时**直接返回恒等映射**（跳过聚类与 LLM 命名）。Concept reduction + evolution/radar/sunburst data; falls back to the identity mapping when there are fewer concepts than the cluster target. |
+| `db_importer.py` | Step 5 | `extract_graph_to_csv()`（U3 + 画像表 → 节点/边 CSV）、`Neo4jImporter.execute_load()`（建索引 + Cypher `LOAD CSV`）。**身份与角色的落地处**：画像表里的主号/分身先合成 `id_alias_map`，分身 ID 一律归并到主号，避免同一人的合作记录被拆成两个节点；名单内 → `role=导师`，否则 → `研究员/学生`。**每个** `raw_affiliation_strings` 各建一条 `BELONGS_TO` 边（不只第一条），双聘因此保留；`CO_WORK.weight` 为两人共著论文数。**Where identity and role land**: historical IDs are aliased to the primary before graph build; role comes from the roster; *every* affiliation string becomes a `BELONGS_TO` edge; co-authorship weight = number of co-authored papers. |
 | `visualizer.py` | Step 6 | FastAPI 应用 + ECharts 两个页面（力导向图 `/`、情报分析 `/analytics`），提供 `start_visualizer_server()` 及后台版本。FastAPI + ECharts (force graph `/`, analytics `/analytics`). |
 | `name_processor.py` | 辅助 Aux | `build_name_mapping_dataframe()`：中文名 → 拼音（Western 格式）。Chinese → Pinyin (Western format). |
 
@@ -194,7 +198,7 @@ GUI 层 (PySide6) 横向引用 · GUI layer lateral references:
 |-----------|-----------|
 | `config/config.example.yaml` | 配置模板（提交到 Git）。首次运行复制为 `config.yaml`。Config template (committed). |
 | `config/config.yaml` | 用户实际配置（gitignored），含机构、路径、NLP、LLM、数据库、分析等节。User config (gitignored). |
-| `requirements.txt` | 核心依赖（含 NLP + GUI）。Core deps (incl. NLP + GUI). |
+| `requirements.txt` | 核心依赖（CLI + GUI，不含 NLP/ML）。Core deps (CLI + GUI, no NLP/ML). |
 | `requirements-ml.txt` | 可选 NLP/ML 依赖（sentence-transformers、scikit-learn）。Optional NLP/ML deps. |
 | `mkiv-gui.spec` | PyInstaller 打包配置。PyInstaller spec. |
 | `.github/workflows/build.yml` | CI/CD：打 `v*` tag 自动构建 Windows/Linux 包并发布到 Releases。Builds & releases on `v*` tags. |
@@ -206,7 +210,8 @@ GUI 层 (PySide6) 横向引用 · GUI layer lateral references:
 
 ```
 OpenAlex API
-    │  Step 0  crawler.py + author_matcher.py
+    │  Step 0  crawler.py
+    │           └─ data/input/0_原始导师名单.xlsx（可选）→ author_matcher.py → 0_作者匹配画像表.xlsx
     ▼
 data/01_raw/U1.json ──► Step 1  cleaner.py ──► data/02_analyzed/U1.5.json
     │  Step 2  cleaner.py
