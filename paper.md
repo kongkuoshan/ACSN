@@ -16,17 +16,19 @@ authors:
 affiliations:
   - name: Your Institution
     index: 1
-date: 08 July 2026
+date: 19 September 2026
 bibliography: paper.bib
 ---
 
 # Summary
 
-MKIV is an open-source Python toolkit that reconstructs the **internal structure** of a research institution from OpenAlex publication records. A bibliographic index does not know who an institution's people are: OpenAlex assigns global author identifiers that are split across name variants and merged across homonyms, and stores self-reported affiliation strings in which one laboratory appears under dozens of textual forms. MKIV resolves both problems by **anchoring the record to an externally supplied mentorship roster** — a plain list of names, the one piece of institutional knowledge no global index holds. The roster determines which co-authors are principal investigators, which author identifiers belong to the same real person, and therefore which non-roster co-authors are, with high probability, a given mentor's students or shared technical staff. Roster names are supplied as a spreadsheet column and transliterated to pinyin before matching where necessary.
+MKIV is an open-source Python toolkit that reconstructs the **internal structure** of a research institution from OpenAlex [@priem2022openalex] publication records. A bibliographic index does not know who an institution's people are: OpenAlex assigns global author identifiers that are split across name variants and merged across homonyms, and stores self-reported affiliation strings in which one laboratory appears under dozens of textual forms. MKIV resolves both problems by **anchoring the record to an externally supplied mentorship roster** — a plain list of names, the one piece of institutional knowledge no global index holds. The roster determines which co-authors are principal investigators, which author identifiers belong to the same real person, and therefore which non-roster co-authors are, with high probability, a given mentor's students or shared technical staff. Roster names are supplied as a spreadsheet column and transliterated to pinyin before matching where necessary.
 
-Nine stages then carry the records from a live API to a graph: crawl works for an institution identifier; match them against the roster; tag authors internal or external by institution lineage; clean affiliation strings; collapse the surviving variants by embedding-based clustering into cluster representatives; route those representatives through a human- or LLM-filled mapping spreadsheet; and assemble the result into a Neo4j property graph of Scholars, Papers, Labs, Topics and four relationship types, served to two ECharts dashboards. The techniques are conventional — SentenceTransformer embeddings [@reimers2019sentence], agglomerative clustering [@pedregosa2011scikit], a property graph, force-directed rendering — and no new algorithm is claimed. What is assembled is a reproducible path to a graph in which every internal node carries a role, every laboratory membership is an explicit edge, and every collapse decision traces back to a spreadsheet row a human approved.
+Nine stages carry the records from a live API to a graph: the works of an institution identifier are crawled and matched against the roster; authors are tagged internal or external by institution lineage; affiliation strings are cleaned; the surviving variants are collapsed by embedding-based clustering into cluster representatives; those representatives are routed through a human- or LLM-filled mapping spreadsheet; and the result is assembled into a Neo4j property graph of Scholars, Papers, Labs and Topics over four relationship types, served to two ECharts dashboards. The techniques are conventional — SentenceTransformer embeddings [@reimers2019sentence], agglomerative clustering [@pedregosa2011scikit], a property graph, force-directed rendering — and no new algorithm is claimed. What is assembled is a reproducible path to a graph in which every internal node carries a role, every laboratory membership is an explicit edge, and every collapse decision traces back to a spreadsheet row a human approved.
 
 The core is an ordinary Python package (about 6,400 lines excluding tests), importable with no graphical interface, database or network access; the PySide6 desktop application and the dashboards are optional frontends over the same pipeline. The repository ships a deterministic synthetic dataset so the pipeline runs end-to-end offline, and a hermetic `pytest` suite of nearly 200 cases runs in CI on every push and pull request. The software is distributed as the repository `ACSN`; MKIV is the engine's internal codename.
+
+A reviewer can reproduce the pipeline in two commands, neither of which contacts the network, a database, or a downloaded model. `python scripts/run_sample_pipeline.py` runs Step 1 to Step 5 over the bundled synthetic dataset — Step 3 included: the sentence encoder is replaced by a deterministic encoder whose vectors encode the dataset's ground-truth grouping, so the real clustering and template-generation code runs while the 500 MB model download is avoided, and the generated spreadsheet is filled from that same ground truth — and writes a graph-ready CSV export plus the analytics artefacts under `data/sample/_run/`. `pytest tests/` then runs the full suite, which mocks the HTTP layer and the sentence encoder and exercises the modules in isolation.
 
 # Statement of Need
 
@@ -72,7 +74,9 @@ MKIV has been exercised end-to-end on data from a research institute: on the ord
 
 # AI Usage Disclosure
 
-Generative AI tools were used extensively in producing this software, and their use is disclosed in full. **Tools and models, with the work each performed:** Gemini 3.5 Pro generated the core program body; DeepSeek V4 Pro generated the graphical interface and the pipeline orchestration code; DeepSeek V4.1 Flash drafted the prose in this paper and in the repository documentation. The assistance consisted of code generation, refactoring, test scaffolding, and drafting.
+Generative AI tools were used extensively in producing this software, and their use is disclosed in full. **Tools and models, with the work each performed:** Gemini 3.5 Pro (web interface) generated the core program body; the **Claude Code CLI**, a terminal agent harness configured to route to DeepSeek's Anthropic-compatible endpoint, drove code authoring, refactoring, test scaffolding and the drafting workflow; the models behind it were **`deepseek-v4-pro[1m]`**, which generated the graphical interface and the pipeline orchestration code, and **`deepseek-flash`**, which drafted the prose in this paper and in the repository documentation. The assistance consisted of code generation, refactoring, test scaffolding, and drafting.
+
+One consequence of that toolchain is visible in the repository history: the harness appends a `Co-Authored-By: Claude Code` trailer to commits by default. That trailer names the **harness, not the underlying model**, so its presence on a commit indicates neither which model produced the work nor how much of the work was machine-generated.
 
 **Human contribution.** The human author framed the problem, decided the decomposition of the workflow into stages, chose the roster-anchored identity resolution and the mapping-table-as-contract design, determined how the pipeline is assembled and which functions are combined, and specified the interfaces between stages. All AI-assisted output — code, tests and prose — was reviewed, validated and edited by the human author, who asserts responsibility for the accuracy, originality, licensing and ethical compliance of every submitted artefact.
 
@@ -84,11 +88,11 @@ Data is sourced from the OpenAlex API (CC0). The Sentence-BERT model is from Rei
 
 # References
 
-- Priem, J., Piwowar, H., & Orr, R. (2022). OpenAlex: A fully-open index of scholarly works, authors, venues, institutions, and concepts. arXiv:2205.01833.
-- Reimers, N., & Gurevych, I. (2019). Sentence-BERT: Sentence Embeddings using Siamese BERT-Networks. EMNLP 2019.
-- van Eck, N. J., & Waltman, L. (2010). Software survey: VOSviewer, a computer program for bibliometric mapping. Scientometrics, 84(2), 523–538.
-- Chen, C. (2006). CiteSpace II: Detecting and visualizing emerging trends and transient patterns in scientific literature. JASIST, 57(3), 359–377.
-- Aria, M., & Cuccurullo, C. (2017). bibliometrix: An R-tool for comprehensive science mapping analysis. Journal of Informetrics, 11(4), 959–975.
-- Pedregosa, F., et al. (2011). Scikit-learn: Machine Learning in Python. JMLR, 12, 2825–2830.
-- pyalex: Python interface to the OpenAlex API. https://github.com/J535D165/pyalex
-- openalexR: An R package for collecting and analysing data from OpenAlex. https://docs.ropensci.org/openalexR/
+- Priem, J., Piwowar, H., & Orr, R. (2022). OpenAlex: A fully-open index of scholarly works, authors, venues, institutions, and concepts. arXiv:2205.01833. https://arxiv.org/abs/2205.01833
+- Reimers, N., & Gurevych, I. (2019). Sentence-BERT: Sentence Embeddings using Siamese BERT-Networks. EMNLP 2019. arXiv:1908.10084. https://arxiv.org/abs/1908.10084
+- van Eck, N. J., & Waltman, L. (2010). Software survey: VOSviewer, a computer program for bibliometric mapping. Scientometrics, 84(2), 523–538. https://doi.org/10.1007/s11192-009-0146-3
+- Chen, C. (2006). CiteSpace II: Detecting and visualizing emerging trends and transient patterns in scientific literature. JASIST, 57(3), 359–377. https://doi.org/10.1002/asi.20317
+- Aria, M., & Cuccurullo, C. (2017). bibliometrix: An R-tool for comprehensive science mapping analysis. Journal of Informetrics, 11(4), 959–975. https://doi.org/10.1016/j.joi.2017.08.007
+- Pedregosa, F., et al. (2011). Scikit-learn: Machine Learning in Python. JMLR, 12, 2825–2830. https://jmlr.org/papers/v12/pedregosa11a.html
+- pyalex: Python interface to the OpenAlex API (MIT). https://github.com/J535D165/pyalex
+- openalexR: An R package for collecting and analysing data from OpenAlex (rOpenSci). https://docs.ropensci.org/openalexR/

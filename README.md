@@ -167,8 +167,10 @@ python scripts/generate_sample_data.py    # 用固定随机种子重新生成演
 python scripts/run_sample_pipeline.py     # 一条命令跑通 Step 1 → Step 5（离线）
 ```
 
-演示流程会跳过 Step 3 的 SBERT 语义聚类（样本量太小）与 Step 5 的 Neo4j 装载，
-改用恒等映射 + 预填好的映射表，因此**不需要下载模型、不需要数据库**。
+演示流程跳过 Step 5 的 Neo4j 装载；Step 3 会**照常调用流水线自己的聚类与模板生成代码**，
+只是把 SBERT 编码器换成按合成真值分组的确定性编码器，生成的映射表再由真值自动填写。
+因此**不需要下载模型、不需要数据库**，而「Step 3 出模板 → 人工填写 → Step 4 读表」
+这条契约路径仍然被真实地走了一遍。
 详见 [`data/sample/README.md`](data/sample/README.md)。
 
 ---
@@ -429,7 +431,42 @@ git tag v1.0.0 && git push origin v1.0.0
 - 可视化：[Apache ECharts](https://echarts.apache.org/)
 - 图数据库：[Neo4j](https://neo4j.com/)
 - GUI：[PySide6](https://doc.qt.io/qtforpython-6/)（LGPL）
-- 开发过程中使用了 AI 辅助编程。
+
+### AI 使用披露 · AI Usage Disclosure
+
+本项目在开发过程中**大量使用生成式 AI**。所用工具、模型与分工如实披露如下。
+
+| 工具 / 模型 | 形态与版本 | 承担的工作 |
+|---|---|---|
+| Gemini 3.5 Pro | Web 界面 | **核心程序主体**——产出量最大 |
+| Claude Code CLI | 本地 CLI（终端 agent 框架） | 代码编写与重构、测试脚手架、文档与提交流程编排 |
+| DeepSeek V4 Pro | `deepseek-v4-pro[1m]`，经 Anthropic 兼容端点调用 | GUI（`gui/`）与流水线编排（`pipelines/`）代码 |
+| DeepSeek V4.1 Flash | `deepseek-flash`，经 Anthropic 兼容端点调用 | 论文与仓库文档草稿 |
+
+> 表中 Claude Code CLI 是**承载工具**，DeepSeek 两个模型是**经由它调用的后端模型**；Gemini 则通过 Web 界面单独使用。
+>
+> **关于提交署名**：Claude Code CLI 默认会在 commit 中追加 `Co-Authored-By: Claude Code`。该署名标识的是**工具，不是底层模型**——底层模型是 DeepSeek。因此历史提交里出现该署名**不代表产出比例**，实际产出最多的模型是 Gemini。
+
+**人类作者的贡献**：问题框定、把工作流拆解为各阶段、名单锚定的身份消解与「映射表即契约」的设计、流水线的装配方式与阶段间接口的定义。**所有 AI 产出——代码、测试与文档——均经人类作者复核、验证与修改**，并由其对本项目的准确性、原创性与许可合规承担责任。
+
+**运行时组件**：本工具在 Step 3.5 提供可选的 LLM 映射预填功能（调用用户自行配置的 OpenAI 兼容接口）。它**默认关闭**；启用时结果写入独立表格并强制人工复核，未经人工裁决绝不生效；纯手工路径不接触任何外部模型。
+
+**English.** Generative AI was used extensively in developing this project, and its use is disclosed in full below.
+
+| Tool / model | Form and version | Work performed |
+|---|---|---|
+| Gemini 3.5 Pro | Web interface | **Core program body** — the largest share of output |
+| Claude Code CLI | Local CLI (terminal agent harness) | Code authoring and refactoring, test scaffolding, documentation and commit workflow |
+| DeepSeek V4 Pro | `deepseek-v4-pro[1m]`, via an Anthropic-compatible endpoint | GUI (`gui/`) and pipeline orchestration (`pipelines/`) code |
+| DeepSeek V4.1 Flash | `deepseek-flash`, via an Anthropic-compatible endpoint | Drafting of the paper and repository documentation |
+
+> Claude Code CLI in the table above is the **harness**; the two DeepSeek models are the **backend models it invokes**. Gemini was used separately through its web interface.
+>
+> **On commit attribution:** Claude Code CLI appends a `Co-Authored-By: Claude Code` trailer to commits by default. That trailer names **the tool, not the underlying model**, which is DeepSeek. Its presence in the history therefore does not reflect the share of output — Gemini produced the most.
+
+**Human contribution:** the human author framed the problem, decomposed the workflow into stages, chose the roster-anchored identity resolution and the mapping-table-as-contract design, and specified how the pipeline is assembled and how its stages interface. All AI output — code, tests and prose — was reviewed, validated and edited by the human author, who is responsible for the accuracy, originality and licensing compliance of this project.
+
+**Runtime component:** Step 3.5 offers an optional LLM pre-fill for mapping spreadsheets against a user-configured OpenAI-compatible endpoint. It is off by default; when enabled, its output goes to a separate spreadsheet under mandatory human review and is never applied without human arbitration. The manual path contacts no external model.
 
 ---
 

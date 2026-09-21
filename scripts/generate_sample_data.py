@@ -167,40 +167,29 @@ def build_mentor_dataframe():
     return pd.DataFrame({"导师姓名": MENTORS})
 
 
-def _cleaned_variants():
-    """把每个课题组的所有脏写法清洗成 Step 4 里实际出现的排头兵字符串。"""
-    mapping = {}
+def build_affiliation_ground_truth():
+    """清洗后的机构串 → 标准课题组名。这是合成数据的**真值**。
+
+    它有两个用途，都不需要手工维护一张映射表：
+      1. `run_sample_pipeline` 用它构造确定性编码器，让流水线**自己的**
+         Step 3 聚类 + 模板生成代码原样跑起来 (无需下载 SBERT 模型)；
+      2. 生成出来的模板，其「填写标准名称」列由这份真值自动填写。
+    真值只有 LABS 这一个来源，改了 LABS 不会与任何表格失配。
+    """
+    ground_truth = {}
     for canonical, variants in LABS.items():
         for raw in variants:
             cleaned = _clean_noise(raw)
             if cleaned:
-                mapping[cleaned] = canonical
-    return mapping
+                ground_truth[cleaned] = canonical
+    return ground_truth
 
 
-def build_affiliation_mapping():
-    """预填好的机构映射表 (替代 Step 3 的 SBERT 聚类 + 人工填写)。
-
-    真实使用中这张表由 Step 3 生成模板、人工或 LLM 填写；
-    演示数据里直接给出答案，好让审稿人无需下载 500MB 模型即可跑通 Step 4。
-    """
-    rows = [{
-        "簇编号": i,
-        "包含变体数": 1,
-        "🤖 AI 提取的【排头兵】": cleaned,
-        "🧑‍🔧 填写标准名称 (抄左边/填中文/不认识留空)": canonical,
-        "🔍 辅助参考 (可忽略)": "",
-    } for i, (cleaned, canonical) in enumerate(_cleaned_variants().items())]
-    return pd.DataFrame(rows)
-
-
-def build_concept_mapping():
-    """预填好的研究领域映射表。"""
-    rows = [{
-        "原始领域名称": original,
-        "填写标准大类 (如：人工智能)": category,
-    } for category, originals in TOPICS.items() for original in originals]
-    return pd.DataFrame(rows)
+def build_concept_ground_truth():
+    """原始领域名 → 标准大类 (TOPICS 的展开)。"""
+    return {original: category
+            for category, originals in TOPICS.items()
+            for original in originals}
 
 
 SAMPLE_README = """# data/sample — 合成演示数据 (SYNTHETIC / 匿名)
@@ -212,8 +201,6 @@ SAMPLE_README = """# data/sample — 合成演示数据 (SYNTHETIC / 匿名)
 |------|----------------|
 | `U1_SYNTHETIC.json` | Step 0 抓取产物 (结构与 OpenAlex `/works` 返回一致) |
 | `0_原始导师名单_SYNTHETIC.xlsx` | Step 0 作者画像匹配的输入名单 |
-| `1_机构映射表_SYNTHETIC_已填.xlsx` | Step 4 机构映射 (已填好，跳过人工填写) |
-| `2_研究领域映射表_SYNTHETIC_已填.xlsx` | Step 4 领域映射 (已填好) |
 
 数据由 `scripts/generate_sample_data.py` 以固定随机种子生成，可完全复现：
 
@@ -227,19 +214,22 @@ python scripts/generate_sample_data.py
 python scripts/run_sample_pipeline.py
 ```
 
-> 说明：演示流程**跳过 Step 3 的 SBERT 语义聚类**（样本量太小，聚类的意义不大），
-> 改用恒等映射 + 预填映射表，从而不必下载 500MB 模型。
-> 真实使用时 Step 3 会调用 `paraphrase-multilingual-MiniLM-L12-v2` 自动生成排头兵。
+**映射表不在这里，而是由流水线自己生成**：`run_sample_pipeline.py` 把 Step 3 的
+SBERT 编码器换成按合成真值分组的确定性编码器（因此不必下载 500MB 模型），
+然后调用流水线**自己的** `build_cluster_mappings()` 生成簇模板，再按同一份真值
+自动填写标准名称列，写出到 `data/sample/_run/`。这样「Step 3 出模板 → Step 4
+读表」这条契约路径在演示里是真的被走了一遍，而不是拿一张手填的表糊过去。
 
-### 运行时会看到的告警（属正常现象）
+真实使用时唯一的变化是：编码器换成 `paraphrase-multilingual-MiniLM-L12-v2`，
+标准名称列由人工 (或 Step 3.5 的 LLM 预填) 填写。
 
-跑演示时会打印若干条 `⚠️ 重名冲突: ...都映射为...`。这是**预期行为**：
-演示数据故意让同一个课题组的 3–4 种脏写法都收敛到同一个标准名，
-Step 4 发现多个「排头兵」指向同一标准名时就会提示合并。
+### 演示数据里能看到什么
 
-在真实数据上这类告警值得人工核对（它意味着两个不同实体被合并了）；
-在演示数据里它正是「坍缩生效」的证据。
-进度条与告警走 stderr，不影响产物正确性。
+三个合成课题组各写了 3 种脏写法 (缩写 / 邮箱 / 中英混排 / 带邮编国名)，清洗后得到
+9 条不同的机构串。Step 3 把它们聚成 3 簇，每簇选一个「排头兵」，Step 4 再坍缩成
+3 个标准名 —— 跑完可以打开 `_run/1_机构映射表.xlsx` 对照簇编号与变体数。
+
+进度条走 stderr，不影响产物正确性。
 """
 
 
@@ -252,10 +242,6 @@ def write_sample_dataset(out_dir=None, seed=0, n_works=60):
               os.path.join(out_dir, "U1_SYNTHETIC.json"))
     save_excel(build_mentor_dataframe(),
                os.path.join(out_dir, "0_原始导师名单_SYNTHETIC.xlsx"))
-    save_excel(build_affiliation_mapping(),
-               os.path.join(out_dir, "1_机构映射表_SYNTHETIC_已填.xlsx"))
-    save_excel(build_concept_mapping(),
-               os.path.join(out_dir, "2_研究领域映射表_SYNTHETIC_已填.xlsx"))
 
     with open(os.path.join(out_dir, "README.md"), "w", encoding="utf-8") as f:
         f.write(SAMPLE_README)

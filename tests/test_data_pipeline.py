@@ -9,7 +9,7 @@ import os
 import pandas as pd
 import pytest
 
-from generate_sample_data import TOPICS, write_sample_dataset
+from generate_sample_data import LABS, TOPICS, write_sample_dataset
 from pipelines.data_pipeline import AcademicPipeline, _save_template_if_unfilled
 from run_sample_pipeline import build_sample_config, run_sample_pipeline
 from utils.file_handler import load_excel, load_json
@@ -64,8 +64,30 @@ def test_sample_config_is_offline_and_isolated(tmp_path):
     assert cfg["mapping"]["source"] == "manual"
     assert cfg["institution"]["target_id"].endswith("I0000000")
     # 中间件全部落在临时 run 目录，绝不碰真实 data/
-    for key in ("data_u3_final", "data_u1_5_tagged", "data_trends"):
+    for key in ("data_u3_final", "data_u1_5_tagged", "data_trends",
+                "excel_aff_mapping", "excel_con_mapping"):
         assert str(tmp_path) in cfg["paths"][key]
+
+
+def test_sample_dataset_ships_inputs_only(tmp_path):
+    """演示数据只发布输入；映射表由 Step 3 现场生成，不随数据发布。"""
+    out = tmp_path / "sample"
+    write_sample_dataset(out_dir=str(out), seed=0, n_works=10)
+
+    assert sorted(p.name for p in out.iterdir()) == [
+        "0_原始导师名单_SYNTHETIC.xlsx", "README.md", "U1_SYNTHETIC.json"]
+
+
+def test_ground_truth_covers_every_cleaned_variant():
+    """真值表必须覆盖每一条清洗后的机构串，否则演示会静默失配。"""
+    from generate_sample_data import build_affiliation_ground_truth, _clean_noise
+
+    ground_truth = build_affiliation_ground_truth()
+    for variants in LABS.values():
+        for raw in variants:
+            cleaned = _clean_noise(raw)
+            if cleaned:
+                assert cleaned in ground_truth
 
 
 # --------------------------- 端到端冒烟 ---------------------------
@@ -86,6 +108,24 @@ def test_end_to_end_produces_all_artifacts(sample_run):
                  "trends.json", "lab_radar.json", "topic_sunburst.json",
                  "concept_dim_map.json", "0_作者匹配画像表.xlsx"):
         assert (sample_run / name).exists(), f"缺少产物 {name}"
+
+
+def test_end_to_end_mapping_tables_come_from_step3(sample_run):
+    """映射表必须是 Step 3 聚出来的**簇**表，而不是一条变体一行的预填表。"""
+    aff_path = sample_run / "1_机构映射表.xlsx"
+    con_path = sample_run / "2_研究领域映射表.xlsx"
+    assert aff_path.exists() and con_path.exists()
+
+    aff = load_excel(str(aff_path))
+    unique = load_json(str(sample_run / "unique.json"))
+    n_variants = len(unique["raw_affiliations"])
+
+    # 多个变体坍缩成一簇 → 行数严格少于变体数；但变体总数守恒
+    assert 0 < len(aff) < n_variants
+    assert aff["包含变体数"].sum() == n_variants
+
+    fill_col = next(c for c in aff.columns if "填写标准名称" in c)
+    assert aff[fill_col].notna().all()
 
 
 def test_end_to_end_exports_eight_neo4j_csvs(sample_run):
