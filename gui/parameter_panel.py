@@ -166,6 +166,11 @@ class ParameterPanel(QScrollArea):
         self._widgets["nlp.target_aff_clusters"] = w
         layout.addRow(w)
 
+        _, w = create_int_row("概念聚类数:", default=100, param_key="nlp.target_con_clusters",
+                              min_val=5, max_val=2000, parent=self)
+        self._widgets["nlp.target_con_clusters"] = w
+        layout.addRow(w)
+
         group.setLayout(layout)
         self._main_layout.addWidget(group)
 
@@ -428,6 +433,7 @@ class ParameterPanel(QScrollArea):
             # NLP
             nlp = self.config.get('nlp', {})
             self._set_int("nlp.target_aff_clusters", nlp.get('target_aff_clusters', 30))
+            self._set_int("nlp.target_con_clusters", nlp.get('target_con_clusters', 100))
 
             # LLM
             llm = self.config.get('llm_assistant', {})
@@ -497,6 +503,7 @@ class ParameterPanel(QScrollArea):
         if 'nlp' not in self.config:
             self.config['nlp'] = {}
         self.config['nlp']['target_aff_clusters'] = self._get_int("nlp.target_aff_clusters")
+        self.config['nlp']['target_con_clusters'] = self._get_int("nlp.target_con_clusters")
 
         # LLM
         if 'llm_assistant' not in self.config:

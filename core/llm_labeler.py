@@ -6,6 +6,19 @@ from tqdm import tqdm
 import logging
 
 
+def _normalize_api_url(api_url: str) -> str:
+    """把只写到 base 的 URL 补全为 chat/completions 端点。
+
+    KoboldCpp / vLLM 等 OpenAI 兼容服务常配成 "http://host:5001/v1"，
+    直接 POST 会 404；这里统一补成 "/v1/chat/completions"。
+    已含完整路径的 URL 原样返回。
+    """
+    url = str(api_url or '').strip().rstrip('/')
+    if url.endswith('/v1'):
+        url += '/chat/completions'
+    return url
+
+
 def ask_llm(api_url: str, system_prompt: str, user_input: str,
             temperature: float = 0, max_tokens: int = 120, timeout: int = 30) -> str:
     """底层 LLM API 请求封装"""
@@ -18,7 +31,7 @@ def ask_llm(api_url: str, system_prompt: str, user_input: str,
         "max_tokens": max_tokens
     }
     try:
-        res = requests.post(api_url, json=payload, timeout=timeout)
+        res = requests.post(_normalize_api_url(api_url), json=payload, timeout=timeout)
         res.raise_for_status()
         return res.json()['choices'][0]['message']['content'].strip()
     except Exception as e:
@@ -32,7 +45,15 @@ def ask_llm(api_url: str, system_prompt: str, user_input: str,
 
 def auto_label_concepts(df_con: pd.DataFrame, api_url: str, target_fields: str,
                         llm_cfg: dict = None) -> pd.DataFrame:
-    """为领域表(Concepts)自动预填分类"""
+    """
+    批量预填领域表(Concepts)的标准大类 (镜像机构批量模式)。
+
+    与旧版逐条请求的区别:
+      - 每批(默认 80 个)只发一次请求, 2849 概念不再等于 2849 次调用;
+      - 返回值必须命中 target_fields 白名单, 否则该行留空待人工复核;
+      - 批次 JSON 解析失败时整批留空, 绝不把原始概念名误当大类写进去;
+      - 跳过空/"nan" 排头兵 (旧版把 NaN 当有效输入发给 LLM)。
+    """
     if df_con.empty:
         return df_con
 
@@ -40,20 +61,79 @@ def auto_label_concepts(df_con: pd.DataFrame, api_url: str, target_fields: str,
     temperature = llm_cfg.get('temperature', 0)
     max_tokens = llm_cfg.get('max_tokens', 120)
     timeout = llm_cfg.get('request_timeout', 30)
+    batch_size = llm_cfg.get('batch_size', 80)
     concept_prompt = llm_cfg.get(
         'concept_prompt',
         "你是一个学术分类专家。请将输入的学科词汇归类到以下列表中的一个：[{target_fields}]。只输出分类名称，严禁任何解释。"
     )
     sys_prompt = concept_prompt.format(target_fields=target_fields)
+
+    vanguard_col = '🤖 AI 提取的【排头兵】'
+    target_col = '🧑‍🔧 填写标准大类 (如：人工智能)'
+
+    if vanguard_col not in df_con.columns:
+        logging.warning("⚠️ 领域表中找不到排头兵列，跳过 LLM 预填。")
+        return df_con
+
+    def _norm(text):
+        return str(text if text is not None else '').strip()
+
+    # 白名单: LLM 只能从这些大类里选
+    whitelist = [f.strip() for f in str(target_fields or '').split(',') if f.strip()]
+
+    vanguards = [v for v in (_norm(x) for x in df_con[vanguard_col].tolist())
+                 if v and v.lower() != 'nan']
+    if not vanguards:
+        return df_con
+
+    logging.info(f"🌌 LLM 批量领域分类: {len(vanguards)} 个排头兵 → 分批发送...")
+
+    name_map = {}
+    for batch_start in tqdm(range(0, len(vanguards), batch_size), desc="🌌 LLM 批量分类"):
+        batch = vanguards[batch_start:batch_start + batch_size]
+        numbered = "\n".join([f"{i+1}. {v}" for i, v in enumerate(batch)])
+
+        user_prompt = (
+            f"以下是 {len(batch)} 个学术研究领域/概念。\n"
+            f"请把每一个归类到下列【唯一允许】的大类之一：\n"
+            f"{', '.join(whitelist)}\n\n"
+            f"返回 JSON 格式，键是编号，值是大类名称:\n"
+            f'{{"1": "大类名", "2": "大类名", ...}}\n'
+            f"无法判断的编号请省略。\n\n"
+            f"概念列表:\n{numbered}"
+        )
+
+        # 批量返回的 JSON 比单条长得多, 按批次规模放宽 token 上限
+        batch_max_tokens = max(max_tokens, len(batch) * 16)
+
+        try:
+            result = ask_llm(api_url, sys_prompt, user_prompt,
+                             temperature=temperature, max_tokens=batch_max_tokens, timeout=timeout)
+            json_str = result.strip()
+            if json_str.startswith("```"):
+                json_str = json_str.split("\n", 1)[1].rsplit("```", 1)[0].strip()
+            if not json_str.startswith("{"):
+                json_str = "{" + json_str.split("{", 1)[1].rsplit("}", 1)[0] + "}"
+
+            batch_map = json.loads(json_str)
+
+            for num_str, label in batch_map.items():
+                idx = int(num_str) - 1
+                if 0 <= idx < len(batch):
+                    label = _norm(label)
+                    # 只接受白名单内的大类, 其余留空 (人工复核)
+                    if label in whitelist:
+                        name_map[batch[idx]] = label
+
+        except Exception as e:
+            logging.warning(f"   ⚠️ 批次 {batch_start//batch_size+1} LLM 解析失败: {e}")
+
+    # 填写结果 (未命中白名单/解析失败的排头兵保持空白)
     df_res = df_con.copy()
+    for i, row in df_res.iterrows():
+        df_res.at[i, target_col] = name_map.get(_norm(row.get(vanguard_col, '')), "")
 
-    for i, row in tqdm(df_res.iterrows(), total=len(df_res), desc="🤖 LLM 领域分类进度"):
-        raw_name = str(row.get('原始领域名称', ''))
-        if raw_name:
-            result = ask_llm(api_url, sys_prompt, raw_name,
-                             temperature=temperature, max_tokens=max_tokens, timeout=timeout)
-            df_res.at[i, "填写标准大类 (如：人工智能)"] = result
-
+    logging.info(f"   ✅ 批量分类完成: {len(vanguards)} 排头兵 → {len(set(name_map.values()))} 个唯一大类")
     return df_res
 
 

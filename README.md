@@ -187,7 +187,7 @@ python scripts/run_sample_pipeline.py     # 一条命令跑通 Step 1 → Step 5
 
 ### ② 填映射表（Step 3 → 人工/LLM → Step 4）← 唯一需要你介入的环节
 
-**为什么**：系统把数千个机构变体聚类成约 30 个「排头兵」（每簇选一个代表），把领域概念列成上百条，生成两张 Excel 模板，等你把它们翻译成规范中文名。
+**为什么**：系统把数千个机构变体聚类成约 30 个「排头兵」（每簇选一个代表），把数千条领域概念**同样聚类**成若干簇（`nlp.target_con_clusters`），每簇选一个「排头兵」，生成两张**同构**的 Excel 模板，等你把它们翻译成规范中文名。
 
 **两种方式，二选一**：
 
@@ -195,7 +195,7 @@ python scripts/run_sample_pipeline.py     # 一条命令跑通 Step 1 → Step 5
 
 1. 跑完 Step 3 后，打开 `data/input/` 下的两张表：
    - `1_机构映射表.xlsx` —— 在「填写标准名称」列，给每个排头兵填中文实验室名（如「某某重点实验室」）
-   - `2_研究领域映射表.xlsx` —— 在「填写标准大类」列，给每个领域填中文大类（人工智能 / 计算机视觉 / 生物与医学 …）
+   - `2_研究领域映射表.xlsx` —— 在「填写标准大类」列，给每个领域**排头兵**填中文大类（人工智能 / 计算机视觉 / 生物与医学 …）
 2. 保存，然后跑 Step 4。
 
 **B. LLM 自动预填**（可选）：
@@ -231,8 +231,8 @@ python scripts/run_sample_pipeline.py     # 一条命令跑通 Step 1 → Step 5
 - **Step 0 数据采集** — `crawler.py` 按机构 ID + 年份区间抓取 OpenAlex works：游标分页、逐页限速、本地缓存、429/5xx 重试，产出 `U1.json`。若提供了导师名单，`author_matcher.py` 同时建立本地作者画像库并匹配：按**姓名指纹**（小写、去 `-` / `.` / 空格）聚合内部作者，同一个人可对应多个 OpenAlex ID，逐 ID 记录发文量、高频挂靠机构、高频概念、合作者集合；输出画像表时按发文量排序，最高者为**主号**，其余标记为**历史分身**，名单上有而库里没有的记「查无此人」。中文名先在 `name_processor.py` 转拼音，两段式姓名额外做倒序探测。
 - **Step 1 靶向过滤** — `cleaner.tag_internal_nodes()` 按机构 lineage（上级机构树）判定作者是否属于本机构；官方没认出来的记录，用 `institution.fallback_keywords` 做不区分大小写的正则兜底。产出 `U1.5.json`。
 - **Step 2 硬规则清洗** — `cleaner.extract_and_clean_entities()` 剔除邮箱、5–7 位邮编、`cleaning.stop_words` 中的国家/城市名；概念只保留 `level ≤ nlp.level_threshold` 且 `score > nlp.score_threshold` 的。同时抽出两个待聚类的唯一实体集合，产出 `U2.json` + `unique.json`。
-- **Step 3 NLP 聚类** — `analyzer.build_cluster_mappings()` 用 `paraphrase-multilingual-MiniLM-L12-v2` 编码机构变体，默认 Ward 层次聚类；变体数超过 `kmeans_switch_threshold`（默认 3000）自动切 KMeans，避免 O(n²) 内存。每簇取**最短串**为「排头兵」（`vanguard_strategy` 可改为 longest），生成两张 Excel 模板 + 变体→排头兵映射字典，并立即把 U2 坍缩成 `U2_5.json`。**坍缩发生在你填表之前**，所以修订映射表只需重跑 Step 4，不必重跑聚类。
-- **Step 3.5 LLM 预填（可选）** — `llm_labeler.py` 调 OpenAI 兼容接口批量标注。结果写到**另一份** `*_AI预填版.xlsx`，绝不覆盖人工版。模型产生的重名做两轮合并：先精确同名合并，再用 difflib 按 `similarity_threshold`（默认 0.85）模糊合并跨批次命名不一致。
+- **Step 3 NLP 聚类** — `analyzer.build_cluster_mappings()` 用 `paraphrase-multilingual-MiniLM-L12-v2` 编码**机构变体与领域概念**（两条通道同款聚类），默认 Ward 层次聚类；变体数超过 `kmeans_switch_threshold`（默认 3000）自动切 KMeans，避免 O(n²) 内存。每簇取**最短串**为「排头兵」（`vanguard_strategy` 可改为 longest）：机构目标簇数 `nlp.target_aff_clusters`，领域目标簇数 `nlp.target_con_clusters`（默认 100）。生成两张**同构**的 Excel 模板 + 变体→排头兵映射字典，并立即把 U2 坍缩成 `U2_5.json`（概念的原始名保留在 `original_name`，供旭日图追溯）。**坍缩发生在你填表之前**，所以修订映射表只需重跑 Step 4，不必重跑聚类。
+- **Step 3.5 LLM 预填（可选）** — `llm_labeler.py` 调 OpenAI 兼容接口批量标注：领域与机构都走**批量**（每批 `llm_assistant.batch_size`，默认 80），领域返回的分类必须命中 `llm_assistant.concept_target_fields` 白名单，否则该行**留空待人工**（绝不把概念原文误当大类）。结果写到**另一份** `*_AI预填版.xlsx`，绝不覆盖人工版。模型产生的重名做两轮合并：先精确同名合并，再用 difflib 按 `similarity_threshold`（默认 0.85）模糊合并跨批次命名不一致。
 - **Step 4 终极组装** — `assembler.py` 解析映射表。概念**严格过滤**：表里没有的直接剔除，但原始名保留在 `original_name` 上，供旭日图做二层展开。机构三级解析：映射表精确名 → `institution.golden_keys` 子串兜底（不区分大小写）→ `labels.other_dept` 兜底。读哪份表由 `mapping.source` 决定（`auto` 优先 AI 预填版、否则人工版；`ai` / `manual` 强制指定）。产出 `U3.json`。
 - **Step 4.5 情报分析** — `trend_analyzer.py` 对标准名概念再做一次聚类降维（`analytics.concept_clusters`，可选 LLM 命名）；若概念数已不超目标簇数，**直接返回恒等映射**，跳过聚类。产出 `trends.json`（演化河流）、`lab_radar.json`（实验室倾向）、`topic_sunburst.json`（两层旭日：标准大类 → 原始概念）。
 - **Step 5 数据库导入** — `db_importer.py` 先把画像表的主号/分身合并成别名表，**分身 ID 一律归并到主号**，同一人的合作记录不会被拆成两个节点；名单命中者 `role=导师`，其余内部作者 `role=研究员/学生`。**每条**机构串都建一条 `BELONGS_TO` 边（不只第一条），双聘因此保留；`CO_WORK.weight` = 两人共著论文数。导出 CSV 后用 Cypher `LOAD CSV` 入库。
@@ -399,10 +399,81 @@ ACSN/
 
 | 节点 Node | 属性 Properties |
 |-----------|----------------|
-| Scholar | id, name, role |
+| Scholar | id, name, role, `labs[]`, `primary_lab`, `topics[]`, `primary_topic` |
 | Paper | id, title, journal, doi |
 | Lab | name |
 | Topic | name |
+
+> `labs`/`topics` 是**全部**归属（按「出现次数降序、名称升序」），`primary_lab`/`primary_topic` 是发文最多的那一项。四者在 Step 5 入库时物化写入，大屏直接读，不再查询时现算。
+> `All` affiliations and the materialized primary one are written at Step 5; the dashboard only reads them.
+
+---
+
+## 维护参考 · Maintenance Reference
+
+> 本节记录对外部接口的实测结论，用于后续升级排查。**最后校准：2026-09**（对照 OpenAlex API 当时返回）。外部接口会变，改动 `core/crawler.py` 前请重新核对。
+
+### OpenAlex Works 接口返回结构
+
+爬虫请求（`core/crawler.py`）：
+
+```
+GET https://api.openalex.org/works
+    ?filter=authorships.institutions.lineage:{机构ID},publication_year:{起始}-{结束}
+    &per-page={单页条数}&cursor=*&mailto={邮箱}
+```
+
+返回是一个**信封**，而不是数组：
+
+```jsonc
+{
+  "meta": {
+    "count": 5735,              // 该 filter 命中的总篇数 (全量, 非本页)
+    "db_response_time_ms": 42,
+    "page": null,                // cursor 分页时恒为 null
+    "per_page": 200,
+    "next_cursor": "IlsxNjA...", // 空/缺失 = 已取完最后一页
+    "groups_count": null,
+    "x_query": { "oql": "...", "oqo": { ... }, "url": "..." },
+    "cost_usd": 0.0001
+  },
+  "results": [ /* 每页最多 200 篇 work 对象 */ ]
+}
+```
+
+**两条分页硬规则**（决定了为什么必须用 cursor）：
+
+| 规则 | 数值 / 行为 |
+|------|------------|
+| 单页上限 | `per-page` 最大 **200**，超过被静默截断为 200 |
+| page 分页上限 | 只能翻到第 **10,000** 条；越界直接报错 `Maximum results size of 10,000 records is exceeded. Cursor pagination is required.` |
+| cursor 语义 | `cursor=*` 起步，用上一页的 `meta.next_cursor` 续取；`meta.page` 为 `null` |
+| 结束条件 | `meta.next_cursor` 为空 —— 爬虫据此置 `completed`，只有完整抓完才落盘缓存 |
+
+因此本项目走 cursor 全量抓取：本机构 5,735 篇（2022–2026）全部拿得到，不受 1 万条限制。
+
+### `results[]` 里本仓库实际消费的字段
+
+| JSON 路径 | 用途 | 落到哪 |
+|-----------|------|--------|
+| `id` | work 主键（`https://openalex.org/W…`，取末段） | Paper.id |
+| `title` | 论文标题 | Paper.title |
+| `doi` | DOI 链接 | Paper.doi |
+| `primary_location.source.display_name` | 期刊名 | Paper.journal |
+| `concepts[].display_name` | 研究领域（**已标准化为 13 大类**，见映射表） | Topic.name / `MAPPED_TO` |
+| `authorships[]` | 作者列表 | Scholar 节点 |
+| `authorships[].author.id` | 作者主键 | Scholar.id（**注意：可能为 `null`**，需跳过） |
+| `authorships[].author.display_name` | 作者名 | Scholar.name |
+| `authorships[].raw_affiliation_strings[]` | 机构原始字符串（**逐条**建边，双聘不丢） | Lab.name / `BELONGS_TO` |
+| `authorships[].raw_affiliation_string` | 单值兜底（老字段，仅在数组为空时使用） | 同上 |
+
+> `is_internal_node` **不是** OpenAlex 字段，是 Step 2（`cleaner.py`）按 `authorships[].institutions[].id` / `lineage` 匹配本机构后**自己打**的标记。只有它命中的作者才会成为 Scholar 节点。
+
+### 升级排查 · 三个已知坑
+
+1. **`concepts` 已冻结（2024 起）**。OpenAlex 已转向 `topics` / `primary_topic`（domain → field → subfield → topic 四层）与独立的 `keywords`。本项目仍用 `concepts` + 本地映射表，所以领域分布高度集中在「人工智能」（实测 90.8% 的学者主领域是它，因为映射表把约 47% 的概念实例归到了这一项）。若追求更均衡的领域分布，应迁移到 `primary_topic`。
+2. **`affiliations[]` 是 raw string ↔ 归一化机构 ID 的对照表**（`{raw_affiliation_string, institution_ids[]}`）。本项目**目前忽略**它，只用 `raw_affiliation_strings` 原串，靠人工/LLM 映射表归一。想减少人工映射工作量，这里是最现成的切入点。
+3. **`authorships[].author.id` 可能为 `null`**（本项目 502 条 authorship 遇到过）。任何 `x.get("id", "")` 的写法都拦不住键存在但值为 `null` 的情况，必须写 `(x.get("id") or "")`，否则 `.split("/")` 会抛 `AttributeError`。
 
 ---
 

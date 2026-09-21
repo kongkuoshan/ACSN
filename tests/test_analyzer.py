@@ -1,6 +1,6 @@
 """core/analyzer.py — 排头兵聚类与变体坍缩。
 
-机构聚类分支需要 SBERT + sklearn；测试里用假编码器替换模型加载，
+机构与领域两个通道都需要 SBERT + sklearn；测试里用假编码器替换模型加载，
 使聚类逻辑本身可以在离线、无 ML 依赖的环境下被验证。
 """
 
@@ -9,13 +9,25 @@ import pytest
 
 from core import analyzer
 
-# 四个变体 → 两个语义簇 (坐标明显分离，聚类结果确定)
+# 机构四变体 → 两个语义簇 (坐标明显分离，聚类结果确定)
 _VECTORS = {
     "Lab Alpha": [0.0, 0.0],
     "Lab Alpha Long": [0.1, 0.0],
     "Dept Beta": [10.0, 10.0],
     "Dept Beta Long": [10.1, 10.0],
 }
+
+# 领域四变体 → 两个语义簇
+_CON_VECTORS = {
+    "Alpha Topic": [0.0, 0.0],
+    "Alpha Topic Long": [0.1, 0.0],
+    "Beta Topic": [10.0, 10.0],
+    "Beta Topic Long": [10.1, 10.0],
+}
+
+CON_VANGUARD_COL = "🤖 AI 提取的【排头兵】"
+CON_STANDARD_COL = "🧑‍🔧 填写标准大类 (如：人工智能)"
+AFF_STANDARD_COL = "🧑‍🔧 填写标准名称 (抄左边/填中文/不认识留空)"
 
 
 class _FakeModel:
@@ -55,27 +67,52 @@ def test_pick_vanguard_defaults_to_shortest():
 
 # --------------------------- build_cluster_mappings: 概念通道 ---------------------------
 
-def test_concepts_channel_builds_template_without_model():
-    df_con, df_aff, variant_mapping = analyzer.build_cluster_mappings(
-        {"concepts": ["Machine Learning", "Robotics"]}, target_clusters=350
+def test_concepts_channel_clusters_variants_to_vanguards(monkeypatch):
+    _patch_model(monkeypatch, _CON_VECTORS)
+
+    df_con, df_aff, aff_map, con_map = analyzer.build_cluster_mappings(
+        {"concepts": list(_CON_VECTORS)}, target_clusters=10,
+        nlp_cfg={"target_con_clusters": 2},
     )
 
-    assert list(df_con["原始领域名称"]) == ["Machine Learning", "Robotics"]
-    assert df_con.shape[0] == 2
-    assert df_aff.empty
-    assert variant_mapping == {}
+    assert len(df_con) == 2
+    assert df_con["包含变体数"].sum() == 4
+    # 每个概念都坍缩到所在簇的排头兵 (最短名)
+    assert con_map == {
+        "Alpha Topic": "Alpha Topic",
+        "Alpha Topic Long": "Alpha Topic",
+        "Beta Topic": "Beta Topic",
+        "Beta Topic Long": "Beta Topic",
+    }
+    # 概念表列名与机构表同构, 只换"填写"列
+    assert CON_VANGUARD_COL in df_con.columns
+    assert CON_STANDARD_COL in df_con.columns
+    assert df_aff.empty and aff_map == {}
+
+
+def test_concept_cluster_target_is_capped_at_sample_size(monkeypatch):
+    """目标簇数 > 概念数时不能崩，退化为每个概念一簇。"""
+    _patch_model(monkeypatch, _CON_VECTORS)
+
+    df_con, _, _, con_map = analyzer.build_cluster_mappings(
+        {"concepts": list(_CON_VECTORS)}, target_clusters=10,
+        nlp_cfg={"target_con_clusters": 100},
+    )
+
+    assert len(df_con) == 4
+    assert con_map == {t: t for t in _CON_VECTORS}
 
 
 def test_concepts_channel_handles_empty_concepts():
-    df_con, df_aff, variant_mapping = analyzer.build_cluster_mappings(
+    df_con, df_aff, aff_map, con_map = analyzer.build_cluster_mappings(
         {"concepts": []}, target_clusters=10
     )
-    assert df_con.empty and df_aff.empty and variant_mapping == {}
+    assert df_con.empty and df_aff.empty and aff_map == {} and con_map == {}
 
 
 def test_empty_unique_data_returns_empty_everything():
-    df_con, df_aff, variant_mapping = analyzer.build_cluster_mappings({}, target_clusters=10)
-    assert df_con.empty and df_aff.empty and variant_mapping == {}
+    df_con, df_aff, aff_map, con_map = analyzer.build_cluster_mappings({}, target_clusters=10)
+    assert df_con.empty and df_aff.empty and aff_map == {} and con_map == {}
 
 
 # --------------------------- build_cluster_mappings: 机构通道 ---------------------------
@@ -83,36 +120,37 @@ def test_empty_unique_data_returns_empty_everything():
 def test_affiliation_clustering_collapses_variants_to_vanguards(monkeypatch):
     _patch_model(monkeypatch)
 
-    df_con, df_aff, variant_mapping = analyzer.build_cluster_mappings(
+    df_con, df_aff, aff_map, con_map = analyzer.build_cluster_mappings(
         {"raw_affiliations": list(_VECTORS)}, target_clusters=2
     )
 
     assert len(df_aff) == 2
     assert df_aff["包含变体数"].sum() == 4
     # 每个变体都坍缩到所在簇的排头兵 (最短名)
-    assert variant_mapping == {
+    assert aff_map == {
         "Lab Alpha": "Lab Alpha",
         "Lab Alpha Long": "Lab Alpha",
         "Dept Beta": "Dept Beta",
         "Dept Beta Long": "Dept Beta",
     }
     # 模板列名必须与 Step 4 解析的表头保持一致
-    assert "🤖 AI 提取的【排头兵】" in df_aff.columns
-    assert "🧑‍🔧 填写标准名称 (抄左边/填中文/不认识留空)" in df_aff.columns
+    assert CON_VANGUARD_COL in df_aff.columns
+    assert AFF_STANDARD_COL in df_aff.columns
     assert set(df_aff["簇编号"]) == {0, 1}
+    assert df_con.empty and con_map == {}
 
 
 def test_affiliation_clustering_respects_longest_strategy(monkeypatch):
     _patch_model(monkeypatch)
 
-    _, _, variant_mapping = analyzer.build_cluster_mappings(
+    _, _, aff_map, _ = analyzer.build_cluster_mappings(
         {"raw_affiliations": list(_VECTORS)},
         target_clusters=2,
         nlp_cfg={"vanguard_strategy": "longest"},
     )
 
-    assert variant_mapping["Lab Alpha"] == "Lab Alpha Long"
-    assert variant_mapping["Dept Beta"] == "Dept Beta Long"
+    assert aff_map["Lab Alpha"] == "Lab Alpha Long"
+    assert aff_map["Dept Beta"] == "Dept Beta Long"
 
 
 def test_affiliation_clustering_truncates_long_reference(monkeypatch):
@@ -121,7 +159,7 @@ def test_affiliation_clustering_truncates_long_reference(monkeypatch):
     vectors[long_name] = [0.05, 0.0]
     _patch_model(monkeypatch, vectors)
 
-    _, df_aff, _ = analyzer.build_cluster_mappings(
+    _, df_aff, _, _ = analyzer.build_cluster_mappings(
         {"raw_affiliations": list(vectors)},
         target_clusters=2,
         nlp_cfg={"reference_max_len": 20},
@@ -134,25 +172,47 @@ def test_affiliation_clustering_truncates_long_reference(monkeypatch):
 def test_affiliation_clustering_kmeans_branch(monkeypatch):
     _patch_model(monkeypatch)
 
-    _, df_aff, variant_mapping = analyzer.build_cluster_mappings(
+    _, df_aff, aff_map, _ = analyzer.build_cluster_mappings(
         {"raw_affiliations": list(_VECTORS)},
         target_clusters=2,
         nlp_cfg={"kmeans_switch_threshold": 1},  # 强制走 KMeans 分支
     )
 
     assert len(df_aff) == 2
-    assert set(variant_mapping) == set(_VECTORS)
+    assert set(aff_map) == set(_VECTORS)
 
 
-def test_affiliation_clustering_model_failure_returns_empty(monkeypatch):
+def test_clustering_model_failure_returns_empty(monkeypatch):
     monkeypatch.setattr(analyzer, "load_sentence_transformer", lambda name: _BrokenModel())
 
-    df_con, df_aff, variant_mapping = analyzer.build_cluster_mappings(
-        {"raw_affiliations": list(_VECTORS)}, target_clusters=2
+    df_con, df_aff, aff_map, con_map = analyzer.build_cluster_mappings(
+        {"raw_affiliations": list(_VECTORS), "concepts": list(_CON_VECTORS)},
+        target_clusters=2,
     )
 
-    # 抓取失败时必须优雅降级，而不是把异常抛给流水线
-    assert df_aff.empty and variant_mapping == {}
+    # 编码失败时必须优雅降级，而不是把异常抛给流水线
+    assert df_aff.empty and aff_map == {}
+    assert df_con.empty and con_map == {}
+
+
+def test_cluster_mappings_loads_model_once_for_both_channels(monkeypatch):
+    calls = []
+
+    def _loader(name):
+        calls.append(name)
+        return _FakeModel({**_VECTORS, **_CON_VECTORS})
+
+    monkeypatch.setattr(analyzer, "load_sentence_transformer", _loader)
+
+    df_con, df_aff, aff_map, con_map = analyzer.build_cluster_mappings(
+        {"raw_affiliations": list(_VECTORS), "concepts": list(_CON_VECTORS)},
+        target_clusters=2, nlp_cfg={"target_con_clusters": 2},
+    )
+
+    assert len(calls) == 1                      # 两通道共用一次模型加载
+    assert len(df_aff) == 2 and len(df_con) == 2
+    assert set(aff_map) == set(_VECTORS)
+    assert set(con_map) == set(_CON_VECTORS)
 
 
 # --------------------------- apply_vanguard_mapping ---------------------------
@@ -187,3 +247,42 @@ def test_apply_vanguard_mapping_without_authorships():
 
 def test_apply_vanguard_mapping_empty_input():
     assert analyzer.apply_vanguard_mapping([], {"a": "b"}) == []
+
+
+# --------------------------- apply_concept_vanguard_mapping ---------------------------
+
+def test_apply_concept_vanguard_mapping_collapses_and_keeps_original():
+    data = [{"concepts": [
+        {"display_name": "Alpha Topic Long", "level": 1},
+        {"display_name": "Gamma Topic", "level": 1},
+    ]}]
+    out = analyzer.apply_concept_vanguard_mapping(data, {"Alpha Topic Long": "Alpha Topic"})
+
+    collapsed, untouched = out[0]["concepts"]
+    assert collapsed["display_name"] == "Alpha Topic"
+    assert collapsed["original_name"] == "Alpha Topic Long"
+    # 未在映射里的概念不动 (低置信概念留给 Step 4 剔除)
+    assert untouched["display_name"] == "Gamma Topic"
+    assert "original_name" not in untouched
+
+
+def test_apply_concept_vanguard_mapping_is_idempotent():
+    data = [{"concepts": [{"display_name": "Alpha Topic Long", "level": 1}]}]
+    mapping = {"Alpha Topic Long": "Alpha Topic", "Alpha Topic": "Alpha Topic"}
+
+    analyzer.apply_concept_vanguard_mapping(data, mapping)
+    analyzer.apply_concept_vanguard_mapping(data, mapping)
+
+    c = data[0]["concepts"][0]
+    assert c["original_name"] == "Alpha Topic Long"   # 原始名不被排头兵覆盖
+    assert c["display_name"] == "Alpha Topic"
+
+
+def test_apply_concept_vanguard_mapping_without_concepts():
+    assert analyzer.apply_concept_vanguard_mapping([{"id": "W1"}], {"a": "b"}) == [{"id": "W1"}]
+
+
+def test_apply_concept_vanguard_mapping_empty_mapping():
+    data = [{"concepts": [{"display_name": "Gamma Topic"}]}]
+    out = analyzer.apply_concept_vanguard_mapping(data, {})
+    assert out[0]["concepts"][0]["display_name"] == "Gamma Topic"

@@ -7,7 +7,7 @@ from core.db_importer import extract_graph_to_csv, Neo4jImporter
 from core.crawler import run_openalex_crawler
 from core.author_matcher import build_local_database, match_names_locally
 from core.cleaner import tag_internal_nodes, extract_and_clean_entities
-from core.analyzer import build_cluster_mappings, apply_vanguard_mapping
+from core.analyzer import build_cluster_mappings, apply_vanguard_mapping, apply_concept_vanguard_mapping
 from core.assembler import parse_mapping_rules, generate_final_u3
 from core.llm_labeler import auto_label_concepts, auto_label_affiliations, auto_label_affiliations_batch, deduplicate_standard_names
 from core.trend_analyzer import reduce_concept_dimensions, generate_evolution_data, generate_lab_radar_data, generate_topic_distribution
@@ -172,7 +172,7 @@ class AcademicPipeline:
             logging.error("❌ Unique 字典读取失败，终止流水线。")
             return
 
-        df_con, df_aff, variant_mapping = build_cluster_mappings(
+        df_con, df_aff, aff_variant_mapping, con_variant_mapping = build_cluster_mappings(
             unique_data=unique_data,
             target_clusters=nlp_cfg.get('target_aff_clusters', 350),
             nlp_cfg=nlp_cfg
@@ -183,11 +183,14 @@ class AcademicPipeline:
         if not df_aff.empty:
             _save_template_if_unfilled(df_aff, paths['excel_aff_mapping'], '填写标准名称')
 
-        if variant_mapping:
+        if aff_variant_mapping or con_variant_mapping:
             u2_data = load_json(paths['data_u2_cleaned'])
             if u2_data:
-                u2_5_data = apply_vanguard_mapping(u2_data, variant_mapping)
-                save_json(u2_5_data, paths['data_u2_5_nlp'])
+                if aff_variant_mapping:
+                    u2_data = apply_vanguard_mapping(u2_data, aff_variant_mapping)
+                if con_variant_mapping:
+                    u2_data = apply_concept_vanguard_mapping(u2_data, con_variant_mapping)
+                save_json(u2_data, paths['data_u2_5_nlp'])
                 logging.info(f"✅ 完美！U2.5 中间件已成功生成: {paths['data_u2_5_nlp']}")
 
     # ================================================================

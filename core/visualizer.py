@@ -1,6 +1,7 @@
 # core/visualizer.py
 import os
 import logging
+from collections import Counter
 from fastapi import FastAPI
 from fastapi.responses import HTMLResponse
 from neo4j import GraphDatabase
@@ -22,6 +23,13 @@ NEO4J_CONNECTION_TIMEOUT = 5
 DEFAULT_ECHARTS_CDN = "https://cdn.jsdelivr.net/npm/echarts@5.4.3/dist/echarts.min.js"
 _graph_cfg = {}
 
+# 固定调色板: 按分类排序后取色, 保证同一分类在任意次启动/请求里颜色一致
+_PALETTE = [
+    "#5470c6", "#91cc75", "#fac858", "#ee6666", "#73c0de", "#3ba272", "#fc8452", "#9a60b4",
+    "#ea7ccc", "#00b4d8", "#e07a5f", "#81b29a", "#f2cc8f", "#3d405b", "#e9c46a", "#2a9d8f",
+    "#e76f51", "#6d597a", "#b56576", "#84a59d",
+]
+
 def shorten(name):
     """类别名称截断工具"""
     max_len = _graph_cfg.get('shorten_max_len', 16)
@@ -34,46 +42,31 @@ def shorten(name):
 
 @app.get("/api/graph")
 def get_graph(view: str = "admin", filter_name: str = ""):
-    limit = _graph_cfg.get('max_edges_default', 3000) if filter_name == "" else _graph_cfg.get('max_edges_filtered', 5000)
+    limit = _graph_cfg.get('max_edges_default', 3000)
     min_w = _graph_cfg.get('min_weight', 1)
     mentor_size = _graph_cfg.get('mentor_symbol_size', 32)
     staff_size = _graph_cfg.get('staff_symbol_size', 12)
+    other_unit = "其他单元"
 
+    # 过滤时对合作双方同时生效 → 得到该实验室/主题的「诱导子图」, 不再把外部合作者一并拉进来
     if view == "admin":
-        cypher = f"""
-        MATCH (s1:Scholar)
-        WHERE $f = '' OR EXISTS((s1)-[:BELONGS_TO]->(:Lab {{name: $f}}))
-        MATCH (s1)-[r:CO_WORK]-(s2:Scholar)
-        WHERE r.weight >= {min_w} AND s1.id < s2.id
-        WITH s1, s2, r
-        ORDER BY r.weight DESC LIMIT {limit}
-        OPTIONAL MATCH (s1)-[:BELONGS_TO]->(lab:Lab)
-        WITH s1, s2, r, lab.name as ln
-        WITH s1, s2, r, ln, count(*) as freq
-        ORDER BY freq DESC
-        WITH s1, s2, r, collect(ln)[0] as cat
-        RETURN s1.id as id1, s1.name as n1, s1.role as r1,
-               s2.id as id2, s2.name as n2, s2.role as r2,
-               coalesce(cat, "其他单元") as cat, r.weight as w
-        """
+        cat_attr = "primary_lab"
     else:
-        cypher = f"""
-        MATCH (s1:Scholar)
-        WHERE $f = '' OR EXISTS((s1)-[:WROTE]->(:Paper)-[:MAPPED_TO]->(:Topic {{name: $f}}))
-        MATCH (s1)-[r:CO_WORK]-(s2:Scholar)
-        WHERE r.weight >= {min_w} AND s1.id < s2.id
-        WITH s1, s2, r
-        ORDER BY r.weight DESC LIMIT {limit}
-        OPTIONAL MATCH (s1)-[:WROTE]->()-[:MAPPED_TO]->(t:Topic)
-        WITH s1, s2, r, t.name as tn
-        WITH s1, s2, r, tn, count(*) as freq
-        ORDER BY freq DESC
-        WITH s1, s2, r, collect(tn)[0] as cat
-        RETURN s1.id as id1, s1.name as n1, s1.role as r1,
-               s2.id as id2, s2.name as n2, s2.role as r2,
-               coalesce(cat, "其他单元") as cat, r.weight as w
-        """
-    
+        cat_attr = "primary_topic"
+
+    cypher = f"""
+    MATCH (s1:Scholar)
+    WHERE $f = '' OR s1.{cat_attr} = $f
+    MATCH (s1)-[r:CO_WORK]-(s2:Scholar)
+    WHERE r.weight >= {min_w} AND s1.id < s2.id
+      AND ($f = '' OR s2.{cat_attr} = $f)
+    WITH s1, s2, r
+    ORDER BY r.weight DESC LIMIT {limit}
+    RETURN s1.id as id1, s1.name as n1, s1.role as r1, s1.{cat_attr} as c1,
+           s2.id as id2, s2.name as n2, s2.role as r2, s2.{cat_attr} as c2,
+           r.weight as w
+    """
+
     with driver.session() as session:
         res = session.run(cypher, f=filter_name)
         nodes, links, seen_links = {}, [], set()
@@ -84,11 +77,11 @@ def get_graph(view: str = "admin", filter_name: str = ""):
                 if sid not in nodes:
                     is_pi = (r[f'r{i}'] == "导师")
                     nodes[sid] = {
-                        "id": sid, "name": r[f'n{i}'], 
-                        "category": shorten(r['cat']),
+                        "id": sid, "name": r[f'n{i}'],
+                        "role": r[f'r{i}'] or "未标注",
+                        "category": r[f'c{i}'] or other_unit,
                         "symbol": "diamond" if is_pi else "circle",
                         "symbolSize": mentor_size if is_pi else staff_size,
-                        "itemStyle": {"color": "#e74c3c" if is_pi else None},
                         "label": {"show": is_pi, "fontSize": 12, "fontWeight": "bold"}
                     }
 
@@ -96,36 +89,43 @@ def get_graph(view: str = "admin", filter_name: str = ""):
             if link_hash not in seen_links:
                 links.append({"source": r['id1'], "target": r['id2'], "value": r['w']})
                 seen_links.add(link_hash)
-        
-        unique_cats = list(set([n["category"] for n in nodes.values()]))
-        return {"nodes": list(nodes.values()), "links": links, "categories": [{"name": c} for c in unique_cats]}
+
+        # 分类按 (人数降序, 名称升序) 排序后固定赋色, 跨进程稳定
+        counts = Counter(n["category"] for n in nodes.values())
+        ordered = sorted(counts.items(), key=lambda kv: (-kv[1], kv[0]))
+        color_of = {name: _PALETTE[i % len(_PALETTE)] for i, (name, _) in enumerate(ordered)}
+
+        categories = [{"name": name, "color": color_of[name], "count": cnt} for name, cnt in ordered]
+        for n in nodes.values():
+            n["itemStyle"] = {"color": color_of[n["category"]]}
+
+        return {"nodes": list(nodes.values()), "links": links, "categories": categories}
 
 @app.get("/api/categories")
 def get_categories(view: str = "admin"):
-    if view == "admin":
-        query = "MATCH (s:Scholar)-[:BELONGS_TO]->(c:Lab) RETURN c.name AS name, count(DISTINCT s) as cnt ORDER BY cnt DESC"
-    else:
-        query = "MATCH (p:Paper)-[:MAPPED_TO]->(c:Topic) RETURN c.name AS name, count(DISTINCT p) as cnt ORDER BY cnt DESC"
-        
+    cat_attr = "primary_lab" if view == "admin" else "primary_topic"
+    query = (f"MATCH (s:Scholar) WHERE s.{cat_attr} IS NOT NULL AND s.{cat_attr} <> '' "
+             f"RETURN s.{cat_attr} AS name, count(s) AS cnt ORDER BY cnt DESC")
+
     with driver.session() as session:
         result = session.run(query)
-        return [{"raw": r["name"], "short": shorten(r["name"])} for r in result]
+        return [{"name": r["name"], "count": r["cnt"]} for r in result]
 
 @app.get("/api/details")
 def get_details(sid: str):
+    # 只用主归属, 避免多机构学者被 OPTIONAL MATCH 笛卡尔展开后取到任意一个机构
     cypher = """
     MATCH (s:Scholar {id: $id})
-    OPTIONAL MATCH (s)-[:BELONGS_TO]->(l:Lab)
     OPTIONAL MATCH (s)-[:WROTE]->(p:Paper)
-    RETURN s.name as name, l.name as lab, 
+    RETURN s.name as name, s.primary_lab as lab,
            collect(DISTINCT {title: p.title, doi: p.doi, journal: p.journal})[0..15] as papers
     """
     with driver.session() as session:
         res = session.run(cypher, id=sid).single()
         if not res: return {"name": "未知", "lab": "未知", "papers": []}
         return {
-            "name": res["name"], 
-            "lab": shorten(res["lab"]), 
+            "name": res["name"],
+            "lab": shorten(res["lab"]),
             "papers": [p for p in res["papers"] if p['title']]
         }
 
@@ -197,8 +197,14 @@ HTML_CONTENT = """
     <style>
         body { margin: 0; background: #0a0a0c; color: #fff; font-family: 'Segoe UI', sans-serif; overflow: hidden; }
         #main { width: 100vw; height: 100vh; }
-        .toolbar { position: absolute; top: 20px; left: 20px; z-index: 999; display: flex; gap: 10px; background: rgba(30,30,40,0.85); padding: 15px; border-radius: 12px; backdrop-filter: blur(8px); border: 1px solid #333; box-shadow: 0 4px 15px rgba(0,0,0,0.5); }
+        .toolbar { position: absolute; top: 20px; left: 20px; z-index: 999; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; max-width: calc(100vw - 40px); background: rgba(30,30,40,0.85); padding: 10px 12px; border-radius: 12px; backdrop-filter: blur(8px); border: 1px solid #333; box-shadow: 0 4px 15px rgba(0,0,0,0.5); }
         input, select, button { padding: 10px 12px; border-radius: 6px; border: 1px solid #444; background: #1e1e24; color: #fff; outline: none; font-size: 14px;}
+        /* 表单控件在 flex 行里没有显式高度时会被拉伸/撑高 (实测一行占 76~108px),
+           这里钉住高度, 并让超长的分类名不再把工具条顶出屏幕 */
+        .toolbar, .toolbar * { box-sizing: border-box; }
+        .toolbar input, .toolbar select, .toolbar button { height: 34px; line-height: 1; padding: 0 12px; }
+        .toolbar #filterSelect { max-width: 300px; }
+        .toolbar #searchInput { width: 190px; }
         button { background: #3498db; cursor: pointer; border: none; font-weight: bold; transition: 0.2s;}
         button:hover { background: #2980b9; transform: scale(1.02); }
         #sidebar { position: fixed; right: -450px; top: 0; width: 400px; height: 100vh; background: #16161a; transition: 0.4s cubic-bezier(0.4, 0, 0.2, 1); padding: 25px; box-shadow: -10px 0 30px rgba(0,0,0,0.7); z-index: 1000; overflow-y: auto; border-left: 1px solid #333; }
@@ -207,6 +213,18 @@ HTML_CONTENT = """
         .paper-card:hover { transform: translateX(-5px); }
         .close-btn { float: right; cursor: pointer; font-size: 28px; color: #666; transition: 0.2s;}
         .close-btn:hover { color: #ff4757; }
+        #legendPanel { position: fixed; left: 0; right: 0; bottom: 0; z-index: 998; background: rgba(22,22,26,0.94); border-top: 1px solid #333; padding: 6px 14px; max-height: 22vh; overflow-y: auto; font-size: 13px; backdrop-filter: blur(8px); }
+        .lg-row { display: flex; align-items: flex-start; gap: 12px; padding: 2px 0; }
+        .lg-title { color: #888; min-width: 38px; padding-top: 4px; flex: none; }
+        .lg-group { display: flex; flex-wrap: wrap; gap: 4px 14px; }
+        .lg-item { display: inline-flex; align-items: center; gap: 6px; cursor: pointer; color: #ddd; padding: 2px 6px; border-radius: 5px; user-select: none; }
+        .lg-item:hover { background: #26262c; }
+        .lg-item input { accent-color: #3498db; cursor: pointer; width: 13px; height: 13px; }
+        .lg-item.off { color: #666; }
+        .lg-swatch { width: 12px; height: 12px; border-radius: 3px; display: inline-block; flex: none; }
+        .lg-btn { padding: 4px 10px; font-size: 12px; background: #2a2a33; color: #ccc; border: 1px solid #444; border-radius: 5px; cursor: pointer; }
+        .lg-btn:hover { border-color: #666; color: #fff; }
+        #legendPanel .lg-head { display: flex; align-items: center; gap: 10px; color: #666; font-size: 12px; padding-bottom: 2px; }
     </style>
 </head>
 <body>
@@ -225,9 +243,15 @@ HTML_CONTENT = """
         <div id="s_papers"></div>
     </div>
     <div id="main"></div>
+    <div id="legendPanel"></div>
     <script>
         var myChart = echarts.init(document.getElementById('main'), 'dark');
-        var currentGraphData = null;
+        var currentGraphData = null;   // 后端返回的完整图 (未经前端勾选过滤)
+        var visibleNodes = [];         // 当前勾选后真正显示的点
+        var visibleLinks = [];
+        var catSelected = {};          // 分类名 -> 是否勾选
+        var roleSelected = {};         // 角色名 -> 是否勾选
+
         async function updateCategoryList() {
             const view = document.getElementById('viewSelect').value;
             const res = await fetch(`/api/categories?view=${view}`);
@@ -236,45 +260,180 @@ HTML_CONTENT = """
             sel.innerHTML = '<option value="">-- 全景星图 --</option>';
             categories.forEach(cat => {
                 const opt = document.createElement('option');
-                opt.value = cat.raw; opt.innerText = cat.short; sel.appendChild(opt);
+                opt.value = cat.name; opt.innerText = `${cat.name} (${cat.count})`; sel.appendChild(opt);
             });
             loadGraph();
         }
+
         async function loadGraph() {
             myChart.showLoading({text: '情报分析中...', maskColor: 'rgba(10, 10, 12, 0.8)'});
             try {
-            const view = document.getElementById('viewSelect').value;
-            const filter = document.getElementById('filterSelect').value;
-            const res = await fetch(`/api/graph?view=${view}&filter_name=${encodeURIComponent(filter)}`);
-            currentGraphData = await res.json();
-            myChart.setOption({
-                legend: { data: currentGraphData.categories.map(c => c.name), bottom: 15, type: 'scroll' },
-                tooltip: { trigger: 'item', formatter: '{b}' },
-                series: [{
-                    type: 'graph', layout: 'force',
-                    data: currentGraphData.nodes, links: currentGraphData.links, categories: currentGraphData.categories,
-                    roam: true, layoutAnimation: false, label: { position: 'right', color: '#fff', fontSize: 11 }, 
-                    force: { repulsion: 300, edgeLength: 60, gravity: 0.1 },                       
-                    emphasis: { focus: 'adjacency', lineStyle: { width: 6, opacity: 1 }, label: { show: true, fontWeight: 'bold' } },                    
-                    blur: { itemStyle: { opacity: 0.1 }, lineStyle: { opacity: 0.05 } },
-                    lineStyle: { color: 'source', curveness: 0.1, opacity: 0.4 }
-                }]
-            }, true);
+                const view = document.getElementById('viewSelect').value;
+                const filter = document.getElementById('filterSelect').value;
+                const res = await fetch(`/api/graph?view=${view}&filter_name=${encodeURIComponent(filter)}`);
+                currentGraphData = await res.json();
+
+                // 新一批数据: 勾选状态全部重置为「选中」
+                catSelected = {};
+                currentGraphData.categories.forEach(c => { catSelected[c.name] = true; });
+                roleSelected = {};
+                currentGraphData.nodes.forEach(n => { roleSelected[n.role] = true; });
+
+                renderLegend();
+                applyFilters();
             } catch(e) {
+                document.getElementById('legendPanel').innerHTML = '';
                 myChart.setOption({ title: { text: '加载失败', subtext: String(e.message || e), left: 'center', top: 'center', textStyle: { color: '#555', fontSize: 20 }, subtextStyle: { color: '#444', fontSize: 14 } } }, true);
             } finally {
                 myChart.hideLoading();
             }
         }
+
+        // ============ 自绘图例 (替代 ECharts legend, 可勾选任意分类/角色) ============
+        function _mkCheckbox(checked, onChange) {
+            const cb = document.createElement('input');
+            cb.type = 'checkbox';
+            cb.checked = checked;
+            cb.addEventListener('change', onChange);
+            return cb;
+        }
+
+        function renderLegend() {
+            const panel = document.getElementById('legendPanel');
+            panel.innerHTML = '';
+            if (!currentGraphData || currentGraphData.nodes.length === 0) return;
+
+            // 分类行
+            const row1 = document.createElement('div'); row1.className = 'lg-row';
+            const t1 = document.createElement('span'); t1.className = 'lg-title'; t1.innerText = '分类';
+            const g1 = document.createElement('div'); g1.className = 'lg-group';
+            row1.appendChild(t1); row1.appendChild(g1);
+
+            const resetBtn = document.createElement('button');
+            resetBtn.className = 'lg-btn'; resetBtn.innerText = '重置全部';
+            resetBtn.addEventListener('click', resetLegend);
+            const headCell = document.createElement('div');
+            headCell.style.marginLeft = 'auto'; headCell.appendChild(resetBtn);
+            row1.appendChild(headCell);
+
+            currentGraphData.categories.forEach(c => {
+                const on = catSelected[c.name] !== false;
+                const item = document.createElement('label');
+                item.className = 'lg-item' + (on ? '' : ' off');
+                item.appendChild(_mkCheckbox(on, ev => {
+                    catSelected[c.name] = ev.target.checked;
+                    item.classList.toggle('off', !ev.target.checked);
+                    applyFilters();
+                }));
+                const sw = document.createElement('span'); sw.className = 'lg-swatch'; sw.style.background = c.color;
+                const tx = document.createElement('span'); tx.innerText = `${c.name} (${c.count})`;
+                item.appendChild(sw); item.appendChild(tx);
+                g1.appendChild(item);
+            });
+            panel.appendChild(row1);
+
+            // 角色行
+            const roles = Array.from(new Set(currentGraphData.nodes.map(n => n.role)));
+            if (roles.length > 0) {
+                const row2 = document.createElement('div'); row2.className = 'lg-row';
+                const t2 = document.createElement('span'); t2.className = 'lg-title'; t2.innerText = '角色';
+                const g2 = document.createElement('div'); g2.className = 'lg-group';
+                row2.appendChild(t2); row2.appendChild(g2);
+                roles.forEach(r => {
+                    const on = roleSelected[r] !== false;
+                    const item = document.createElement('label');
+                    item.className = 'lg-item' + (on ? '' : ' off');
+                    item.appendChild(_mkCheckbox(on, ev => {
+                        roleSelected[r] = ev.target.checked;
+                        item.classList.toggle('off', !ev.target.checked);
+                        applyFilters();
+                    }));
+                    const tx = document.createElement('span');
+                    tx.innerText = `${r === '导师' ? '◆ 导师' : r} (${currentGraphData.nodes.filter(n => n.role === r).length})`;
+                    item.appendChild(tx);
+                    g2.appendChild(item);
+                });
+                panel.appendChild(row2);
+            }
+
+            const hint = document.createElement('div');
+            hint.className = 'lg-head';
+            hint.innerText = `当前显示 ${visibleNodes.length} / ${currentGraphData.nodes.length} 位学者 · 连线 ${visibleLinks.length}`;
+            hint.id = 'lgHint';
+            panel.appendChild(hint);
+        }
+
+        function resetLegend() {
+            Object.keys(catSelected).forEach(k => catSelected[k] = true);
+            Object.keys(roleSelected).forEach(k => roleSelected[k] = true);
+            renderLegend();
+            applyFilters();
+        }
+
+        function buildSeries() {
+            return {
+                type: 'graph', layout: 'force',
+                data: visibleNodes, links: visibleLinks,
+                roam: true, layoutAnimation: false,
+                label: { position: 'right', color: '#fff', fontSize: 11 },
+                force: { repulsion: 300, edgeLength: 60, gravity: 0.1 },
+                emphasis: { focus: 'adjacency', lineStyle: { width: 6, opacity: 1 }, label: { show: true, fontWeight: 'bold' } },
+                blur: { itemStyle: { opacity: 0.1 }, lineStyle: { opacity: 0.05 } },
+                lineStyle: { color: 'source', curveness: 0.1, opacity: 0.4 }
+            };
+        }
+
+        // 前端本地勾选过滤: 点按分类/角色筛, 边只保留两端都可见的
+        function applyFilters() {
+            if (!currentGraphData) return;
+            visibleNodes = currentGraphData.nodes.filter(n =>
+                catSelected[n.category] !== false && roleSelected[n.role] !== false);
+            const keep = new Set(visibleNodes.map(n => n.id));
+            visibleLinks = currentGraphData.links.filter(l => keep.has(l.source) && keep.has(l.target));
+            myChart.setOption({ series: [buildSeries()] }, { replaceMerge: ['series'] });
+            const hint = document.getElementById('lgHint');
+            if (hint) hint.innerText = `当前显示 ${visibleNodes.length} / ${currentGraphData.nodes.length} 位学者 · 连线 ${visibleLinks.length}`;
+        }
+
+        // 把视口平移到目标节点: 直接平移承载 view 变换的 graph group,
+        // 与用户拖拽画布是同一条路径 (ECharts 没有移动视口的公开 API,
+        // dispatchAction graphRoam 的 update 是 "none", 只发事件不平移)。
+        function moveViewToNode(node, onDone) {
+            const done = onDone || function(){};
+            try {
+                const seriesModel = myChart.getModel().getSeriesByIndex(0);
+                const view = seriesModel && myChart.getViewOfSeriesModel(seriesModel);
+                const group = view && view.group;
+                const el = seriesModel.getData().getItemGraphicEl(visibleNodes.indexOf(node));
+                const m = el && el.getComputedTransform();   // 含各级父变换的全局矩阵
+                if (!group || !m) { done(); return; }
+                // 侧栏与底部图例是浮层, 会盖住画布, 按真正可见的区域取中心
+                const sideW = document.getElementById('sidebar').offsetWidth || 0;
+                const legendH = document.getElementById('legendPanel').offsetHeight || 0;
+                const dx = (myChart.getWidth() - sideW) / 2 - m[4];
+                const dy = (myChart.getHeight() - legendH) / 2 - m[5];
+                if (!dx && !dy) { done(); return; }
+                if (group.animateTo) {
+                    group.animateTo({ x: group.x + dx, y: group.y + dy },
+                                    { duration: 450, easing: 'cubicOut', done: done });
+                } else {
+                    group.x += dx; group.y += dy; group.dirty(); done();
+                }
+            } catch (e) { done(); }   // 定位失败不应拖累聚焦与侧栏
+        }
+
         async function searchNode() {
             const query = document.getElementById('searchInput').value.toLowerCase().trim();
             if(!query) return;
-            const targetNode = currentGraphData.nodes.find(n => n.name.toLowerCase().includes(query) || n.id.toLowerCase() === query);
+            const targetNode = visibleNodes.find(n => n.name.toLowerCase().includes(query) || n.id.toLowerCase() === query);
             if(targetNode) {
                 myChart.dispatchAction({ type: 'unfocus', seriesIndex: 0 });
                 myChart.dispatchAction({ type: 'focus', seriesIndex: 0, id: targetNode.id });
-                myChart.dispatchAction({ type: 'showTip', seriesIndex: 0, dataIndex: currentGraphData.nodes.indexOf(targetNode) });
                 showDetails(targetNode.id);
+                // 提示框按节点当时的位置定位, 故等平移动画走完再弹
+                moveViewToNode(targetNode, function(){
+                    myChart.dispatchAction({ type: 'showTip', seriesIndex: 0, dataIndex: visibleNodes.indexOf(targetNode) });
+                });
             } else {
                 const res = await (await fetch(`/api/search_exact?query=${encodeURIComponent(query)}`)).json();
                 if (res.found) {

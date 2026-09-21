@@ -182,13 +182,17 @@ def run_sample_pipeline(run_dir=None, sample_dir=None):
     con_truth = build_concept_ground_truth()
 
     unique = load_json(cfg["paths"]["data_u2_unique"])
-    # 簇数 = 合成数据里实际出现的课题组数 → 层次聚类精确还原真值分组
+    # 簇数 = 合成数据里实际出现的课题组数/大类数 → 层次聚类精确还原真值分组
     pipeline.config["nlp"]["target_aff_clusters"] = len(
         {aff_truth.get(a, a) for a in unique["raw_affiliations"]}
     )
+    pipeline.config["nlp"]["target_con_clusters"] = len(
+        {con_truth.get(c, c) for c in unique["concepts"]}
+    )
 
     real_loader = analyzer.load_sentence_transformer
-    analyzer.load_sentence_transformer = lambda _name: _ground_truth_encoder(aff_truth)
+    # 机构与领域两通道共用同一个确定性编码器 (两组真值键空间不重叠)
+    analyzer.load_sentence_transformer = lambda _name: _ground_truth_encoder({**aff_truth, **con_truth})
     try:
         pipeline.run_nlp_clustering_stage()
     finally:
@@ -199,7 +203,7 @@ def run_sample_pipeline(run_dir=None, sample_dir=None):
                         source_keyword="排头兵", target_keyword="填写标准名称",
                         answers=aff_truth)
     _fill_mapping_table(cfg["paths"]["excel_con_mapping"],
-                        source_keyword="原始领域名称", target_keyword="填写标准大类",
+                        source_keyword="排头兵", target_keyword="填写标准大类",
                         answers=con_truth)
 
     # ---- Step 4 / 4.5 ----

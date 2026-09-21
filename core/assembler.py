@@ -39,9 +39,9 @@ def parse_mapping_rules(df_aff: pd.DataFrame, df_con: pd.DataFrame) -> tuple:
                 aff_map[vanguard] = std_name
         logging.info(f"   ✅ 成功加载 {len(aff_map)} 条【机构】映射规则。")
 
-    # 2. 解析领域映射表
-    CON_ORIG_KEY = '原始领域名称'
-    CON_TARGET_KEY = '填写标准大类 (如：人工智能)'
+    # 2. 解析领域映射表 (排头兵版本：与机构表同构, 只填标准大类)
+    CON_ORIG_KEY = '🤖 AI 提取的【排头兵】'
+    CON_TARGET_KEY = '🧑‍🔧 填写标准大类 (如：人工智能)'
 
     if not df_con.empty:
         # 验证表头
@@ -109,7 +109,8 @@ def generate_final_u3(u2_5_data: list, aff_map: dict, con_map: dict, golden_keys
 
                 # 生死判决：只有在 Excel 里出现的，才能活下来
                 if match_key in con_map:
-                    c['original_name'] = orig_name_raw
+                    # Step 3 坍缩时可能已保留原始概念名, 不要用排头兵覆盖它
+                    c.setdefault('original_name', orig_name_raw)
                     c['display_name'] = con_map[match_key]
                     cleaned_concepts.append(c)
                     concept_replace_count += 1

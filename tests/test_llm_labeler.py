@@ -9,8 +9,8 @@ from core import llm_labeler
 
 VANGUARD_COL = "🤖 AI 提取的【排头兵】"
 STANDARD_COL = "🧑‍🔧 填写标准名称 (抄左边/填中文/不认识留空)"
-CON_ORIG_COL = "原始领域名称"
-CON_TARGET_COL = "填写标准大类 (如：人工智能)"
+CON_ORIG_COL = "🤖 AI 提取的【排头兵】"
+CON_TARGET_COL = "🧑‍🔧 填写标准大类 (如：人工智能)"
 
 
 class _Resp:
@@ -38,7 +38,31 @@ def _aff_df(pairs):
     return pd.DataFrame([{VANGUARD_COL: v, STANDARD_COL: s} for v, s in pairs])
 
 
+# --------------------------- _normalize_api_url ---------------------------
+
+@pytest.mark.parametrize("raw,expected", [
+    ("http://192.168.1.9:5001/v1", "http://192.168.1.9:5001/v1/chat/completions"),
+    ("http://192.168.1.9:5001/v1/", "http://192.168.1.9:5001/v1/chat/completions"),
+    ("http://localhost:8080/v1/chat/completions", "http://localhost:8080/v1/chat/completions"),
+    ("http://x", "http://x"),
+])
+def test_normalize_api_url(raw, expected):
+    assert llm_labeler._normalize_api_url(raw) == expected
+
+
 # --------------------------- ask_llm ---------------------------
+
+def test_ask_llm_posts_to_normalized_url(monkeypatch):
+    seen = {}
+
+    def _post(url, json=None, timeout=None):
+        seen["url"] = url
+        return _Resp({"choices": [{"message": {"content": "ok"}}]})
+
+    monkeypatch.setattr(llm_labeler, "requests", types.SimpleNamespace(post=_post))
+    llm_labeler.ask_llm("http://192.168.1.9:5001/v1", "sys", "user")
+    assert seen["url"] == "http://192.168.1.9:5001/v1/chat/completions"
+
 
 def test_ask_llm_returns_stripped_content(monkeypatch):
     _patch_post(monkeypatch, content="  计算机科学  ")
@@ -58,15 +82,88 @@ def test_ask_llm_returns_empty_on_malformed_response(monkeypatch):
     assert llm_labeler.ask_llm("http://x", "sys", "user") == ""
 
 
-# --------------------------- auto_label_concepts ---------------------------
+# --------------------------- auto_label_concepts (批量) ---------------------------
 
-def test_auto_label_concepts_fills_target_column(monkeypatch):
-    monkeypatch.setattr(llm_labeler, "ask_llm", lambda *a, **k: "计算机科学")
-    df = pd.DataFrame({CON_ORIG_COL: ["Deep Learning", "Robotics"], CON_TARGET_COL: ["", ""]})
+def _con_df(pairs):
+    return pd.DataFrame([{CON_ORIG_COL: v, CON_TARGET_COL: s} for v, s in pairs])
+
+
+def test_auto_label_concepts_fills_whitelisted_targets(monkeypatch):
+    monkeypatch.setattr(
+        llm_labeler, "ask_llm",
+        lambda *a, **k: '{"1": "计算机科学", "2": "机器人学"}',
+    )
+    df = _con_df([("Deep Learning", ""), ("Robotics", "")])
 
     out = llm_labeler.auto_label_concepts(df, "http://x", "计算机科学, 机器人学")
 
-    assert out[CON_TARGET_COL].tolist() == ["计算机科学", "计算机科学"]
+    assert out[CON_TARGET_COL].tolist() == ["计算机科学", "机器人学"]
+
+
+def test_auto_label_concepts_rejects_non_whitelisted_target(monkeypatch):
+    monkeypatch.setattr(llm_labeler, "ask_llm", lambda *a, **k: '{"1": "玄学", "2": "机器人学"}')
+    df = _con_df([("Deep Learning", ""), ("Robotics", "")])
+
+    out = llm_labeler.auto_label_concepts(df, "http://x", "计算机科学, 机器人学")
+
+    # 不在白名单里的必须留空, 不能把自由文本当大类写进去
+    assert out[CON_TARGET_COL].tolist() == ["", "机器人学"]
+
+
+def test_auto_label_concepts_unwraps_code_fence(monkeypatch):
+    monkeypatch.setattr(
+        llm_labeler, "ask_llm",
+        lambda *a, **k: '```json\n{"1": "计算机科学"}\n```',
+    )
+    out = llm_labeler.auto_label_concepts(_con_df([("Deep Learning", "")]), "http://x",
+                                          "计算机科学, 机器人学")
+    assert out[CON_TARGET_COL].tolist() == ["计算机科学"]
+
+
+def test_auto_label_concepts_leaves_blank_on_bad_json(monkeypatch):
+    monkeypatch.setattr(llm_labeler, "ask_llm", lambda *a, **k: "对不起我不会")
+    out = llm_labeler.auto_label_concepts(_con_df([("Deep Learning", "")]), "http://x",
+                                          "计算机科学")
+    # 解析失败必须留空待人工, 绝不能把原始概念误当大类
+    assert out[CON_TARGET_COL].tolist() == [""]
+
+
+def test_auto_label_concepts_skips_nan_vanguards(monkeypatch):
+    calls = []
+
+    def _ask(api_url, sys_prompt, user_prompt, **kwargs):
+        calls.append(user_prompt)
+        return '{"1": "计算机科学"}'
+
+    monkeypatch.setattr(llm_labeler, "ask_llm", _ask)
+    df = pd.DataFrame({CON_ORIG_COL: ["Deep Learning", "nan", ""],
+                       CON_TARGET_COL: ["", "", ""]})
+
+    out = llm_labeler.auto_label_concepts(df, "http://x", "计算机科学")
+
+    assert out[CON_TARGET_COL].tolist() == ["计算机科学", "", ""]
+    assert "nan" not in calls[0]           # NaN/空排头兵不发给 LLM
+
+
+def test_auto_label_concepts_splits_into_batches(monkeypatch):
+    calls = []
+
+    def _ask(api_url, sys_prompt, user_prompt, **kwargs):
+        calls.append(user_prompt)
+        return '{"1": "计算机科学"}'
+
+    monkeypatch.setattr(llm_labeler, "ask_llm", _ask)
+    df = _con_df([(f"v{i}", "") for i in range(5)])
+
+    llm_labeler.auto_label_concepts(df, "http://x", "计算机科学",
+                                    llm_cfg={"batch_size": 2})
+
+    assert len(calls) == 3        # 5 个排头兵按每批 2 个切分
+
+
+def test_auto_label_concepts_requires_vanguard_column():
+    df = pd.DataFrame({"other": ["x"]})
+    assert llm_labeler.auto_label_concepts(df, "http://x", "计算机科学") is df
 
 
 def test_auto_label_concepts_passes_through_empty_frame():

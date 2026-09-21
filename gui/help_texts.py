@@ -131,8 +131,9 @@ HELP = {
     ),
     "paths.excel_con_mapping": (
         "领域映射表路径\n\n"
-        "NLP 提取 + 人工校验后的研究领域分类表。\n"
-        "将原始领域名称归类到标准大类。\n\n"
+        "NLP 聚类 + 人工校验后的研究领域分类表。\n"
+        "原始概念经 SBERT 聚类成若干【排头兵】，\n"
+        "人工（或 AI 预填）只需给排头兵填标准大类。\n\n"
         "默认: ./data/input/2_研究领域映射表.xlsx"
     ),
     "paths.excel_aff_mapping_ai": (
@@ -162,6 +163,16 @@ HELP = {
         "  50个部门   → 设 150-200\n\n"
         "默认值: 30 (适合 5-10 个实验室的研究所)"
     ),
+    "nlp.target_con_clusters": (
+        "概念聚类数\n\n"
+        "研究领域（概念）经 SBERT 聚类后\n"
+        "生成的【排头兵】数量。\n"
+        "聚类把数千个原始概念压缩成若干代表，\n"
+        "人工只需给这些排头兵填标准大类。\n\n"
+        "设大 → 映射表更细但更多行；\n"
+        "设小 → 一张表看清全貌但可能混类。\n\n"
+        "默认值: 100"
+    ),
 
     # === LLM 助手 ===
     "llm_assistant.enabled": (
@@ -177,12 +188,17 @@ HELP = {
         "本地部署示例:\n"
         "  • Ollama: http://localhost:11434/v1/chat/completions\n"
         "  • vLLM: http://localhost:8080/v1/chat/completions\n"
-        "  • text-generation-webui: http://localhost:5000/v1/chat/completions"
+        "  • text-generation-webui: http://localhost:5000/v1/chat/completions\n"
+        "  • KoboldCpp: http://<IP>:5001/v1\n\n"
+        "只填到 .../v1 会自动补全为 /v1/chat/completions。\n"
+        "局域网访问需让服务监听 0.0.0.0 (如 KoboldCpp --host 0.0.0.0)。"
     ),
     "llm_assistant.concept_target_fields": (
         "领域分类目标列表\n\n"
-        "LLM 将把输入的研究领域归类到这些类别之一。\n"
-        "多个类别用逗号分隔。\n\n"
+        "LLM 将把输入的研究领域【排头兵】归类到这些类别之一。\n"
+        "多个类别用逗号分隔。\n"
+        "LLM 返回值必须与其中之一完全一致，\n"
+        "否则该行留空待人工填写。\n\n"
         "示例: 人工智能, 计算机视觉, 机器人学, 自动控制, ..."
     ),
     "llm_assistant.affiliation_system_prompt": (

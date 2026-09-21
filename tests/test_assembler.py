@@ -10,8 +10,9 @@ from core.assembler import _get_standard_name, generate_final_u3, parse_mapping_
 # 列名必须与 analyzer 生成的模板逐字一致 (emoji 也是表头的一部分)
 VANGUARD_COL = "🤖 AI 提取的【排头兵】"
 STANDARD_COL = "🧑‍🔧 填写标准名称 (抄左边/填中文/不认识留空)"
-CON_ORIG_COL = "原始领域名称"
-CON_TARGET_COL = "填写标准大类 (如：人工智能)"
+# 概念表与机构表同构: 源列是聚类出的"排头兵", 只填"标准大类"
+CON_ORIG_COL = "🤖 AI 提取的【排头兵】"
+CON_TARGET_COL = "🧑‍🔧 填写标准大类 (如：人工智能)"
 
 
 def _aff_df(rows):
@@ -133,6 +134,18 @@ def test_generate_final_u3_drops_concepts_missing_from_mapping():
     assert kept[0]["display_name"] == "人工智能"
     assert kept[0]["original_name"] == "Deep Learning"
     assert stats == {"replace_count": 1, "dropped_count": 1}
+
+
+def test_generate_final_u3_preserves_original_name_from_step3():
+    """Step 3 概念坍缩时已把原始名写进 original_name, 组装时不能覆盖它。"""
+    data = _u2_5(
+        [{"display_name": "人工智能", "original_name": "Deep Learning", "level": 1}],
+        [],
+    )
+    out, _ = generate_final_u3(data, {}, {"人工智能": "人工智能"}, {})
+    kept = out[0]["concepts"][0]
+    assert kept["original_name"] == "Deep Learning"
+    assert kept["display_name"] == "人工智能"
 
 
 def test_generate_final_u3_standardizes_internal_affiliations():

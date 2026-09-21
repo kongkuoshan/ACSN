@@ -2,7 +2,7 @@
 import os, itertools, re, stat
 import pandas as pd
 from tqdm import tqdm
-from collections import defaultdict
+from collections import defaultdict, Counter
 from neo4j import GraphDatabase
 import logging
 
@@ -18,14 +18,27 @@ def _safe_text(text):
     if not text or str(text).lower() == 'nan': return "未知"
     return str(text).replace('"', "'").replace('\\', '').strip()
 
+def _rank_counts(counter):
+    """[内部辅助] 按 (出现次数降序, 名称升序) 排序, 保证结果跨进程稳定"""
+    if not counter: return []
+    return sorted(counter.items(), key=lambda kv: (-kv[1], kv[0]))
+
 def extract_graph_to_csv(u3_data: list, df_pi: pd.DataFrame, out_dir: str, labels_cfg: dict = None):
     """
     [核心逻辑] 解析 U3 和 0号表，提取点边关系并导出为 CSV。
+    同时物化每位学者的主归属/主领域 (primary_lab / primary_topic) 与全部归属 (labs / topics)。
     """
     labels_cfg = labels_cfg or {}
     mentor_role = labels_cfg.get('mentor_role', '导师')
     staff_role = labels_cfg.get('staff_role', '研究员/学生')
     other_unit = labels_cfg.get('other_unit', '其他单元')
+    # 兜底「桶」标签: 不参与主归属竞争, 只在本人没有真实机构时兜底
+    bucket_labels = {
+        labels_cfg.get('external', '外部合作机构'),
+        labels_cfg.get('other_dept', '(其他部门)'),
+        labels_cfg.get('unknown_dept', '(未知部门)'),
+        other_unit,
+    }
 
     logging.info(">> 🧬 正在将 U3 黄金数据解析为图谱网格...")
     
@@ -60,6 +73,8 @@ def extract_graph_to_csv(u3_data: list, df_pi: pd.DataFrame, out_dir: str, label
     nodes_scholar, nodes_paper, nodes_lab, nodes_topic = {}, {}, set(), set()
     rels_wrote, rels_belongs, rels_mapped = set(), set(), set()
     collab_counter = defaultdict(int)
+    lab_counter = defaultdict(Counter)     # canonical_id -> Counter(机构名)
+    topic_counter = defaultdict(Counter)   # canonical_id -> Counter(主题名)
 
     # 2. 扫描数据湖同步【组织+领域】
     for work in tqdm(u3_data, desc="织网进度"):
@@ -74,12 +89,15 @@ def extract_graph_to_csv(u3_data: list, df_pi: pd.DataFrame, out_dir: str, label
         
         nodes_paper[pid] = {"id": pid, "title": _safe_text(work.get("title")), "journal": j_name, "doi": p_doi}
         
-        # 领域提取
+        # 领域提取 (同时收集本篇主题, 供学者主领域统计)
         concepts = work.get("concepts") or []
+        work_topics = []
         for c in (concepts if isinstance(concepts, list) else []):
             if isinstance(c, dict):
                 t_name = _safe_text(c.get("display_name"))
                 if t_name != "未知":
+                    if t_name not in work_topics:
+                        work_topics.append(t_name)
                     nodes_topic.add(t_name)
                     rels_mapped.add((pid, t_name))
 
@@ -110,6 +128,10 @@ def extract_graph_to_csv(u3_data: list, df_pi: pd.DataFrame, out_dir: str, label
                 if lab_name != "未知":
                     nodes_lab.add(lab_name)
                     rels_belongs.add((canonical_id, lab_name))
+                    lab_counter[canonical_id][lab_name] += 1
+
+            for t_name in work_topics:
+                topic_counter[canonical_id][t_name] += 1
 
             rels_wrote.add((canonical_id, pid))
             p_author_ids.append(canonical_id)
@@ -118,7 +140,19 @@ def extract_graph_to_csv(u3_data: list, df_pi: pd.DataFrame, out_dir: str, label
         for u, v in itertools.combinations(p_author_ids, 2):
             collab_counter[tuple(sorted([u, v]))] += 1
 
-    # 3. 导出 CSV
+    # 3. 物化每人的主归属 / 全部归属
+    #    大屏按人着色时只读这些属性, 不再用 Cypher 现算 (现算无法正确取「最常机构」)
+    for sid, node in nodes_scholar.items():
+        labs = _rank_counts(lab_counter.get(sid))
+        real_labs = [n for n, _ in labs if n not in bucket_labels]
+        node["labs"] = "|".join(n.replace("|", " ") for n, _ in labs)
+        node["primary_lab"] = real_labs[0] if real_labs else (labs[0][0] if labs else other_unit)
+
+        topics = _rank_counts(topic_counter.get(sid))
+        node["topics"] = "|".join(n.replace("|", " ") for n, _ in topics)
+        node["primary_topic"] = topics[0][0] if topics else ""
+
+    # 4. 导出 CSV
     logging.info(f">> 💾 正在导出 CSV 至 Neo4j Import 目录: {out_dir}")
     os.makedirs(out_dir, exist_ok=True)
     pd.DataFrame(list(nodes_scholar.values())).drop_duplicates('id').to_csv(f"{out_dir}/s.csv", index=False)
@@ -157,7 +191,7 @@ class Neo4jImporter:
             sess.run("CREATE INDEX t_name_idx IF NOT EXISTS FOR (t:Topic) ON (t.name)")
 
             load_cmds = [
-                "LOAD CSV WITH HEADERS FROM 'file:///s.csv' AS row MERGE (s:Scholar {id: row.id}) SET s.name=row.name, s.role=row.role",
+                "LOAD CSV WITH HEADERS FROM 'file:///s.csv' AS row MERGE (s:Scholar {id: row.id}) SET s.name=row.name, s.role=row.role, s.labs=split(row.labs,'|'), s.primary_lab=row.primary_lab, s.topics=split(row.topics,'|'), s.primary_topic=row.primary_topic",
                 "LOAD CSV WITH HEADERS FROM 'file:///p.csv' AS row MERGE (p:Paper {id: row.id}) SET p.title=row.title, p.journal=row.journal, p.doi=row.doi",
                 "LOAD CSV WITH HEADERS FROM 'file:///l.csv' AS row MERGE (:Lab {name: row.name})",
                 "LOAD CSV WITH HEADERS FROM 'file:///t.csv' AS row MERGE (:Topic {name: row.name})",

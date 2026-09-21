@@ -44,18 +44,34 @@ class MainWindow(QMainWindow):
         ├──────────────┴───────────────────────────┤
         │ Status Bar                               │
         └──────────────────────────────────────────┘
+
+    尺寸策略: 大屏是核心, 参数面板与日志控制台都只占配角,
+    两者都被夹在上下限之间, 窗口变大时增量全部让给大屏。
     """
+
+    # 参数面板: 按窗口宽度的比例起算, 再夹到 [MIN, MAX]
+    PARAM_PANEL_RATIO = 0.24
+    PARAM_PANEL_MIN_W = 300
+    PARAM_PANEL_MAX_W = 460
+
+    # 日志控制台 (非核心): 同样按窗口高度的比例起算并夹住上限
+    LOG_DOCK_RATIO = 0.18
+    LOG_DOCK_MIN_H = 120
+    LOG_DOCK_MAX_H = 200
 
     def __init__(self):
         super().__init__()
         self.setWindowTitle("MKIV 学术情报指挥舱 — 桌面客户端")
         self.resize(1500, 850)
+        # 再小下去参数表和大屏都没法正常显示
+        self.setMinimumSize(1100, 660)
 
         # 核心组件
         self._pipeline_runner = None
         self._neo4j_manager = Neo4jManager(self)
         self._log_signal = LogSignal()
         self._config_loaded = False
+        self._initial_layout_applied = False
 
         # 构建 UI
         self._setup_menu_bar()
@@ -108,6 +124,7 @@ class MainWindow(QMainWindow):
 
         # === 工具 ===
         tools_menu = menu_bar.addMenu("工具(&T)")
+        self._tools_menu = tools_menu
 
         check_docker_action = QAction("检测 Docker 环境", self)
         check_docker_action.triggered.connect(self._check_docker)
@@ -187,8 +204,15 @@ class MainWindow(QMainWindow):
 
         splitter.addWidget(right_container)
 
-        # 初始比例 35:65
-        splitter.setSizes([420, 1080])
+        # 参数面板只吃固定意图的宽度: 拖动时不缩没, 也不无限膨胀
+        self._param_panel.setMinimumWidth(self.PARAM_PANEL_MIN_W)
+        self._param_panel.setMaximumWidth(self.PARAM_PANEL_MAX_W)
+        splitter.setChildrenCollapsible(False)
+        # 窗口变宽时增量只给右侧大屏, 不给参数面板
+        splitter.setStretchFactor(0, 0)
+        splitter.setStretchFactor(1, 1)
+
+        # 尺寸在首次显示时按窗口实际宽高算 (见 _apply_responsive_layout)
         self._splitter = splitter
 
     def _switch_view(self, view: str):
@@ -218,6 +242,11 @@ class MainWindow(QMainWindow):
 
         self._log_dock.setWidget(self._log_output)
         self.addDockWidget(Qt.BottomDockWidgetArea, self._log_dock)
+
+        # 日志是可关掉腾地方的配角, 但关掉后必须有路找回
+        self._tools_menu.addSeparator()
+        self._tools_menu.addAction(self._log_dock.toggleViewAction())
+        self._log_dock.toggleViewAction().setText("显示日志控制台(&L)")
 
         # 日志信号 -> 文本框
         self._log_signal.message.connect(self._append_log)
@@ -489,6 +518,35 @@ class MainWindow(QMainWindow):
     # ================================================================
     # 窗口事件
     # ================================================================
+
+    def showEvent(self, event):
+        """首次显示时按窗口真实尺寸定一次初始比例"""
+        super().showEvent(event)
+        self._apply_responsive_layout()
+
+    def _apply_responsive_layout(self):
+        """
+        按窗口尺寸分配非核心区域。
+
+        Qt 对 QDockWidget 是按像素记忆高度的 — 窗口变矮时它不还回空间;
+        而 QSplitter 是按比例分配增量 — 不设上限时参数面板会随宽屏无限涨。
+        两边都被夹到上限, 增量自然全部落到核心大屏。
+        """
+        if self._initial_layout_applied:
+            return
+        self._initial_layout_applied = True
+
+        w = self.width()
+        h = self.height()
+
+        left = min(max(int(w * self.PARAM_PANEL_RATIO), self.PARAM_PANEL_MIN_W),
+                   self.PARAM_PANEL_MAX_W)
+        self._splitter.setSizes([left, max(w - left, 1)])
+
+        if self._log_dock.isVisible():
+            dock_h = min(max(int(h * self.LOG_DOCK_RATIO), self.LOG_DOCK_MIN_H),
+                         self.LOG_DOCK_MAX_H)
+            self.resizeDocks([self._log_dock], [dock_h], Qt.Vertical)
 
     def closeEvent(self, event):
         """关闭窗口前的清理"""

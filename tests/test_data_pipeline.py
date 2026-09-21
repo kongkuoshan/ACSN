@@ -117,15 +117,25 @@ def test_end_to_end_mapping_tables_come_from_step3(sample_run):
     assert aff_path.exists() and con_path.exists()
 
     aff = load_excel(str(aff_path))
+    con = load_excel(str(con_path))
     unique = load_json(str(sample_run / "unique.json"))
-    n_variants = len(unique["raw_affiliations"])
 
+    n_variants = len(unique["raw_affiliations"])
     # 多个变体坍缩成一簇 → 行数严格少于变体数；但变体总数守恒
     assert 0 < len(aff) < n_variants
     assert aff["包含变体数"].sum() == n_variants
 
     fill_col = next(c for c in aff.columns if "填写标准名称" in c)
     assert aff[fill_col].notna().all()
+
+    # 领域表也必须聚成**簇** (与机构表同构)，而不是一条概念一行的直出表
+    n_concepts = len(unique["concepts"])
+    assert 0 < len(con) < n_concepts
+    assert con["包含变体数"].sum() == n_concepts
+    assert any("排头兵" in c for c in con.columns)
+
+    con_fill_col = next(c for c in con.columns if "填写标准大类" in c)
+    assert con[con_fill_col].notna().all()
 
 
 def test_end_to_end_exports_eight_neo4j_csvs(sample_run):

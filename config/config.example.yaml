@@ -56,6 +56,7 @@ paths:
 # === NLP 参数 ===
 nlp:
   target_aff_clusters: 30                   # 机构名聚类目标簇数 (建议设为实验室数量的 3~5 倍)
+  target_con_clusters: 100                  # 研究领域聚类目标簇数 (介于大类数与原始概念数之间, 越大越细)
   model_name: "paraphrase-multilingual-MiniLM-L12-v2"  # SBERT 语义模型
   score_threshold: 0.4                      # 领域置信度阈值 (score > 该值才保留)
   level_threshold: 2                        # 概念最大层级 (level<=该值保留；1=大类 2=含二级概念)
@@ -72,7 +73,7 @@ nlp:
 llm_assistant:
   enabled: false                             # 是否启用
   api_url: "http://localhost:8080/v1/chat/completions"   # OpenAI 兼容 API
-  concept_target_fields: "数学, 物理, 化学, 生物学, 计算机科学, 工程, 医学, 社会科学, 人文艺术"  # 示例分类，请按你的机构研究方向替换
+  concept_target_fields: "数学, 物理, 化学, 生物学, 计算机科学, 工程, 医学, 社会科学, 人文艺术"  # 示例分类，请按你的机构研究方向替换；LLM 输出不在其中的一律留空待人工
   affiliation_system_prompt: "你是一个机构识别专家。判断输入是否属于目标机构。如果是,输出其中文实验室/院系简称;如果不是,输出'外部合作机构'。只输出名称,不要解释。"
   temperature: 0                             # 采样温度 (0=确定性)
   max_tokens: 120                            # 单次返回最大 token
@@ -146,8 +147,8 @@ labels:
 # === 图可视化 (中心度/图规模) ===
 graph:
   min_weight: 1                              # 合作边最小权重 (低于此值不显示)
-  max_edges_default: 3000                    # 默认视图最大边数
-  max_edges_filtered: 5000                   # 过滤视图最大边数
+  max_edges_default: 3000                    # 最大边数 (全景与过滤视图统一使用, 过滤不再放大)
+  # max_edges_filtered: 已弃用 —— 过滤视图走「诱导子图」, 与全景同上限, 保证过滤后节点数不会反而变多
   mentor_symbol_size: 32                     # 导师节点大小
   staff_symbol_size: 12                      # 其他学者节点大小
   shorten_max_len: 16                        # 类别名截断长度

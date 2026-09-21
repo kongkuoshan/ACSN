@@ -1,11 +1,12 @@
 """core/db_importer.py — U3 → Neo4j CSV 导出 (不连数据库)"""
 
 import os
+from collections import Counter
 
 import pandas as pd
 import pytest
 
-from core.db_importer import _get_clean_id, _safe_text, extract_graph_to_csv
+from core.db_importer import _get_clean_id, _rank_counts, _safe_text, extract_graph_to_csv
 
 CSV_FILES = ["s.csv", "p.csv", "l.csv", "t.csv", "r_w.csv", "r_b.csv", "r_m.csv", "r_c.csv"]
 
@@ -187,3 +188,96 @@ def test_extract_graph_makes_csv_files_world_readable(tmp_path):
     extract_graph_to_csv([_u3_work()], pd.DataFrame(), str(tmp_path))
     mode = os.stat(tmp_path / "s.csv").st_mode & 0o777
     assert mode == 0o644      # Neo4j 容器需要能读到这些文件
+
+
+# --------------------- _rank_counts (主归属排序稳定性) ---------------------
+
+def test_rank_counts_sorts_by_count_desc_then_name_asc():
+    assert _rank_counts(Counter()) == []
+    assert _rank_counts(Counter({"B": 1, "A": 1, "C": 3})) == [("C", 3), ("A", 1), ("B", 1)]
+
+
+# --------------------- 主归属 / 主主题物化 ---------------------
+
+def _author(aid, affs=(), name="Alice Chen"):
+    return {"author": {"id": f"https://openalex.org/{aid}", "display_name": name},
+            "is_internal_node": True, "raw_affiliation_strings": list(affs)}
+
+
+def test_extract_graph_materializes_primary_lab_by_frequency(tmp_path):
+    works = [
+        _u3_work("W1", authors=[_author("A100", ["Lab A"])]),
+        _u3_work("W2", authors=[_author("A100", ["Lab B"])]),
+        _u3_work("W3", authors=[_author("A100", ["Lab B"])]),
+    ]
+    extract_graph_to_csv(works, pd.DataFrame(), str(tmp_path))
+
+    scholar = pd.read_csv(tmp_path / "s.csv").iloc[0]
+    assert scholar["primary_lab"] == "Lab B"          # 出现次数多者胜
+    assert scholar["labs"] == "Lab B|Lab A"           # 全部归属按 (次数降序, 名称升序)
+    assert set(pd.read_csv(tmp_path / "s.csv").columns) >= {"labs", "primary_lab", "topics", "primary_topic"}
+
+
+def test_extract_graph_primary_lab_breaks_tie_by_name(tmp_path):
+    works = [
+        _u3_work("W1", authors=[_author("A100", ["Lab B"])]),
+        _u3_work("W2", authors=[_author("A100", ["Lab A"])]),
+    ]
+    extract_graph_to_csv(works, pd.DataFrame(), str(tmp_path))
+    assert pd.read_csv(tmp_path / "s.csv").iloc[0]["primary_lab"] == "Lab A"
+
+
+def test_extract_graph_bucket_labels_do_not_win_primary_lab(tmp_path):
+    """外部合作机构出现更多次, 也不能压过真实机构。"""
+    works = [
+        _u3_work("W1", authors=[_author("A100", ["外部合作机构"])]),
+        _u3_work("W2", authors=[_author("A100", ["外部合作机构"])]),
+        _u3_work("W3", authors=[_author("A100", ["Real Lab"])]),
+    ]
+    extract_graph_to_csv(works, pd.DataFrame(), str(tmp_path))
+
+    scholar = pd.read_csv(tmp_path / "s.csv").iloc[0]
+    assert scholar["primary_lab"] == "Real Lab"
+    assert scholar["labs"] == "外部合作机构|Real Lab"   # 桶仍保留在全部归属里
+
+
+def test_extract_graph_primary_lab_falls_back_to_bucket(tmp_path):
+    works = [_u3_work("W1", authors=[_author("A100", ["外部合作机构"])])]
+    extract_graph_to_csv(works, pd.DataFrame(), str(tmp_path))
+    assert pd.read_csv(tmp_path / "s.csv").iloc[0]["primary_lab"] == "外部合作机构"
+
+
+def test_extract_graph_primary_lab_defaults_to_other_unit(tmp_path):
+    works = [_u3_work("W1", authors=[_author("A100")])]   # 无任何机构字符串
+    extract_graph_to_csv(works, pd.DataFrame(), str(tmp_path))
+    assert pd.read_csv(tmp_path / "s.csv").iloc[0]["primary_lab"] == "其他单元"
+
+
+def test_extract_graph_materializes_primary_topic(tmp_path):
+    works = [
+        _u3_work("W1", concepts=["AI"], authors=[_author("A100", ["Lab A"])]),
+        _u3_work("W2", concepts=["AI"], authors=[_author("A100", ["Lab A"])]),
+        _u3_work("W3", concepts=["Bio"], authors=[_author("A100", ["Lab A"])]),
+    ]
+    extract_graph_to_csv(works, pd.DataFrame(), str(tmp_path))
+
+    scholar = pd.read_csv(tmp_path / "s.csv").iloc[0]
+    assert scholar["primary_topic"] == "AI"
+    assert scholar["topics"] == "AI|Bio"
+
+
+def test_extract_graph_aliases_historical_ids_share_materialized_primary(tmp_path):
+    """分身与主号是同一人: 机构计数必须合并, 不能各算一份。"""
+    rows = [("Alice Chen", "https://openalex.org/A100", "主号"),
+            ("Alice Chen", "https://openalex.org/A900", "历史分身")]
+    works = [
+        _u3_work("W1", authors=[_author("A100", ["Lab A"])]),
+        _u3_work("W2", authors=[_author("A900", ["Lab A"])]),
+        _u3_work("W3", authors=[_author("A900", ["Lab B"])]),
+    ]
+    extract_graph_to_csv(works, _mentor_df(rows), str(tmp_path))
+
+    scholars = pd.read_csv(tmp_path / "s.csv")
+    assert len(scholars) == 1
+    assert scholars.iloc[0]["id"] == "A100"           # 归并到主号
+    assert scholars.iloc[0]["labs"] == "Lab A|Lab B"  # 两个 ID 的机构计数已合并
