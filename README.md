@@ -509,7 +509,7 @@ git tag v1.0.0 && git push origin v1.0.0
 
 | 工具 / 模型 | 形态与版本 | 承担的工作 |
 |---|---|---|
-| Gemini 3.5 Pro | Web 界面 | **核心程序主体**——产出量最大 |
+| Gemini 3.1 Pro | Web 界面 | **核心程序主体**——产出量最大 |
 | Claude Code CLI | 本地 CLI（终端 agent 框架） | 代码编写与重构、测试脚手架、文档与提交流程编排 |
 | DeepSeek V4 Pro | `deepseek-v4-pro[1m]`，经 Anthropic 兼容端点调用 | GUI（`gui/`）与流水线编排（`pipelines/`）代码 |
 | DeepSeek V4.1 Flash | `deepseek-flash`，经 Anthropic 兼容端点调用 | 论文与仓库文档草稿 |
@@ -526,7 +526,7 @@ git tag v1.0.0 && git push origin v1.0.0
 
 | Tool / model | Form and version | Work performed |
 |---|---|---|
-| Gemini 3.5 Pro | Web interface | **Core program body** — the largest share of output |
+| Gemini 3.1 Pro | Web interface | **Core program body** — the largest share of output |
 | Claude Code CLI | Local CLI (terminal agent harness) | Code authoring and refactoring, test scaffolding, documentation and commit workflow |
 | DeepSeek V4 Pro | `deepseek-v4-pro[1m]`, via an Anthropic-compatible endpoint | GUI (`gui/`) and pipeline orchestration (`pipelines/`) code |
 | DeepSeek V4.1 Flash | `deepseek-flash`, via an Anthropic-compatible endpoint | Drafting of the paper and repository documentation |
